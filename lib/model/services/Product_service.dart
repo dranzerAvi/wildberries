@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/data/bannerAds.dart';
 import 'package:mrpet/model/data/brands.dart';
@@ -27,6 +28,21 @@ getProdProducts(ProductsNotifier productsNotifier) async {
   });
 
   productsNotifier.productsList = _prodProductsList;
+}
+
+getCat(CategoryNotifier categoryNotifier) async {
+  QuerySnapshot snapshot =
+      await FirebaseFirestore.instance.collection("Categories").get();
+
+  List<Cat> _cat = [];
+
+  snapshot.docs.forEach((document) {
+    Cat c = Cat.fromMap(document.data());
+
+    _cat.add(c);
+  });
+
+  categoryNotifier.productsList = _cat;
 }
 
 //Adding users' product to cart

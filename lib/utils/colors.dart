@@ -12,4 +12,6 @@ class MColors {
   static const Color dashBlue = const Color(0xFFDFF0FC);
   static const Color dashPurple = const Color(0xFFE2DDF9);
   static const Color dashAmber = const Color(0xFFF2E4D7);
+  static const Color mainColor = const Color(0xffd6e15b);
+  static const Color secondaryColor = const Color(0xff722b74);
 }

@@ -71,3 +71,20 @@ class ProdProducts {
     };
   }
 }
+
+class Cat {
+  String productImage;
+  String name;
+
+  Cat.fromMap(Map<String, dynamic> data) {
+    productImage = data["imageURL"];
+    name = data["catName"];
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'imageURL': productImage,
+      'catName': name,
+    };
+  }
+}

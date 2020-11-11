@@ -23,3 +23,22 @@ class ProductsNotifier with ChangeNotifier {
     notifyListeners();
   }
 }
+
+class CategoryNotifier with ChangeNotifier {
+  List<Cat> _catList = [];
+  Cat _cat;
+
+  UnmodifiableListView<Cat> get catList => UnmodifiableListView(_catList);
+
+  Cat get currentProdProduct => _cat;
+
+  set productsList(List<Cat> catList) {
+    _catList = catList;
+    notifyListeners();
+  }
+
+  set currentProdProduct(Cat cat) {
+    _cat = cat;
+    notifyListeners();
+  }
+}

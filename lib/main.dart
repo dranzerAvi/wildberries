@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mrpet/widgets/root_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'model/notifiers/bannerAd_notifier.dart';
@@ -17,7 +18,6 @@ import 'screens/getstarted_screens/intro_screen.dart';
 import 'screens/getstarted_screens/splash_screen.dart';
 import 'utils/colors.dart';
 import 'widgets/provider.dart';
-import 'widgets/tabsLayout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,6 +91,9 @@ class _HomeControllerState extends State<HomeController> {
                           create: (context) => ProductsNotifier(),
                         ),
                         ChangeNotifierProvider(
+                          create: (context) => CategoryNotifier(),
+                        ),
+                        ChangeNotifierProvider(
                           create: (context) => BrandsNotifier(),
                         ),
                         ChangeNotifierProvider(
@@ -112,7 +115,7 @@ class _HomeControllerState extends State<HomeController> {
                           create: (context) => BannerAdNotifier(),
                         ),
                       ],
-                      child: TabsLayout(),
+                      child: RootScreen(),
                     )
                   : IntroScreen(),
             );
