@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/data/Products.dart';
@@ -20,7 +21,9 @@ class ProductDetailsProv extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<CartNotifier>(
       create: (BuildContext context) => CartNotifier(),
-      child: ProductDetails(prodDetails, prods),
+      child: ChangeNotifierProvider<WishlistNotifier>(
+          create: (BuildContext context) => WishlistNotifier(),
+          child: ProductDetails(prodDetails, prods)),
     );
   }
 }
@@ -48,6 +51,9 @@ class _ProductDetailsState extends State<ProductDetails> {
     CartNotifier cartNotifier =
         Provider.of<CartNotifier>(context, listen: false);
     getCart(cartNotifier);
+    WishlistNotifier wishlistNotifier =
+        Provider.of<WishlistNotifier>(context, listen: false);
+    getWishlist(wishlistNotifier);
 
     super.initState();
   }
@@ -56,7 +62,8 @@ class _ProductDetailsState extends State<ProductDetails> {
   Widget build(BuildContext context) {
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     var cartList = cartNotifier.cartList;
-
+    WishlistNotifier wishlistNotifier = Provider.of<WishlistNotifier>(context);
+    var wishlistList = wishlistNotifier.wishlistList;
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: MColors.primaryWhite,
@@ -164,11 +171,36 @@ class _ProductDetailsState extends State<ProductDetails> {
         body: _buildProductDetails(prodDetails),
       ),
       bottomNavigationBar: Container(
+        // height: 100,
+        width: MediaQuery.of(context).size.width,
         color: MColors.primaryWhiteSmoke,
         padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-        child: primaryButtonPurple(
-          Text("Add to bag", style: boldFont(MColors.primaryWhite, 16.0)),
-          _isbuttonDisabled ? null : () => _submit(cartNotifier),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Container(
+              // height: 40,
+              width: MediaQuery.of(context).size.width * 0.4,
+              child: primaryButtonPurple(
+                Text(
+                  " Add to Wishlist ",
+                  style: boldFont(MColors.primaryWhite, 16.0),
+                  textAlign: TextAlign.center,
+                ),
+                _isbuttonDisabled
+                    ? null
+                    : () => _submitWishlist(wishlistNotifier),
+              ),
+            ),
+            Container(
+              // height: 40,
+              width: MediaQuery.of(context).size.width * 0.4,
+              child: primaryButtonPurple(
+                Text("Add to bag", style: boldFont(MColors.primaryWhite, 16.0)),
+                _isbuttonDisabled ? null : () => _submit(cartNotifier),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -536,6 +568,43 @@ class _ProductDetailsState extends State<ProductDetails> {
         );
         setState(() {
           getCart(cartNotifier);
+          isCartBadge = true;
+          _isProductadded = true;
+        });
+      }
+    } catch (e) {
+      print("ERRORR ==>");
+      print(e);
+    }
+  }
+
+  void _submitWishlist(wishlistNotifier) {
+    var wishlistProdID = wishlistNotifier.wishlistList.map((e) => e.productID);
+    setState(() {
+      getWishlist(wishlistNotifier);
+    });
+
+    try {
+      if (wishlistProdID.contains(prodDetails.productID)) {
+        showSimpleSnack(
+          "Product already in Wishlist",
+          Icons.error_outline,
+          Colors.amber,
+          _scaffoldKey,
+        );
+      } else {
+        prodDetails.quantity = quantity;
+        prodDetails.totalPrice = prodDetails.price * prodDetails.quantity;
+
+        addProductToWishlist(prodDetails);
+        showSimpleSnack(
+          "Product added to Wishlist",
+          Icons.check_circle_outline,
+          Colors.green,
+          _scaffoldKey,
+        );
+        setState(() {
+          getCart(wishlistNotifier);
           isCartBadge = true;
           _isProductadded = true;
         });

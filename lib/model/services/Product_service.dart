@@ -5,11 +5,13 @@ import 'package:mrpet/model/data/bannerAds.dart';
 import 'package:mrpet/model/data/brands.dart';
 import 'package:mrpet/model/data/cart.dart';
 import 'package:mrpet/model/data/orders.dart';
+import 'package:mrpet/model/data/wishlist.dart';
 import 'package:mrpet/model/notifiers/bannerAd_notifier.dart';
 import 'package:mrpet/model/notifiers/brands_notifier.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/orders_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
+import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/auth_service.dart';
 
 final db = FirebaseFirestore.instance;
@@ -53,6 +55,21 @@ addProductToCart(product) async {
       .collection("userCart")
       .doc(uEmail)
       .collection("cartItems")
+      .doc(product.productID)
+      .set(product.toMap())
+      .catchError((e) {
+    print(e);
+  });
+}
+
+//Adding users' product to wishlist
+addProductToWishlist(product) async {
+  final uEmail = await AuthService().getCurrentEmail();
+
+  await db
+      .collection("userWishlist")
+      .doc(uEmail)
+      .collection("wishlistItems")
       .doc(product.productID)
       .set(product.toMap())
       .catchError((e) {
@@ -112,6 +129,26 @@ getCart(CartNotifier cartNotifier) async {
   cartNotifier.cartList = _cartList;
 }
 
+//Getting users' wishlist
+getWishlist(WishlistNotifier wishlistNotifier) async {
+  final uEmail = await AuthService().getCurrentEmail();
+
+  QuerySnapshot snapshot = await FirebaseFirestore.instance
+      .collection("userWishlist")
+      .doc(uEmail)
+      .collection("wishlistItems")
+      .get();
+
+  List<Wishlist> _wishlistList = [];
+
+  snapshot.docs.forEach((document) {
+    Wishlist wishlist = Wishlist.fromMap(document.data());
+    _wishlistList.add(wishlist);
+  });
+
+  wishlistNotifier.wishlistList = _wishlistList;
+}
+
 //Adding item quantity, Price and updating data in cart
 addAndApdateData(cartItem) async {
   final uEmail = await AuthService().getCurrentEmail();
@@ -159,6 +196,18 @@ removeItemFromCart(cartItem) async {
       .doc(uEmail)
       .collection("cartItems")
       .doc(cartItem.productID)
+      .delete();
+}
+
+//Removing item from cart
+removeItemFromWishlist(wishlistItem) async {
+  final uEmail = await AuthService().getCurrentEmail();
+
+  await db
+      .collection("userWishlist")
+      .doc(uEmail)
+      .collection("wishlistItems")
+      .doc(wishlistItem.productID)
       .delete();
 }
 
