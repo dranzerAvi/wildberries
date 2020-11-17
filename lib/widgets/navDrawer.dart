@@ -164,7 +164,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ? Container(
                       // alignment: Alignment.center,
                       height: 80,
-                      color: MColors.secondaryColor,
+                      color: MColors.mainColor,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -184,14 +184,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               children: <Widget>[
                                 Text(
                                   user.name,
-                                  style: normalFont(
-                                      MColors.primaryWhiteSmoke, 14.0),
+                                  style:
+                                      normalFont(MColors.secondaryColor, 14.0),
                                   textAlign: TextAlign.start,
                                 ),
                                 Text(
                                   user.email,
-                                  style: normalFont(
-                                      MColors.primaryWhiteSmoke, 14.0),
+                                  style:
+                                      normalFont(MColors.secondaryColor, 14.0),
                                   textAlign: TextAlign.start,
                                 ),
                               ],

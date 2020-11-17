@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geocoder/geocoder.dart';
+import 'package:geolocation/geolocation.dart';
+import 'package:geolocation/geolocation.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import 'package:geolocator/geolocator.dart' as gl;
 import 'package:geolocator/geolocator.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/notifiers/bannerAd_notifier.dart';
@@ -20,6 +28,7 @@ import 'package:mrpet/utils/internetConnectivity.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/custom_floating_button.dart';
 import 'package:mrpet/widgets/navDrawer.dart';
+import 'package:place_picker/place_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   @override
   void initState() {
+    // addDishParams();
     checkInternetConnectivity().then((value) => {
           value == true
               ? () {
@@ -64,12 +74,25 @@ class _HomeScreenState extends State<HomeScreen>
 
   var currentLocationAddress = 'Dubai, UAE';
 
+  var result;
+
+  void showPlacePicker() async {
+    result = await Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) =>
+            PlacePicker("AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw")));
+    setState(() {
+      currentLocationAddress = result.formattedAddress;
+    });
+    // Handle the result in your way
+    print(currentLocationAddress);
+  }
+
   getUserCurrentLocation() async {
     String error;
 
     try {
       Position position = await Geolocator()
-          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+          .getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
       final coordinates = Coordinates(position.latitude, position.longitude);
       var addresses =
           await Geocoder.local.findAddressesFromCoordinates(coordinates);
@@ -96,6 +119,24 @@ class _HomeScreenState extends State<HomeScreen>
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final PageStorageBucket searchBucket = PageStorageBucket();
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,12 +189,13 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               InkWell(
                   onTap: () {
-                    launch('tel:+919027553376');
+                    launchWhatsApp(
+                        phone: '7060222315',
+                        message: 'Check out this awesome app');
                   },
-                  child: Image.asset(
-                    'assets/images/whatsapp.svg',
-                    width: 30,
-                  )),
+                  child: Container(
+                      alignment: Alignment.center,
+                      child: FaIcon(FontAwesomeIcons.whatsapp))),
               SizedBox(
                 width: 8,
               ),
@@ -289,9 +331,12 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ],
                               ),
-                              Icon(
-                                Icons.edit,
-                                color: MColors.textGrey,
+                              InkWell(
+                                onTap: showPlacePicker,
+                                child: Icon(
+                                  Icons.edit,
+                                  color: MColors.textGrey,
+                                ),
                               ),
                             ]),
                       ),
@@ -444,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen>
                       var _prods = newP.toList();
 
                       return blockWigdet(
-                        "NEW",
+                        "Our Sale",
                         "Newly released products",
                         _picHeight,
                         itemHeight,
@@ -455,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen>
                         context,
                         prods,
                         () async {
-                          var title = "New";
+                          var title = "SALE";
 
                           var navigationResult =
                               await Navigator.of(context).push(
@@ -477,26 +522,45 @@ class _HomeScreenState extends State<HomeScreen>
                     },
                   ),
 
-                  SizedBox(height: 20),
-
                   //BRANDS
+                  // Container(
+                  //   child: Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       Padding(
+                  //         padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  //         child: Text(
+                  //           "POPULAR BRANDS",
+                  //           style: boldFont(MColors.textDark, 16.0),
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+
+                  SizedBox(height: 10),
                   Container(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                          child: Text(
-                            "POPULAR BRANDS",
-                            style: boldFont(MColors.textDark, 16.0),
-                          ),
-                        ),
+                    width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.symmetric(horizontal: 5.0),
+                    decoration: BoxDecoration(
+                      color: MColors.primaryWhite,
+                      boxShadow: [
+                        BoxShadow(
+                            color: Color.fromRGBO(0, 0, 0, 0.03),
+                            offset: Offset(0, 10),
+                            blurRadius: 10,
+                            spreadRadius: 0),
                       ],
                     ),
+                    child: FadeInImage.assetNetwork(
+                      image:
+                          'https://firebasestorage.googleapis.com/v0/b/mrpet-3387f.appspot.com/o/Banners%2F02-winter-1.jpg?alt=media&token=4a817f15-9e32-4946-8dfd-43dc32928fca',
+                      fit: BoxFit.fill,
+                      placeholder: "assets/images/placeholder.jpg",
+                      placeholderScale: MediaQuery.of(context).size.width / 2,
+                    ),
                   ),
-
-                  SizedBox(height: 20),
-
+                  SizedBox(height: 10),
                   //OFFERS
                   Builder(
                     builder: (BuildContext context) {
@@ -505,7 +569,7 @@ class _HomeScreenState extends State<HomeScreen>
                       var _prods = offers.toList();
 
                       return blockWigdet(
-                        "OFFERS",
+                        "New Products In Shop",
                         "Slashed prices just for you",
                         _picHeight,
                         itemHeight,
@@ -516,7 +580,7 @@ class _HomeScreenState extends State<HomeScreen>
                         context,
                         prods,
                         () async {
-                          var title = "Offers";
+                          var title = "NEW";
 
                           var navigationResult =
                               await Navigator.of(context).push(
@@ -544,5 +608,28 @@ class _HomeScreenState extends State<HomeScreen>
         );
       },
     );
+  }
+
+  final db = FirebaseFirestore.instance;
+
+  addDishParams() {
+    db.collection('food').getDocuments().then((value) {
+      value.documents.forEach((element) {
+        db.collection('food').document(element.documentID).updateData({
+          'nameSearch': setSearchParam(element['name']),
+          'categorySearch': setSearchParam(element['category']),
+        });
+      });
+    });
+  }
+
+  setSearchParam(String caseString) {
+    List<String> caseSearchList = List();
+    String temp = "";
+    for (int i = 0; i < caseString.length; i++) {
+      temp = temp + caseString[i];
+      caseSearchList.add(temp);
+    }
+    return caseSearchList;
   }
 }

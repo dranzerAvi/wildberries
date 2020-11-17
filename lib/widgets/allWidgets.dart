@@ -844,7 +844,7 @@ Widget blockWigdet(
       ),
       SizedBox(height: 5.0),
       Container(
-        height: _itemHeight / 1.15,
+        height: 185,
         padding: EdgeInsets.symmetric(horizontal: 10.0),
         child: ListView.builder(
             physics: BouncingScrollPhysics(),
@@ -867,7 +867,7 @@ Widget blockWigdet(
                 },
                 child: Container(
                   margin: EdgeInsets.all(5.0),
-                  width: 180.0,
+                  width: 110.0,
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: MColors.primaryWhite,
@@ -891,7 +891,7 @@ Widget blockWigdet(
                             child: FadeInImage.assetNetwork(
                               image: product.productImage,
                               fit: BoxFit.fill,
-                              height: _picHeight,
+                              height: 90,
                               placeholder: "assets/images/placeholder.jpg",
                               placeholderScale:
                                   MediaQuery.of(context).size.height / 2,
@@ -908,7 +908,7 @@ Widget blockWigdet(
                             product.name,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: normalFont(MColors.textGrey, 14.0),
+                            style: normalFont(MColors.textGrey, 10.0),
                           ),
                         ),
                       ),
@@ -920,7 +920,7 @@ Widget blockWigdet(
                             Container(
                               child: Text(
                                 "\$${product.price}",
-                                style: boldFont(MColors.secondaryColor, 20.0),
+                                style: boldFont(MColors.secondaryColor, 15.0),
                               ),
                             ),
                             Spacer(),
@@ -928,16 +928,16 @@ Widget blockWigdet(
                               onTap: () => addToBagshowDialog(product,
                                   cartNotifier, cartProdID, _scaffoldKey),
                               child: Container(
-                                width: 40.0,
-                                height: 40.0,
-                                padding: const EdgeInsets.all(8.0),
+                                width: 25.0,
+                                height: 25.0,
+                                padding: const EdgeInsets.all(4.0),
                                 decoration: BoxDecoration(
                                   color: MColors.dashPurple,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: SvgPicture.asset(
                                   "assets/images/icons/basket.svg",
-                                  height: 22.0,
+                                  height: 20.0,
                                   color: MColors.textGrey,
                                 ),
                               ),
@@ -996,7 +996,7 @@ Widget blockWigdet2(
       ),
       SizedBox(height: 5.0),
       Container(
-        height: _itemHeight / 1.60,
+        height: _itemHeight / 1.53,
         padding: EdgeInsets.symmetric(horizontal: 10.0),
         child: ListView.builder(
             physics: BouncingScrollPhysics(),

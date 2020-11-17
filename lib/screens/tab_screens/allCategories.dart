@@ -404,6 +404,9 @@ class _AllCategoriesState extends State<AllCategories> {
                   ],
                 ),
               ),
+              SizedBox(
+                height: 15,
+              )
             ],
           ),
         ));
