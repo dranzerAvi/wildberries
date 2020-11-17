@@ -1,5 +1,7 @@
+import 'package:fancy_shimmer_image/fancy_shimmer_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dropdown/flutter_dropdown.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
@@ -45,9 +47,12 @@ class _ProductDetailsState extends State<ProductDetails> {
   Iterable<ProdProducts> prods;
   bool _isbuttonDisabled = false;
   bool _isProductadded = false;
-
+  String urlUniv, url2, url3;
   @override
   void initState() {
+    urlUniv = prodDetails.productImage;
+    url2 = 'https://homepages.cae.wisc.edu/~ece533/images/airplane.png';
+    url3 = 'https://homepages.cae.wisc.edu/~ece533/images/arctichare.png';
     CartNotifier cartNotifier =
         Provider.of<CartNotifier>(context, listen: false);
     getCart(cartNotifier);
@@ -100,14 +105,190 @@ class _ProductDetailsState extends State<ProductDetails> {
                           const EdgeInsets.fromLTRB(20.0, 70.0, 20.0, 10.0),
                       child: prod == null
                           ? Center(child: CircularProgressIndicator())
-                          : Hero(
-                              child: FadeInImage.assetNetwork(
-                                image: prod.productImage,
-                                placeholder: "assets/images/placeholder.jpg",
-                                placeholderScale:
-                                    MediaQuery.of(context).size.height / 2,
-                              ),
-                              tag: prod.productID,
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.6,
+                                  child: Hero(
+                                    child: FadeInImage.assetNetwork(
+                                      image: urlUniv,
+                                      placeholder:
+                                          "assets/images/placeholder.jpg",
+                                      placeholderScale:
+                                          MediaQuery.of(context).size.height /
+                                              2,
+                                    ),
+                                    tag: prod.productID,
+                                  ),
+                                ),
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  child: Column(
+                                    children: [
+                                      SizedBox(width: 14),
+                                      Expanded(
+                                          flex: 1,
+                                          child: InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                urlUniv =
+                                                    prodDetails.productImage;
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(4.0),
+                                              child: Container(
+                                                // height: 65,
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                            Radius.circular(5)),
+                                                    border: Border.all(
+                                                        width: 2,
+                                                        color: urlUniv !=
+                                                                prodDetails
+                                                                    .productImage
+                                                            ? MColors
+                                                                .primaryWhiteSmoke
+                                                            : MColors
+                                                                .primaryPurple)),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          4.0),
+                                                  child: FancyShimmerImage(
+                                                    shimmerDuration:
+                                                        Duration(seconds: 1),
+                                                    imageUrl: prodDetails
+                                                        .productImage,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          )), //just to push
+                                      Expanded(
+                                          flex: 1,
+                                          child: InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                urlUniv = url2;
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(4.0),
+                                              child: Container(
+                                                  // height: 65,
+                                                  decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  5)),
+                                                      border: Border.all(
+                                                          width: 2,
+                                                          color: urlUniv != url2
+                                                              ? MColors
+                                                                  .primaryWhiteSmoke
+                                                              : MColors
+                                                                  .primaryPurple)),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4.0),
+                                                    child: FancyShimmerImage(
+                                                      shimmerDuration:
+                                                          Duration(seconds: 1),
+                                                      // height: 80,
+                                                      imageUrl: url2,
+                                                    ),
+                                                  )),
+                                            ),
+                                          )),
+                                      Expanded(
+                                          flex: 1,
+                                          child: InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                urlUniv = url3;
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(4.0),
+                                              child: Container(
+                                                  // height: 65,
+                                                  decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  5)),
+                                                      border: Border.all(
+                                                          width: 2,
+                                                          color: urlUniv != url3
+                                                              ? MColors
+                                                                  .primaryWhiteSmoke
+                                                              : MColors
+                                                                  .primaryPurple)),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4.0),
+                                                    child: FancyShimmerImage(
+                                                      imageUrl: url3,
+                                                      shimmerDuration:
+                                                          Duration(seconds: 1),
+                                                    ),
+                                                  )),
+                                            ),
+                                          )),
+                                      // Expanded(
+                                      //     flex: 2,
+                                      //     child: Padding(
+                                      //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                      //       child: Container(
+                                      //           decoration: BoxDecoration(
+                                      //               color: MColors.secondaryElement,
+                                      //               border: Border.all(
+                                      //                 width: 2,
+                                      //                 color: MColors.secondaryElement,
+                                      //               ),
+                                      //               borderRadius: BorderRadius.only(
+                                      //                   topLeft: Radius.circular(10),
+                                      //                   bottomLeft: Radius.circular(10))),
+                                      //           child: Center(
+                                      //               child: Column(
+                                      //             mainAxisAlignment: MainAxisAlignment.center,
+                                      //             children: [
+                                      //               Text(
+                                      //                 'Rs. ${int.parse(widget.restaurantDetail.price) * priceFactors[choice]}',
+                                      //                 textAlign: TextAlign.left,
+                                      //                 style: Styles.customMediumTextStyle(
+                                      //                   fontWeight: FontWeight.w600,
+                                      //                   color: Color(0xFF6b3600),
+                                      //                   // fontWeight: FontWeight.w600,
+                                      //                   fontSize: 24,
+                                      //                 ),
+                                      //               ),
+                                      //               Text(
+                                      //                 '(${sizes[choice].toString()})',
+                                      //                 textAlign: TextAlign.left,
+                                      //                 style: Styles.customMediumTextStyle(
+                                      //                   color: Color(0xFF6b3600),
+                                      //                   // fontWeight: FontWeight.w600,
+                                      //                   fontSize: Sizes.TEXT_SIZE_18,
+                                      //                 ),
+                                      //               ),
+                                      //             ],
+                                      //           ))),
+                                      //     )),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                     );
                   },
@@ -257,9 +438,20 @@ class _ProductDetailsState extends State<ProductDetails> {
             ),
             Container(
               padding: const EdgeInsets.only(bottom: 10.0),
-              child: Text(
-                "\$${prodDetails.price}",
-                style: boldFont(MColors.primaryPurple, 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "\$${prodDetails.price}",
+                    style: boldFont(MColors.primaryPurple, 20.0),
+                  ),
+                  DropDown<String>(
+                    initialValue: 'With AC',
+                    items: <String>['With AC', 'Without AC'],
+                    hint: Text("Select option"),
+                    onChanged: (value) async {},
+                  ),
+                ],
               ),
             ),
             Builder(builder: (context) {

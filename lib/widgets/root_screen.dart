@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mrpet/screens/tab_screens/allCategories.dart';
 import 'package:mrpet/screens/tab_screens/history.dart';
 import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/notificationDetails.dart';
@@ -105,7 +106,7 @@ class _RootScreenState extends State<RootScreen>
   List<Widget> _buildScreens() {
     return [
       HomeScreen(),
-      HistoryScreen(),
+      AllCategories(),
       Search(),
       InboxScreen(),
       SettingsScreen(),

@@ -19,6 +19,7 @@ import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/internetConnectivity.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -169,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen>
                   fontWeight: FontWeight.bold),
             ),
           ),
-          drawer: Drawer(),
+          drawer: CustomDrawer(),
           floatingActionButton: CustomFloatingButton(
               CurrentScreen(currentScreen: HomeScreen(), tab_no: 0)),
           key: _scaffoldKey,
@@ -357,12 +358,14 @@ class _HomeScreenState extends State<HomeScreen>
                         itemHeight,
                         _cats,
                         cartNotifier,
+                        productsNotifier,
                         cartProdID,
                         _scaffoldKey,
                         context,
                         prods,
                         () async {
-                          var title = "For you";
+                          var title = "Best Sellers";
+
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(

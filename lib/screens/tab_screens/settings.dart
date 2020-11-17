@@ -8,6 +8,7 @@ import 'package:mrpet/model/services/user_management.dart';
 import 'package:mrpet/screens/settings_screens/cards.dart';
 import 'package:mrpet/screens/settings_screens/editProfile.dart';
 import 'package:mrpet/screens/settings_screens/passwordSecurity.dart';
+import 'package:mrpet/screens/tab_screens/history.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/internetConnectivity.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
@@ -101,6 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     var _address = _checkAddress;
 
     final listTileIcons = [
+      "assets/images/online-order.svg",
       "assets/images/password.svg",
       "assets/images/icons/Wallet.svg",
       "assets/images/icons/Location.svg",
@@ -111,6 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ];
 
     final listTileNames = [
+      "Your Orders",
       "Security",
       "Cards",
       "Address",
@@ -121,6 +124,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ];
 
     final listTileActions = [
+      () {
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (_) => HistoryScreen(),
+          ),
+        );
+      },
       () {
         Navigator.of(context).push(
           CupertinoPageRoute(

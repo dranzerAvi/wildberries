@@ -5,9 +5,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
+import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:wc_flutter_share/wc_flutter_share.dart';
 
@@ -958,6 +961,7 @@ Widget blockWigdet2(
   double _itemHeight,
   List<Cat> prods,
   CartNotifier cartNotifier,
+  ProductsNotifier productsNotifier,
   Iterable<String> cartProdID,
   GlobalKey _scaffoldKey,
   BuildContext context,
@@ -975,6 +979,16 @@ Widget blockWigdet2(
             Text(
               blockTitle,
               style: boldFont(MColors.textDark, 16.0),
+            ),
+            Container(
+              height: 15.0,
+              child: RawMaterialButton(
+                onPressed: seeMore,
+                child: Text(
+                  "See more",
+                  style: boldFont(MColors.primaryPurple, 14.0),
+                ),
+              ),
             ),
           ],
         ),
@@ -994,9 +1008,36 @@ Widget blockWigdet2(
                 children: [
                   GestureDetector(
                     onTap: () async {
+                      var title = product.name.toUpperCase();
+                      Iterable<ProdProducts> allProducts =
+                          productsNotifier.productsList;
+                      Iterable<ProdProducts> categorySpecificProducts;
+                      if (product.name == 'Dogs') {
+                        categorySpecificProducts =
+                            allProducts.where((e) => e.pet == 'dog');
+                      } else if (product.name == 'Cats') {
+                        categorySpecificProducts =
+                            allProducts.where((e) => e.pet == 'cat');
+                      } else if (product.name == 'Birds') {
+                        categorySpecificProducts =
+                            allProducts.where((e) => e.pet == 'bird');
+                      }
+
+                      for (var v in allProducts) {
+                        print(v.pet);
+                        print(product.name);
+                      }
+                      var _prods = categorySpecificProducts.toList();
+
                       var navigationResult = await Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (context) => null,
+                          builder: (context) => SeeAllInCategory(
+                            title: title,
+                            products: _prods,
+                            productsNotifier: productsNotifier,
+                            cartNotifier: cartNotifier,
+                            cartProdID: cartProdID,
+                          ),
                         ),
                       );
                       if (navigationResult == true) {

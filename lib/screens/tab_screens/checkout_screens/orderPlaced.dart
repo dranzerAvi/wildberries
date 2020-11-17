@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mrpet/main.dart';
 import 'package:mrpet/model/data/userData.dart';
+import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:mrpet/widgets/root_screen.dart';
 
 class OrderPlaced extends StatefulWidget {
   final List<UserDataAddress> addressList;
@@ -131,7 +133,7 @@ class _OrderPlacedState extends State<OrderPlaced> {
           () {
             Navigator.of(context).pushAndRemoveUntil(
               CupertinoPageRoute(
-                builder: (_) => MyApp(),
+                builder: (_) => HomeScreen(),
               ),
               (Route<dynamic> route) => false,
             );

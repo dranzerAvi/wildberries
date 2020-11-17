@@ -31,12 +31,15 @@ dependencies:
   firebase_messaging: ^6.0.16
   firebase_core: ^0.5.0
   firebase_storage: ^4.0.0
+  getflutter: ^1.0.11
 
   #google and other stuff
   flutter_launcher_icons: ^0.7.5
   google_fonts:
   wc_flutter_share: ^0.2.0
   persistent_bottom_nav_bar: ^2.1.0
+  fancy_shimmer_image: ^1.2.0
+  flutter_dropdown: ^0.0.8
   provider:
 
   #image processing magic
