@@ -10,6 +10,7 @@ import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/internetConnectivity.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:provider/provider.dart';
 
 class Search extends StatelessWidget {
@@ -70,6 +71,9 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _primaryscaffoldKey =
+      GlobalKey<ScaffoldState>();
+
   final PageStorageBucket searchBucket = PageStorageBucket();
 
   TabController _tabController;
@@ -104,60 +108,60 @@ class _SearchScreenState extends State<SearchScreen>
     ];
 
     return Scaffold(
-      appBar: primaryAppBar(
-        IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: MColors.textGrey,
+      key: _primaryscaffoldKey,
+      appBar: AppBar(
+          brightness: Brightness.light,
+          elevation: 0.0,
+          backgroundColor: MColors.primaryWhiteSmoke,
+          leading: IconButton(
+            icon: Icon(Icons.menu),
+            color: MColors.secondaryColor,
+            onPressed: () {
+              _primaryscaffoldKey.currentState.openDrawer();
+            },
           ),
-          onPressed: () {
-            Navigator.pop(context, true);
-          },
-        ),
-        Container(
-          height: 40.0,
-          child: searchTextField(
-            true,
-            null,
-            null,
-            "Search for products...",
-            null,
-            null,
-            true,
-            null,
-            false,
-            false,
-            true,
-            TextInputType.text,
-            null,
-            SvgPicture.asset(
-              "assets/images/icons/Search.svg",
-              color: MColors.textGrey,
-              height: 16.0,
-            ),
-            0.0,
-          ),
-        ),
-        MColors.primaryWhiteSmoke,
-        TabBar(
-          unselectedLabelColor: MColors.textGrey,
-          unselectedLabelStyle: normalFont(MColors.textGrey, 16.0),
-          labelColor: MColors.primaryPurple,
-          labelStyle: boldFont(MColors.primaryPurple, 20.0),
-          indicatorWeight: 0.01,
-          isScrollable: true,
-          tabs: _tabItems.map((e) {
-            return Tab(
-              child: Text(
-                e,
+          title: Container(
+            height: 40.0,
+            child: searchTextField(
+              true,
+              null,
+              null,
+              "Search for products...",
+              null,
+              null,
+              true,
+              null,
+              false,
+              false,
+              true,
+              TextInputType.text,
+              null,
+              SvgPicture.asset(
+                "assets/images/icons/Search.svg",
+                color: MColors.textGrey,
+                height: 16.0,
               ),
-            );
-          }).toList(),
-          controller: _tabController,
-        ),
-        false,
-        null,
-      ),
+              0.0,
+            ),
+          ),
+          bottom: TabBar(
+            unselectedLabelColor: MColors.textGrey,
+            unselectedLabelStyle: normalFont(MColors.textGrey, 16.0),
+            labelColor: MColors.primaryPurple,
+            labelStyle: boldFont(MColors.primaryPurple, 20.0),
+            indicatorWeight: 0.01,
+            isScrollable: true,
+            tabs: _tabItems.map((e) {
+              return Tab(
+                child: Text(
+                  e,
+                ),
+              );
+            }).toList(),
+            controller: _tabController,
+          ),
+          centerTitle: false),
+      drawer: CustomDrawer(),
       body: Scaffold(
         key: _scaffoldKey,
         body: PageStorage(

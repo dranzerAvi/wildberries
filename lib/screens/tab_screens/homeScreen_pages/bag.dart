@@ -63,7 +63,7 @@ class _BagScreenState extends State<BagScreen> {
           ),
           Text(
             "Bag",
-            style: boldFont(MColors.primaryPurple, 16.0),
+            style: boldFont(MColors.secondaryColor, 16.0),
           ),
           MColors.primaryWhiteSmoke,
           null,
@@ -75,7 +75,7 @@ class _BagScreenState extends State<BagScreen> {
           builder: (c, s) {
             switch (s.connectionState) {
               case ConnectionState.active:
-                return progressIndicator(MColors.primaryPurple);
+                return progressIndicator(MColors.secondaryColor);
                 break;
               case ConnectionState.done:
                 return cartList.isEmpty
@@ -87,10 +87,10 @@ class _BagScreenState extends State<BagScreen> {
                     : bag(cartList, total);
                 break;
               case ConnectionState.waiting:
-                return progressIndicator(MColors.primaryPurple);
+                return progressIndicator(MColors.secondaryColor);
                 break;
               default:
-                return progressIndicator(MColors.primaryPurple);
+                return progressIndicator(MColors.secondaryColor);
             }
           },
         ),
@@ -215,7 +215,7 @@ class _BagScreenState extends State<BagScreen> {
                                             Text(
                                               "\$${cartItem.price}",
                                               style: boldFont(
-                                                  MColors.primaryPurple, 22.0),
+                                                  MColors.secondaryColor, 22.0),
                                               textAlign: TextAlign.left,
                                             ),
                                             SizedBox(
@@ -284,7 +284,7 @@ class _BagScreenState extends State<BagScreen> {
                                               borderRadius:
                                                   new BorderRadius.circular(
                                                       10.0),
-                                              color: MColors.primaryPurple,
+                                              color: MColors.secondaryColor,
                                             ),
                                             height: 34.0,
                                             width: 34.0,
@@ -327,7 +327,7 @@ class _BagScreenState extends State<BagScreen> {
                                               },
                                               child: Icon(
                                                 Icons.remove,
-                                                color: MColors.primaryPurple,
+                                                color: MColors.secondaryColor,
                                                 size: 30.0,
                                               ),
                                             ),

@@ -12,6 +12,7 @@ import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/utils/colors.dart';
+import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:wc_flutter_share/wc_flutter_share.dart';
 
 //SCAFFOLDS-----------------------------------
@@ -118,7 +119,7 @@ Widget primaryButtonPurple(
       hoverElevation: 0.0,
       focusElevation: 0.0,
       highlightElevation: 0.0,
-      fillColor: MColors.primaryPurple,
+      fillColor: MColors.secondaryColor,
       child: buttonChild,
       onPressed: onPressed,
       shape: RoundedRectangleBorder(
@@ -219,7 +220,7 @@ Widget primaryTextField(
       enabled == true ? MColors.textDark : MColors.textGrey,
       16.0,
     ),
-    cursorColor: MColors.primaryPurple,
+    cursorColor: MColors.secondaryColor,
     decoration: InputDecoration(
       suffixIcon: Padding(
         padding: EdgeInsets.only(
@@ -258,7 +259,7 @@ Widget primaryTextField(
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide(
-          color: MColors.primaryPurple,
+          color: MColors.secondaryColor,
           width: 1.0,
         ),
       ),
@@ -300,7 +301,7 @@ Widget searchTextField(
       enabled == true ? MColors.textDark : MColors.textGrey,
       16.0,
     ),
-    cursorColor: MColors.primaryPurple,
+    cursorColor: MColors.secondaryColor,
     decoration: InputDecoration(
       suffixIcon: Padding(
         padding: EdgeInsets.only(
@@ -339,7 +340,7 @@ Widget searchTextField(
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide(
-          color: MColors.primaryPurple,
+          color: MColors.secondaryColor,
           width: 1.0,
         ),
       ),
@@ -371,7 +372,7 @@ Widget gettingLocationIndicator() {
           style: normalFont(MColors.textGrey, 14.0),
         ),
         SizedBox(width: 5.0),
-        progressIndicator(MColors.primaryPurple),
+        progressIndicator(MColors.secondaryColor),
       ],
     ),
   );
@@ -834,7 +835,7 @@ Widget blockWigdet(
                 onPressed: seeMore,
                 child: Text(
                   "See more",
-                  style: boldFont(MColors.primaryPurple, 14.0),
+                  style: boldFont(MColors.secondaryColor, 14.0),
                 ),
               ),
             ),
@@ -919,7 +920,7 @@ Widget blockWigdet(
                             Container(
                               child: Text(
                                 "\$${product.price}",
-                                style: boldFont(MColors.primaryPurple, 20.0),
+                                style: boldFont(MColors.secondaryColor, 20.0),
                               ),
                             ),
                             Spacer(),
@@ -986,7 +987,7 @@ Widget blockWigdet2(
                 onPressed: seeMore,
                 child: Text(
                   "See more",
-                  style: boldFont(MColors.primaryPurple, 14.0),
+                  style: boldFont(MColors.secondaryColor, 14.0),
                 ),
               ),
             ),

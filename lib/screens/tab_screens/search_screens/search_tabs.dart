@@ -356,7 +356,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
                                   child: Text(
                                     "\$${product.price}",
                                     style:
-                                        boldFont(MColors.primaryPurple, 20.0),
+                                        boldFont(MColors.secondaryColor, 20.0),
                                   ),
                                 ),
                                 Spacer(),

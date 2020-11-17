@@ -62,7 +62,7 @@ class _OrderPlacedState extends State<OrderPlaced> {
                   ),
                   child: Icon(
                     Icons.check,
-                    color: MColors.primaryPurple,
+                    color: MColors.secondaryColor,
                     size: 30.0,
                   ),
                 ),

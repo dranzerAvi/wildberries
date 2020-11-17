@@ -148,6 +148,17 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               InkWell(
                   onTap: () {
+                    launch('tel:+919027553376');
+                  },
+                  child: Image.asset(
+                    'assets/images/whatsapp.svg',
+                    width: 30,
+                  )),
+              SizedBox(
+                width: 8,
+              ),
+              InkWell(
+                  onTap: () {
 //                print(1);
                     launch(
                         'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
@@ -165,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen>
               'Misterpet.ae',
               style: TextStyle(
                   color: MColors.secondaryColor,
-                  fontSize: 28,
+                  fontSize: 22,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold),
             ),
@@ -305,9 +316,6 @@ class _HomeScreenState extends State<HomeScreen>
                               margin: EdgeInsets.symmetric(horizontal: 5.0),
                               decoration: BoxDecoration(
                                 color: MColors.primaryWhite,
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
                                 boxShadow: [
                                   BoxShadow(
                                       color: Color.fromRGBO(0, 0, 0, 0.03),
@@ -316,15 +324,12 @@ class _HomeScreenState extends State<HomeScreen>
                                       spreadRadius: 0),
                                 ],
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: FadeInImage.assetNetwork(
-                                  image: banner.bannerAd,
-                                  fit: BoxFit.fill,
-                                  placeholder: "assets/images/placeholder.jpg",
-                                  placeholderScale:
-                                      MediaQuery.of(context).size.width / 2,
-                                ),
+                              child: FadeInImage.assetNetwork(
+                                image: banner.bannerAd,
+                                fit: BoxFit.fill,
+                                placeholder: "assets/images/placeholder.jpg",
+                                placeholderScale:
+                                    MediaQuery.of(context).size.width / 2,
                               ),
                             );
                           },

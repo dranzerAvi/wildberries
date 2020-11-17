@@ -130,19 +130,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
       builder: (c, s) {
         switch (s.connectionState) {
           case ConnectionState.active:
-            return progressIndicator(MColors.primaryPurple);
+            return progressIndicator(MColors.secondaryColor);
             break;
           case ConnectionState.done:
             return checkUser.isEmpty || checkUser == null
-                ? progressIndicator(MColors.primaryPurple)
+                ? progressIndicator(MColors.secondaryColor)
                 : retNavDrawer(user, addressList);
 
             break;
           case ConnectionState.waiting:
-            return progressIndicator(MColors.primaryPurple);
+            return progressIndicator(MColors.secondaryColor);
             break;
           default:
-            return progressIndicator(MColors.primaryPurple);
+            return progressIndicator(MColors.secondaryColor);
         }
       },
     );
@@ -164,24 +164,37 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ? Container(
                       // alignment: Alignment.center,
                       height: 80,
-                      color: MColors.primaryPurple,
+                      color: MColors.secondaryColor,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              user.name,
-                              style:
-                                  normalFont(MColors.primaryWhiteSmoke, 14.0),
-                              textAlign: TextAlign.start,
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage: NetworkImage(user.profilePhoto ==
+                                      null
+                                  ? 'https://firebasestorage.googleapis.com/v0/b/mrpet-3387f.appspot.com/o/unnamed.png?alt=media&token=2c39a045-ff4a-4f12-8071-13f82a71b426'
+                                  : user.profilePhoto),
                             ),
-                            Text(
-                              user.email,
-                              style:
-                                  normalFont(MColors.primaryWhiteSmoke, 14.0),
-                              textAlign: TextAlign.start,
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  user.name,
+                                  style: normalFont(
+                                      MColors.primaryWhiteSmoke, 14.0),
+                                  textAlign: TextAlign.start,
+                                ),
+                                Text(
+                                  user.email,
+                                  style: normalFont(
+                                      MColors.primaryWhiteSmoke, 14.0),
+                                  textAlign: TextAlign.start,
+                                ),
+                              ],
                             ),
                           ],
                         ),

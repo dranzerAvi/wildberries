@@ -64,7 +64,7 @@ class _SeeAllInCategoryState extends State<SeeAllInCategory> {
         ),
         Text(
           title,
-          style: boldFont(MColors.primaryPurple, 16.0),
+          style: boldFont(MColors.secondaryColor, 16.0),
         ),
         MColors.primaryWhiteSmoke,
         null,

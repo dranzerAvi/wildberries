@@ -203,7 +203,7 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                         Container(
                           child: Text(
                             "\$${fil.price}",
-                            style: boldFont(MColors.primaryPurple, 20.0),
+                            style: boldFont(MColors.secondaryColor, 20.0),
                           ),
                         ),
                         Spacer(),

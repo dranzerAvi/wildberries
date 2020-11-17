@@ -92,7 +92,7 @@ class _AddressContainerState extends State<AddressContainer> {
         ),
         Text(
           "Check out",
-          style: boldFont(MColors.primaryPurple, 16.0),
+          style: boldFont(MColors.secondaryColor, 16.0),
         ),
         MColors.primaryWhiteSmoke,
         null,
@@ -114,7 +114,7 @@ class _AddressContainerState extends State<AddressContainer> {
                         return Container(
                           height: MediaQuery.of(context).size.height / 7,
                           child: Center(
-                              child: progressIndicator(MColors.primaryPurple)),
+                              child: progressIndicator(MColors.secondaryColor)),
                         );
                         break;
                       case ConnectionState.done:
@@ -126,14 +126,14 @@ class _AddressContainerState extends State<AddressContainer> {
                         return Container(
                           height: MediaQuery.of(context).size.height / 7,
                           child: Center(
-                              child: progressIndicator(MColors.primaryPurple)),
+                              child: progressIndicator(MColors.secondaryColor)),
                         );
                         break;
                       default:
                         return Container(
                           height: MediaQuery.of(context).size.height / 7,
                           child: Center(
-                              child: progressIndicator(MColors.primaryPurple)),
+                              child: progressIndicator(MColors.secondaryColor)),
                         );
                     }
                   },
@@ -163,7 +163,7 @@ class _AddressContainerState extends State<AddressContainer> {
                         return Container(
                           height: MediaQuery.of(context).size.height / 7,
                           child: Center(
-                              child: progressIndicator(MColors.primaryPurple)),
+                              child: progressIndicator(MColors.secondaryColor)),
                         );
                         break;
                       case ConnectionState.done:
@@ -175,14 +175,14 @@ class _AddressContainerState extends State<AddressContainer> {
                         return Container(
                           height: MediaQuery.of(context).size.height / 7,
                           child: Center(
-                              child: progressIndicator(MColors.primaryPurple)),
+                              child: progressIndicator(MColors.secondaryColor)),
                         );
                         break;
                       default:
                         return Container(
                           height: MediaQuery.of(context).size.height / 7,
                           child: Center(
-                              child: progressIndicator(MColors.primaryPurple)),
+                              child: progressIndicator(MColors.secondaryColor)),
                         );
                     }
                   },
@@ -262,7 +262,7 @@ class _AddressContainerState extends State<AddressContainer> {
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Location.svg",
-                  color: MColors.primaryPurple,
+                  color: MColors.secondaryColor,
                 ),
               ),
               SizedBox(
@@ -303,7 +303,7 @@ class _AddressContainerState extends State<AddressContainer> {
                   },
                   child: Text(
                     "Change",
-                    style: boldFont(MColors.primaryPurple, 14.0),
+                    style: boldFont(MColors.secondaryColor, 14.0),
                   ),
                 ),
               ),
@@ -354,7 +354,7 @@ class _AddressContainerState extends State<AddressContainer> {
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Location.svg",
-                  color: MColors.primaryPurple,
+                  color: MColors.secondaryColor,
                 ),
               ),
               SizedBox(width: 5.0),
@@ -381,7 +381,7 @@ class _AddressContainerState extends State<AddressContainer> {
           SizedBox(height: 10.0),
           primaryButtonWhiteSmoke(
             Text("Add a shipping address",
-                style: boldFont(MColors.primaryPurple, 16.0)),
+                style: boldFont(MColors.secondaryColor, 16.0)),
             () async {
               UserDataAddressNotifier addressNotifier =
                   Provider.of<UserDataAddressNotifier>(context, listen: false);
@@ -431,7 +431,7 @@ class _AddressContainerState extends State<AddressContainer> {
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Bag.svg",
-                  color: MColors.primaryPurple,
+                  color: MColors.secondaryColor,
                 ),
               ),
               SizedBox(
@@ -454,7 +454,7 @@ class _AddressContainerState extends State<AddressContainer> {
                   },
                   child: Text(
                     "See all",
-                    style: boldFont(MColors.primaryPurple, 14.0),
+                    style: boldFont(MColors.secondaryColor, 14.0),
                   ),
                 ),
               ),
@@ -499,10 +499,10 @@ class _AddressContainerState extends State<AddressContainer> {
             padding: EdgeInsets.only(left: 25),
             child: Row(
               children: <Widget>[
-                Text("Total", style: boldFont(MColors.primaryPurple, 16.0)),
+                Text("Total", style: boldFont(MColors.secondaryColor, 16.0)),
                 Spacer(),
                 Text("\$" + total,
-                    style: boldFont(MColors.primaryPurple, 16.0)),
+                    style: boldFont(MColors.secondaryColor, 16.0)),
               ],
             ),
           ),
@@ -535,7 +535,7 @@ class _AddressContainerState extends State<AddressContainer> {
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Wallet.svg",
-                  color: MColors.primaryPurple,
+                  color: MColors.secondaryColor,
                 ),
               ),
               SizedBox(
@@ -576,7 +576,7 @@ class _AddressContainerState extends State<AddressContainer> {
                     }
                   },
                   child: Text("Change",
-                      style: boldFont(MColors.primaryPurple, 14.0)),
+                      style: boldFont(MColors.secondaryColor, 14.0)),
                 ),
               ),
             ],
@@ -642,7 +642,7 @@ class _AddressContainerState extends State<AddressContainer> {
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Wallet.svg",
-                  color: MColors.primaryPurple,
+                  color: MColors.secondaryColor,
                 ),
               ),
               SizedBox(
@@ -669,7 +669,7 @@ class _AddressContainerState extends State<AddressContainer> {
           SizedBox(height: 10.0),
           primaryButtonWhiteSmoke(
             Text("Add a payment card",
-                style: boldFont(MColors.primaryPurple, 16.0)),
+                style: boldFont(MColors.secondaryColor, 16.0)),
             () async {
               var navigationResult = await Navigator.of(context).push(
                 CupertinoPageRoute(
@@ -739,13 +739,13 @@ class _AddressContainerState extends State<AddressContainer> {
                     Container(
                       child: SvgPicture.asset(
                         "assets/images/icons/Bag.svg",
-                        color: MColors.primaryPurple,
+                        color: MColors.secondaryColor,
                       ),
                     ),
                     Spacer(),
                     Text(
                       "\$" + total,
-                      style: boldFont(MColors.primaryPurple, 16.0),
+                      style: boldFont(MColors.secondaryColor, 16.0),
                     ),
                   ],
                 ),
@@ -843,7 +843,7 @@ class _AddressContainerState extends State<AddressContainer> {
             backgroundColor: MColors.primaryWhiteSmoke,
             title: Text(
               "Please wait..",
-              style: boldFont(MColors.primaryPurple, 14.0),
+              style: boldFont(MColors.secondaryColor, 14.0),
             ),
             content: Container(
               height: 20.0,
@@ -854,7 +854,7 @@ class _AddressContainerState extends State<AddressContainer> {
                     style: normalFont(MColors.textGrey, 14.0),
                   ),
                   Spacer(),
-                  progressIndicator(MColors.primaryPurple),
+                  progressIndicator(MColors.secondaryColor),
                 ],
               ),
             ),
