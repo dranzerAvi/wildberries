@@ -4,9 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mrpet/screens/register_screens/login_screen.dart';
 import 'package:mrpet/screens/register_screens/registration_screen.dart';
+import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/strings.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+
+import '../../main.dart';
 
 class IntroScreen extends StatefulWidget {
   @override
@@ -27,6 +30,21 @@ class _IntroScreenState extends State<IntroScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  children: [
+                    InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Skip',
+                          style: boldFont(MColors.secondaryColor, 16.0),
+                        ))
+                  ],
+                ),
                 Container(
                   padding: const EdgeInsets.all(20.0),
                   child: SvgPicture.asset(
@@ -80,7 +98,7 @@ class _IntroScreenState extends State<IntroScreen> {
               primaryButtonWhiteSmoke(
                 Text(
                   "Create an account",
-                  style: boldFont(MColors.primaryPurple, 16.0),
+                  style: boldFont(MColors.secondaryColor, 16.0),
                 ),
                 () {
                   Navigator.of(context).push(
@@ -90,6 +108,22 @@ class _IntroScreenState extends State<IntroScreen> {
                   );
                 },
               ),
+              // SizedBox(
+              //   height: 10.0,
+              // ),
+              // primaryButtonPurple(
+              //   Text(
+              //     "Skip This Step",
+              //     style: boldFont(MColors.primaryWhite, 16.0),
+              //   ),
+              //   () {
+              //     Navigator.of(context).pushReplacement(
+              //       CupertinoPageRoute(
+              //         builder: (_) => MyApp(),
+              //       ),
+              //     );
+              //   },
+              // ),
             ],
           ),
         ),

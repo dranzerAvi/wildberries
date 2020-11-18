@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
@@ -8,6 +11,7 @@ import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:mrpet/widgets/custom_floating_button.dart';
 import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,12 +19,34 @@ import 'package:url_launcher/url_launcher.dart';
 import 'homeScreen_pages/seeAllInCategory.dart';
 
 class AllCategories extends StatefulWidget {
+  String from;
+  AllCategories({this.from});
   @override
   _AllCategoriesState createState() => _AllCategoriesState();
 }
 
+final GlobalKey<ScaffoldState> _primaryscaffoldKey = GlobalKey<ScaffoldState>();
+
 class _AllCategoriesState extends State<AllCategories> {
   _AllCategoriesState();
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +55,30 @@ class _AllCategoriesState extends State<AllCategories> {
     var cartList = cartNotifier.cartList;
     var cartProdID = cartList.map((e) => e.productID);
     return Scaffold(
+        key: _primaryscaffoldKey,
+        floatingActionButton: CustomFloatingButton(
+            CurrentScreen(currentScreen: AllCategories(), tab_no: 0)),
         drawer: CustomDrawer(),
         appBar: AppBar(
           iconTheme: IconThemeData(
-            size: 25,
+            size: 20,
             color: MColors.secondaryColor,
           ),
           backgroundColor: MColors.mainColor,
+          leading: widget.from != null
+              ? InkWell(
+                  child: Icon(Icons.arrow_back_ios),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                )
+              : IconButton(
+                  icon: Icon(Icons.menu),
+                  color: MColors.secondaryColor,
+                  onPressed: () {
+                    _primaryscaffoldKey.currentState.openDrawer();
+                  },
+                ),
           actions: [
             InkWell(
                 onTap: () {
@@ -44,6 +87,18 @@ class _AllCategoriesState extends State<AllCategories> {
                 child: Icon(
                   Icons.phone,
                 )),
+            SizedBox(
+              width: 8,
+            ),
+            InkWell(
+                onTap: () {
+                  launchWhatsApp(
+                      phone: '7060222315',
+                      message: 'Check out this awesome app');
+                },
+                child: Container(
+                    alignment: Alignment.center,
+                    child: FaIcon(FontAwesomeIcons.whatsapp))),
             SizedBox(
               width: 8,
             ),
@@ -66,7 +121,7 @@ class _AllCategoriesState extends State<AllCategories> {
             'Misterpet.ae',
             style: TextStyle(
                 color: MColors.secondaryColor,
-                fontSize: 28,
+                fontSize: 22,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold),
           ),

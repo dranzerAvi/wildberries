@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/model/notifiers/orders_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/utils/colors.dart';
@@ -7,6 +11,7 @@ import 'package:mrpet/utils/internetConnectivity.dart';
 
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HistoryScreen extends StatefulWidget {
   HistoryScreen({Key key}) : super(key: key);
@@ -21,8 +26,22 @@ class _HistoryScreenState extends State<HistoryScreen>
   TabController _tabController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _tabItems = [
-    "Current orders",
-    "Past orders",
+    Text(
+      "Current orders",
+      style: TextStyle(
+          color: MColors.secondaryColor,
+          fontSize: 15,
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.bold),
+    ),
+    Text(
+      "Past orders",
+      style: TextStyle(
+          color: MColors.secondaryColor,
+          fontSize: 15,
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.bold),
+    ),
   ];
 
   @override
@@ -44,6 +63,27 @@ class _HistoryScreenState extends State<HistoryScreen>
     super.initState();
   }
 
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
+
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     OrderListNotifier orderListNotifier =
@@ -56,7 +96,13 @@ class _HistoryScreenState extends State<HistoryScreen>
         builder: (c, s) {
           switch (s.connectionState) {
             case ConnectionState.active:
-              return progressIndicator(MColors.primaryPurple);
+              return _firebaseAuth.currentUser != null
+                  ? progressIndicator(MColors.primaryPurple)
+                  : emptyScreen(
+                      "assets/images/noHistory.svg",
+                      "No Orders",
+                      "Your past orders, transactions and hires will show up here.",
+                    );
               break;
             case ConnectionState.done:
               return orderList.isEmpty
@@ -68,10 +114,22 @@ class _HistoryScreenState extends State<HistoryScreen>
                   : ordersScreen(orderList);
               break;
             case ConnectionState.waiting:
-              return progressIndicator(MColors.primaryPurple);
+              return _firebaseAuth.currentUser != null
+                  ? progressIndicator(MColors.primaryPurple)
+                  : emptyScreen(
+                      "assets/images/noHistory.svg",
+                      "No Orders",
+                      "Your past orders, transactions and hires will show up here.",
+                    );
               break;
             default:
-              return progressIndicator(MColors.primaryPurple);
+              return _firebaseAuth.currentUser != null
+                  ? progressIndicator(MColors.primaryPurple)
+                  : emptyScreen(
+                      "assets/images/noHistory.svg",
+                      "No Orders",
+                      "Your past orders, transactions and hires will show up here.",
+                    );
           }
         },
       ),
@@ -83,36 +141,70 @@ class _HistoryScreenState extends State<HistoryScreen>
       currentOrder(orderList),
       pastOrder(),
     ];
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: primaryAppBar(
-        null,
-        TabBar(
-          unselectedLabelColor: MColors.textGrey,
-          unselectedLabelStyle: normalFont(MColors.textGrey, 16.0),
-          labelColor: MColors.primaryPurple,
-          labelStyle: boldFont(MColors.primaryPurple, 20.0),
-          indicatorWeight: 0.01,
-          isScrollable: true,
-          tabs: _tabItems.map((e) {
-            return Tab(
-              child: Text(
-                e,
-              ),
-            );
-          }).toList(),
-          controller: _tabController,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          bottom: TabBar(
+            physics: BouncingScrollPhysics(),
+            tabs: _tabItems,
+            controller: _tabController,
+          ),
+          iconTheme: IconThemeData(
+            size: 20,
+            color: MColors.secondaryColor,
+          ),
+          backgroundColor: MColors.mainColor,
+          actions: [
+            InkWell(
+                onTap: () {
+                  launch('tel:+919027553376');
+                },
+                child: Icon(
+                  Icons.phone,
+                )),
+            SizedBox(
+              width: 8,
+            ),
+            InkWell(
+                onTap: () {
+                  launchWhatsApp(
+                      phone: '7060222315',
+                      message: 'Check out this awesome app');
+                },
+                child: Container(
+                    alignment: Alignment.center,
+                    child: FaIcon(FontAwesomeIcons.whatsapp))),
+            SizedBox(
+              width: 8,
+            ),
+            InkWell(
+                onTap: () {
+//                print(1);
+                  launch(
+                      'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+                },
+                child: Icon(
+                  Icons.mail,
+                )),
+            SizedBox(
+              width: 14,
+            )
+          ],
+          elevation: 0.0,
+          centerTitle: true,
+          title: Text(
+            'Misterpet.ae',
+            style: TextStyle(
+                color: MColors.secondaryColor,
+                fontSize: 22,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold),
+          ),
         ),
-        MColors.primaryWhiteSmoke,
-        null,
-        false,
-        null,
-      ),
-      body: primaryContainer(
-        TabBarView(
-          physics: BouncingScrollPhysics(),
+        body: TabBarView(
           children: _tabBody,
-          controller: _tabController,
         ),
       ),
     );

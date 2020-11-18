@@ -1,7 +1,7 @@
 import 'package:flutter/painting.dart';
 
 class MColors {
-  static const Color primaryPurple = const Color(0xFF6334DC);
+  static const Color primaryPurple = const Color(0xff722b74);
   static const Color primaryWhite = const Color(0xFFFFFFFF);
   static const Color primaryWhiteSmoke = const Color(0xFFF5F5F5);
   static const Color primaryPlatinum = const Color(0xFFE5E4E2);

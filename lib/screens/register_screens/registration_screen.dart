@@ -70,7 +70,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           child: GestureDetector(
                             child: Text(
                               "Sign in!",
-                              style: normalFont(MColors.primaryPurple, 16.0),
+                              style: normalFont(MColors.secondaryColor, 16.0),
                               textAlign: TextAlign.start,
                             ),
                             onTap: () {
@@ -184,7 +184,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     child: Text(
                                       _obscureText ? "Show" : "Hide",
                                       style: TextStyle(
-                                        color: MColors.primaryPurple,
+                                        color: MColors.secondaryColor,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -198,7 +198,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           Container(
                             child: Text(
                               "Your password must have 6 or more characters, a capital letter and must contain at least one number.",
-                              style: normalFont(MColors.primaryPurple, null),
+                              style: normalFont(MColors.secondaryColor, null),
                             ),
                           ),
                           SizedBox(height: 20.0),
@@ -215,7 +215,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               primaryTextField(
                                 null,
                                 null,
-                                "e.g +55 (47) 12345 6789",
+                                "e.g +971 4 4475 70",
                                 (val) => _phone = val,
                                 _isEnabled,
                                 PhoneNumberValiditor.validate,
@@ -232,7 +232,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 child: Text(
                                   "Your number should contain your country code and state code.",
                                   style:
-                                      normalFont(MColors.primaryPurple, null),
+                                      normalFont(MColors.secondaryColor, null),
                                 ),
                               ),
                               SizedBox(height: 20.0),
@@ -240,7 +240,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 children: <Widget>[
                                   Icon(
                                     Icons.verified_user,
-                                    color: MColors.primaryPurple,
+                                    color: MColors.secondaryColor,
                                   ),
                                   SizedBox(
                                     width: 5.0,

@@ -17,6 +17,8 @@ import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 
 class Search extends StatelessWidget {
+  bool showDrawer;
+  Search(this.showDrawer);
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -31,13 +33,17 @@ class Search extends StatelessWidget {
           create: (context) => CartNotifier(),
         ),
       ],
-      child: SearchScreen(),
+      child: SearchScreen(
+        showDrawer: this.showDrawer,
+      ),
     );
   }
 }
 
 class SearchScreen extends StatefulWidget {
-  SearchScreen({Key key}) : super(key: key);
+  bool showDrawer;
+
+  SearchScreen({Key key, this.showDrawer}) : super(key: key);
 
   @override
   _SearchScreenState createState() => _SearchScreenState();
@@ -48,6 +54,7 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   void initState() {
     getData();
+
     checkInternetConnectivity().then((value) => {
           value == true
               ? () {
@@ -144,13 +151,21 @@ class _SearchScreenState extends State<SearchScreen>
           brightness: Brightness.light,
           elevation: 0.0,
           backgroundColor: MColors.primaryWhiteSmoke,
-          leading: IconButton(
-            icon: Icon(Icons.menu),
-            color: MColors.secondaryColor,
-            onPressed: () {
-              _primaryscaffoldKey.currentState.openDrawer();
-            },
-          ),
+          leading: widget.showDrawer == true
+              ? IconButton(
+                  icon: Icon(Icons.menu),
+                  color: MColors.secondaryColor,
+                  onPressed: () {
+                    _primaryscaffoldKey.currentState.openDrawer();
+                  },
+                )
+              : IconButton(
+                  icon: Icon(Icons.arrow_back_ios),
+                  color: MColors.secondaryColor,
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
           title: Container(
             height: 40.0,
             child: searchTextField(
@@ -322,11 +337,11 @@ class _SearchScreenState extends State<SearchScreen>
 
     await FirebaseFirestore.instance
         .collection('food')
-        .getDocuments()
+        .get()
         .then((QuerySnapshot snapshot) {
       docList.clear();
       dogList.clear();
-      snapshot.documents.forEach((f) {
+      snapshot.docs.forEach((f) {
         List<String> dogName = List<String>.from(f['nameSearch']);
         List<String> dogBreed = List<String>.from(f['categorySearch']);
         List<String> dogLowerCase = [];
@@ -356,12 +371,12 @@ class _SearchScreenState extends State<SearchScreen>
   void getData() async {
     await databaseReference
         .collection("food")
-        .getDocuments()
+        .get()
         .then((QuerySnapshot snapshot) {
-      snapshot.documents.forEach((f) {
+      snapshot.docs.forEach((f) {
         dogList.add(ProdProducts.fromMap(f.data()));
         print('Dog added');
-        print(f['profileImage'].toString());
+        // print(f['profileImage'].toString());
       });
     });
     setState(() {

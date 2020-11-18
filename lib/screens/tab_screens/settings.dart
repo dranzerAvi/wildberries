@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/main.dart';
 import 'package:mrpet/model/notifiers/userData_notifier.dart';
 import 'package:mrpet/model/services/auth_service.dart';
 import 'package:mrpet/model/services/pushNotification_service.dart';
 import 'package:mrpet/model/services/user_management.dart';
+import 'package:mrpet/screens/getstarted_screens/intro_screen.dart';
 import 'package:mrpet/screens/settings_screens/cards.dart';
 import 'package:mrpet/screens/settings_screens/editProfile.dart';
 import 'package:mrpet/screens/settings_screens/passwordSecurity.dart';
@@ -12,8 +16,12 @@ import 'package:mrpet/screens/tab_screens/history.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/internetConnectivity.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:mrpet/widgets/provider.dart';
+import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'checkout_screens/enterAddress.dart';
 
@@ -50,6 +58,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
   }
 
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     UserDataProfileNotifier profileNotifier =
@@ -80,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             break;
           case ConnectionState.done:
             return checkUser.isEmpty || checkUser == null
-                ? progressIndicator(MColors.primaryPurple)
+                ? showSettings(user, addressList)
                 : showSettings(user, addressList);
 
             break;
@@ -100,87 +127,175 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? _checkAddress = null
         : _checkAddress = addressList.first;
     var _address = _checkAddress;
+    List listTileIcons, listTileNames, listTileActions;
+    if (user != null) {
+      listTileIcons = [
+        "assets/images/online-order.svg",
+        "assets/images/password.svg",
+        "assets/images/icons/Wallet.svg",
+        "assets/images/icons/Location.svg",
+        "assets/images/gift.svg",
+        "assets/images/help.svg",
+        "assets/images/question.svg",
+        "assets/images/logout.svg",
+      ];
 
-    final listTileIcons = [
-      "assets/images/online-order.svg",
-      "assets/images/password.svg",
-      "assets/images/icons/Wallet.svg",
-      "assets/images/icons/Location.svg",
-      "assets/images/gift.svg",
-      "assets/images/help.svg",
-      "assets/images/question.svg",
-      "assets/images/logout.svg",
-    ];
+      listTileNames = [
+        "Your Orders",
+        "Security",
+        "Cards",
+        "Address",
+        "Invite a friend",
+        "Help",
+        "FAQs",
+        "Sign out",
+      ];
 
-    final listTileNames = [
-      "Your Orders",
-      "Security",
-      "Cards",
-      "Address",
-      "Invite a friend",
-      "Help",
-      "FAQs",
-      "Sign out",
-    ];
-
-    final listTileActions = [
-      () {
-        Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (_) => HistoryScreen(),
-          ),
-        );
-      },
-      () {
-        Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (_) => SecurityScreen(),
-          ),
-        );
-      },
-      () {
-        Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (_) => Cards1(),
-          ),
-        );
-      },
-      () async {
-        var navigationResult = await Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (_) => Address(_address, addressList),
-          ),
-        );
-        if (navigationResult == true) {
-          UserDataAddressNotifier addressNotifier =
-              Provider.of<UserDataAddressNotifier>(context, listen: false);
-
-          setState(() {
-            getAddress(addressNotifier);
-          });
-          showSimpleSnack(
-            "Address has been updated",
-            Icons.check_circle_outline,
-            Colors.green,
-            _scaffoldKey,
+      listTileActions = [
+        () {
+          Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => HistoryScreen(),
+            ),
           );
-        }
-      },
-      () {
-        shareWidget();
-      },
-      () {},
-      () {
-        mockNotifications();
-      },
-      () {
-        _showLogOutDialog();
-      },
-    ];
+        },
+        () {
+          Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => SecurityScreen(),
+            ),
+          );
+        },
+        () {
+          Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => Cards1(),
+            ),
+          );
+        },
+        () async {
+          var navigationResult = await Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => Address(_address, addressList),
+            ),
+          );
+          if (navigationResult == true) {
+            UserDataAddressNotifier addressNotifier =
+                Provider.of<UserDataAddressNotifier>(context, listen: false);
+
+            setState(() {
+              getAddress(addressNotifier);
+            });
+            showSimpleSnack(
+              "Address has been updated",
+              Icons.check_circle_outline,
+              Colors.green,
+              _scaffoldKey,
+            );
+          }
+        },
+        () {
+          shareWidget();
+        },
+        () {},
+        () {
+          mockNotifications();
+        },
+        () {
+          _showLogOutDialog();
+        },
+      ];
+    } else {
+      listTileIcons = [
+        "assets/images/gift.svg",
+        "assets/images/help.svg",
+        "assets/images/question.svg",
+        "assets/images/logout.svg",
+      ];
+
+      listTileNames = [
+        "Invite a friend",
+        "Help",
+        "FAQs",
+        "Sign in",
+      ];
+
+      listTileActions = [
+        () {
+          shareWidget();
+        },
+        () {},
+        () {
+          mockNotifications();
+        },
+        () {
+          pushNewScreen(
+            context,
+            screen: IntroScreen(),
+            withNavBar: false, // OPTIONAL VALUE. True by default.
+            pageTransitionAnimation: PageTransitionAnimation.cupertino,
+          );
+        },
+      ];
+    }
 
     return Scaffold(
       backgroundColor: MColors.primaryWhiteSmoke,
       key: _scaffoldKey,
+      floatingActionButton: CustomFloatingButton(
+          CurrentScreen(currentScreen: SettingsScreen(), tab_no: 0)),
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          size: 20,
+          color: MColors.secondaryColor,
+        ),
+        backgroundColor: MColors.mainColor,
+        actions: [
+          InkWell(
+              onTap: () {
+                launch('tel:+919027553376');
+              },
+              child: Icon(
+                Icons.phone,
+              )),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+                launchWhatsApp(
+                    phone: '7060222315', message: 'Check out this awesome app');
+              },
+              child: Container(
+                  alignment: Alignment.center,
+                  child: FaIcon(FontAwesomeIcons.whatsapp))),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+//                print(1);
+                launch(
+                    'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+              },
+              child: Icon(
+                Icons.mail,
+              )),
+          SizedBox(
+            width: 14,
+          )
+        ],
+        elevation: 0.0,
+        centerTitle: true,
+        title: Text(
+          'Misterpet.ae',
+          style: TextStyle(
+              color: MColors.secondaryColor,
+              fontSize: 22,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold),
+        ),
+      ),
       body: primaryContainer(
         SingleChildScrollView(
           physics: BouncingScrollPhysics(),
@@ -189,138 +304,145 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.only(top: 5.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Center(
-                        child: GestureDetector(
-                          onTap: () async {
-                            UserDataProfileNotifier profileNotifier =
-                                Provider.of<UserDataProfileNotifier>(context,
-                                    listen: false);
-                            var navigationResult =
-                                await Navigator.of(context).push(
-                              CupertinoPageRoute(
-                                builder: (context) => EditProfile(user),
-                              ),
-                            );
-                            if (navigationResult == true) {
-                              setState(() {
-                                getProfile(profileNotifier);
-                              });
-                              showSimpleSnack(
-                                "Profile has been updated",
-                                Icons.check_circle_outline,
-                                Colors.green,
-                                _scaffoldKey,
-                              );
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Hero(
-                              tag: "profileAvatar",
-                              child: user.profilePhoto == null ||
-                                      user.profilePhoto == ""
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(9.0),
-                                      child: Image.asset(
-                                        "assets/images/petshop-footprint-logo-whiteBg.png",
-                                        height: 90.0,
-                                        width: 90.0,
-                                      ),
-                                    )
-                                  : ClipRRect(
-                                      borderRadius: BorderRadius.circular(9.0),
-                                      child: FadeInImage.assetNetwork(
-                                        image: user.profilePhoto,
-                                        fit: BoxFit.fill,
-                                        height: 90.0,
-                                        width: 90.0,
-                                        placeholder:
-                                            "assets/images/petshop-footprint-logo-whiteBg.png",
-                                      ),
+                user != null
+                    ? Container(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Center(
+                              child: GestureDetector(
+                                onTap: () async {
+                                  UserDataProfileNotifier profileNotifier =
+                                      Provider.of<UserDataProfileNotifier>(
+                                          context,
+                                          listen: false);
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => EditProfile(user),
                                     ),
+                                  );
+                                  if (navigationResult == true) {
+                                    setState(() {
+                                      getProfile(profileNotifier);
+                                    });
+                                    showSimpleSnack(
+                                      "Profile has been updated",
+                                      Icons.check_circle_outline,
+                                      Colors.green,
+                                      _scaffoldKey,
+                                    );
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: Hero(
+                                    tag: "profileAvatar",
+                                    child: user.profilePhoto == null ||
+                                            user.profilePhoto == ""
+                                        ? ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(9.0),
+                                            child: Image.asset(
+                                              "assets/images/petshop-footprint-logo-whiteBg.png",
+                                              height: 90.0,
+                                              width: 90.0,
+                                            ),
+                                          )
+                                        : ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(9.0),
+                                            child: FadeInImage.assetNetwork(
+                                              image: user.profilePhoto,
+                                              fit: BoxFit.fill,
+                                              height: 90.0,
+                                              width: 90.0,
+                                              placeholder:
+                                                  "assets/images/petshop-footprint-logo-whiteBg.png",
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                      RawMaterialButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        elevation: 0.0,
-                        hoverElevation: 0.0,
-                        focusElevation: 0.0,
-                        highlightElevation: 0.0,
-                        onPressed: () async {
-                          UserDataProfileNotifier profileNotifier =
-                              Provider.of<UserDataProfileNotifier>(context,
-                                  listen: false);
-                          var navigationResult =
-                              await Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) => EditProfile(user),
-                            ),
-                          );
-                          if (navigationResult == true) {
-                            setState(() {
-                              getProfile(profileNotifier);
-                            });
-                            showSimpleSnack(
-                              "Profile has been updated",
-                              Icons.check_circle_outline,
-                              Colors.green,
-                              _scaffoldKey,
-                            );
-                          }
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(10.0),
-                          child: Column(
-                            children: <Widget>[
-                              Container(
+                            RawMaterialButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              elevation: 0.0,
+                              hoverElevation: 0.0,
+                              focusElevation: 0.0,
+                              highlightElevation: 0.0,
+                              onPressed: () async {
+                                UserDataProfileNotifier profileNotifier =
+                                    Provider.of<UserDataProfileNotifier>(
+                                        context,
+                                        listen: false);
+                                var navigationResult =
+                                    await Navigator.of(context).push(
+                                  CupertinoPageRoute(
+                                    builder: (context) => EditProfile(user),
+                                  ),
+                                );
+                                if (navigationResult == true) {
+                                  setState(() {
+                                    getProfile(profileNotifier);
+                                  });
+                                  showSimpleSnack(
+                                    "Profile has been updated",
+                                    Icons.check_circle_outline,
+                                    Colors.green,
+                                    _scaffoldKey,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(10.0),
                                 child: Column(
                                   children: <Widget>[
-                                    Text(
-                                      user.name,
-                                      style:
-                                          boldFont(MColors.primaryPurple, 16.0),
-                                      textAlign: TextAlign.center,
+                                    Container(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text(
+                                            user.name,
+                                            style: boldFont(
+                                                MColors.primaryPurple, 16.0),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Text(
+                                            user.email,
+                                            style: normalFont(
+                                                MColors.textGrey, 14.0),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    Text(
-                                      user.email,
-                                      style: normalFont(MColors.textGrey, 14.0),
-                                      textAlign: TextAlign.center,
+                                    SizedBox(height: 5.0),
+                                    Container(
+                                      width: 100,
+                                      height: 18.0,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10.0)),
+                                        color: MColors.dashPurple,
+                                      ),
+                                      child: Center(
+                                        child: Text("EDIT PROFILE",
+                                            style: normalFont(
+                                                MColors.primaryPurple, 12.0)),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 5.0),
-                              Container(
-                                width: 100,
-                                height: 18.0,
-                                decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10.0)),
-                                  color: MColors.dashPurple,
-                                ),
-                                child: Center(
-                                  child: Text("EDIT PROFILE",
-                                      style: normalFont(
-                                          MColors.primaryPurple, 12.0)),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      )
+                    : Container(),
                 SizedBox(height: 20.0),
                 Divider(
                   height: 1.0,

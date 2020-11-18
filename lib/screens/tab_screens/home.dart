@@ -8,19 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geocoder/geocoder.dart';
-import 'package:geolocation/geolocation.dart';
-import 'package:geolocation/geolocation.dart';
+
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:geolocator/geolocator.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/notifiers/bannerAd_notifier.dart';
-import 'package:mrpet/model/notifiers/brands_notifier.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
+import 'package:mrpet/model/notifiers/userData_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/brandProductsScreen.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/screens/tab_screens/search_screens/search_screen.dart';
 import 'package:mrpet/utils/colors.dart';
@@ -32,8 +30,7 @@ import 'package:place_picker/place_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../credentials.dart';
-import 'homeScreen_pages/bag.dart';
+import 'allCategories.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key key}) : super(key: key);
@@ -140,6 +137,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    UserDataProfileNotifier userNotifier =
+        Provider.of<UserDataProfileNotifier>(context);
+    var profileData = userNotifier.userDataProfile;
+
     var size = MediaQuery.of(context).size;
     /*24 is for notification bar on Android*/
     final double itemHeight = (size.height) / 2.5;
@@ -172,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen>
         return Scaffold(
           appBar: AppBar(
             iconTheme: IconThemeData(
-              size: 25,
+              size: 20,
               color: MColors.secondaryColor,
             ),
             backgroundColor: MColors.mainColor,
@@ -249,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen>
                             onTap: () {
                               Navigator.of(context).push(
                                 CupertinoPageRoute(
-                                  builder: (context) => Search(),
+                                  builder: (context) => Search(false),
                                 ),
                               );
                             },
@@ -285,7 +286,8 @@ class _HomeScreenState extends State<HomeScreen>
                           onTap: () {
                             Navigator.of(context).push(
                               CupertinoPageRoute(
-                                builder: (context) => Search(),
+                                builder: (context) =>
+                                    AllCategories(from: 'home'),
                               ),
                             );
                           },
@@ -324,9 +326,15 @@ class _HomeScreenState extends State<HomeScreen>
                                         'Deliver to ',
                                         style: myFont(MColors.textDark, 15),
                                       ),
-                                      Text('$currentLocationAddress',
-                                          style:
-                                              normalFont(MColors.textGrey, 15)),
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.4,
+                                        height: 25,
+                                        child: Text('$currentLocationAddress',
+                                            style: normalFont(
+                                                MColors.textGrey, 15)),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -413,24 +421,12 @@ class _HomeScreenState extends State<HomeScreen>
                         _scaffoldKey,
                         context,
                         prods,
-                        () async {
-                          var title = "Best Sellers";
-
-                          var navigationResult =
-                              await Navigator.of(context).push(
+                        () {
+                          Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SeeMoreScreen(
-                                title: title,
-                                products: prods,
-                                productsNotifier: productsNotifier,
-                                cartNotifier: cartNotifier,
-                                cartProdID: cartProdID,
-                              ),
+                              builder: (context) => AllCategories(from: 'home'),
                             ),
                           );
-                          if (navigationResult == true) {
-                            getCart(cartNotifier);
-                          }
                         },
                       );
                     },
@@ -446,36 +442,33 @@ class _HomeScreenState extends State<HomeScreen>
                       var _prods = popular.toList();
 
                       return blockWigdet(
-                        "BEST SELLING IN SHOP",
-                        "Sought after products",
-                        _picHeight,
-                        itemHeight,
-                        _prods,
-                        cartNotifier,
-                        cartProdID,
-                        _scaffoldKey,
-                        context,
-                        prods,
-                        () async {
-                          var title = "Best Sellers";
+                          "BEST SELLING IN SHOP",
+                          "Sought after products",
+                          _picHeight,
+                          itemHeight,
+                          _prods,
+                          cartNotifier,
+                          cartProdID,
+                          _scaffoldKey,
+                          context,
+                          prods, () async {
+                        var title = "Best Sellers";
 
-                          var navigationResult =
-                              await Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) => SeeMoreScreen(
-                                title: title,
-                                products: prods,
-                                productsNotifier: productsNotifier,
-                                cartNotifier: cartNotifier,
-                                cartProdID: cartProdID,
-                              ),
+                        var navigationResult = await Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (context) => SeeMoreScreen(
+                              title: title,
+                              products: prods,
+                              productsNotifier: productsNotifier,
+                              cartNotifier: cartNotifier,
+                              cartProdID: cartProdID,
                             ),
-                          );
-                          if (navigationResult == true) {
-                            getCart(cartNotifier);
-                          }
-                        },
-                      );
+                          ),
+                        );
+                        if (navigationResult == true) {
+                          getCart(cartNotifier);
+                        }
+                      }, profileData);
                     },
                   ),
 
@@ -489,36 +482,33 @@ class _HomeScreenState extends State<HomeScreen>
                       var _prods = newP.toList();
 
                       return blockWigdet(
-                        "Our Sale",
-                        "Newly released products",
-                        _picHeight,
-                        itemHeight,
-                        _prods,
-                        cartNotifier,
-                        cartProdID,
-                        _scaffoldKey,
-                        context,
-                        prods,
-                        () async {
-                          var title = "SALE";
+                          "Our Sale",
+                          "Newly released products",
+                          _picHeight,
+                          itemHeight,
+                          _prods,
+                          cartNotifier,
+                          cartProdID,
+                          _scaffoldKey,
+                          context,
+                          prods, () async {
+                        var title = "SALE";
 
-                          var navigationResult =
-                              await Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) => SeeMoreScreen(
-                                title: title,
-                                products: prods,
-                                productsNotifier: productsNotifier,
-                                cartNotifier: cartNotifier,
-                                cartProdID: cartProdID,
-                              ),
+                        var navigationResult = await Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (context) => SeeMoreScreen(
+                              title: title,
+                              products: prods,
+                              productsNotifier: productsNotifier,
+                              cartNotifier: cartNotifier,
+                              cartProdID: cartProdID,
                             ),
-                          );
-                          if (navigationResult == true) {
-                            getCart(cartNotifier);
-                          }
-                        },
-                      );
+                          ),
+                        );
+                        if (navigationResult == true) {
+                          getCart(cartNotifier);
+                        }
+                      }, profileData);
                     },
                   ),
 
@@ -569,36 +559,33 @@ class _HomeScreenState extends State<HomeScreen>
                       var _prods = offers.toList();
 
                       return blockWigdet(
-                        "New Products In Shop",
-                        "Slashed prices just for you",
-                        _picHeight,
-                        itemHeight,
-                        _prods,
-                        cartNotifier,
-                        cartProdID,
-                        _scaffoldKey,
-                        context,
-                        prods,
-                        () async {
-                          var title = "NEW";
+                          "New Products In Shop",
+                          "Slashed prices just for you",
+                          _picHeight,
+                          itemHeight,
+                          _prods,
+                          cartNotifier,
+                          cartProdID,
+                          _scaffoldKey,
+                          context,
+                          prods, () async {
+                        var title = "NEW";
 
-                          var navigationResult =
-                              await Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) => SeeMoreScreen(
-                                title: title,
-                                products: prods,
-                                productsNotifier: productsNotifier,
-                                cartNotifier: cartNotifier,
-                                cartProdID: cartProdID,
-                              ),
+                        var navigationResult = await Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (context) => SeeMoreScreen(
+                              title: title,
+                              products: prods,
+                              productsNotifier: productsNotifier,
+                              cartNotifier: cartNotifier,
+                              cartProdID: cartProdID,
                             ),
-                          );
-                          if (navigationResult == true) {
-                            getCart(cartNotifier);
-                          }
-                        },
-                      );
+                          ),
+                        );
+                        if (navigationResult == true) {
+                          getCart(cartNotifier);
+                        }
+                      }, profileData);
                     },
                   ),
                 ],

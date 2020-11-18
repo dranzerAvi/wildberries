@@ -258,7 +258,9 @@ class _EnterAddressState extends State<EnterAddress> {
           ],
         ),
       ),
-      bottomNavigationBar: warningWidget(),
+      bottomNavigationBar: SizedBox(
+        height: 10,
+      ),
     );
   }
 

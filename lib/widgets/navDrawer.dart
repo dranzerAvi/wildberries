@@ -8,6 +8,7 @@ import 'package:location/location.dart';
 import 'package:mrpet/model/notifiers/userData_notifier.dart';
 import 'package:mrpet/model/services/auth_service.dart';
 import 'package:mrpet/model/services/user_management.dart';
+import 'package:mrpet/screens/getstarted_screens/intro_screen.dart';
 import 'package:mrpet/screens/tab_screens/allCategories.dart';
 import 'package:mrpet/screens/tab_screens/history.dart';
 import 'package:mrpet/screens/tab_screens/settings.dart';
@@ -130,19 +131,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
       builder: (c, s) {
         switch (s.connectionState) {
           case ConnectionState.active:
-            return progressIndicator(MColors.secondaryColor);
+            return Container();
             break;
           case ConnectionState.done:
             return checkUser.isEmpty || checkUser == null
-                ? progressIndicator(MColors.secondaryColor)
+                ? retNavDrawer(user, addressList)
                 : retNavDrawer(user, addressList);
 
             break;
           case ConnectionState.waiting:
-            return progressIndicator(MColors.secondaryColor);
+            return Container();
             break;
           default:
-            return progressIndicator(MColors.secondaryColor);
+            return Container();
         }
       },
     );
@@ -164,7 +165,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ? Container(
                       // alignment: Alignment.center,
                       height: 80,
-                      color: MColors.mainColor,
+                      color: MColors.secondaryColor,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -184,14 +185,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               children: <Widget>[
                                 Text(
                                   user.name,
-                                  style:
-                                      normalFont(MColors.secondaryColor, 14.0),
+                                  style: normalFont(
+                                      MColors.primaryWhiteSmoke, 14.0),
                                   textAlign: TextAlign.start,
                                 ),
                                 Text(
                                   user.email,
-                                  style:
-                                      normalFont(MColors.secondaryColor, 14.0),
+                                  style: normalFont(
+                                      MColors.primaryWhiteSmoke, 14.0),
                                   textAlign: TextAlign.start,
                                 ),
                               ],
@@ -202,11 +203,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     )
                   : InkWell(
                       onTap: () {
-                        // pushNewScreen(context,
-                        //     screen: LoginScreen(),
-                        //     withNavBar: false,
-                        //     pageTransitionAnimation:
-                        //     PageTransitionAnimation.slideRight);
+                        Navigator.of(context).pop();
+                        pushNewScreen(
+                          context,
+                          screen: IntroScreen(),
+                          withNavBar: false, // OPTIONAL VALUE. True by default.
+                          pageTransitionAnimation:
+                              PageTransitionAnimation.cupertino,
+                        );
                       },
                       child: Container(
                         color: MColors.secondaryColor,
@@ -279,7 +283,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
             ),
             onTap: () {
-              pushNewScreen(context, screen: AllCategories());
+              pushNewScreen(context,
+                  screen: AllCategories(
+                    from: 'drawer',
+                  ));
             },
           ),
           Container(
@@ -350,27 +357,31 @@ class _CustomDrawerState extends State<CustomDrawer> {
             height: 0.5,
             color: Colors.black26,
           ),
-          ListTile(
-            title: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-              child: Text(
-                'Log Out',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: 'nunito',
-                    fontWeight: FontWeight.w600),
-              ),
-            ),
-            onTap: () {
-              _showLogOutDialog();
-            },
-          ),
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 20),
-            height: 0.5,
-            color: Colors.black26,
-          ),
+          user != null
+              ? ListTile(
+                  title: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 10),
+                    child: Text(
+                      'Log Out',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: 'nunito',
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  onTap: () {
+                    _showLogOutDialog();
+                  },
+                )
+              : Container(),
+          user != null
+              ? Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  height: 0.5,
+                  color: Colors.black26,
+                )
+              : Container(),
         ],
       ),
     );

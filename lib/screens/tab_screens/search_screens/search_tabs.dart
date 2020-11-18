@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -362,6 +363,17 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
                                 Spacer(),
                                 GestureDetector(
                                   onTap: () => () {
+                                    final FirebaseAuth _firebaseAuth =
+                                        FirebaseAuth.instance;
+                                    if (_firebaseAuth.currentUser == null) {
+                                      showSimpleSnack(
+                                        "Please Login First",
+                                        Icons.error_outline,
+                                        Colors.amber,
+                                        scaffoldKey,
+                                      );
+                                      return;
+                                    }
                                     addToBagshowDialog(product);
                                     HapticFeedback.heavyImpact();
                                   }(),

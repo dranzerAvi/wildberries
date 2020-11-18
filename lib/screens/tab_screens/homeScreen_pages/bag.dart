@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/screens/tab_screens/checkout_screens/completeOrder.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Bag extends StatelessWidget {
   @override
@@ -25,6 +29,25 @@ class BagScreen extends StatefulWidget {
 class _BagScreenState extends State<BagScreen> {
   Future bagFuture;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
 
   @override
   void initState() {
@@ -51,24 +74,58 @@ class _BagScreenState extends State<BagScreen> {
         return Future.value(true);
       },
       child: Scaffold(
-        appBar: primaryAppBar(
-          IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: MColors.textGrey,
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+            size: 20,
+            color: MColors.secondaryColor,
+          ),
+          backgroundColor: MColors.mainColor,
+          actions: [
+            InkWell(
+                onTap: () {
+                  launch('tel:+919027553376');
+                },
+                child: Icon(
+                  Icons.phone,
+                )),
+            SizedBox(
+              width: 8,
             ),
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
+            InkWell(
+                onTap: () {
+                  launchWhatsApp(
+                      phone: '7060222315',
+                      message: 'Check out this awesome app');
+                },
+                child: Container(
+                    alignment: Alignment.center,
+                    child: FaIcon(FontAwesomeIcons.whatsapp))),
+            SizedBox(
+              width: 8,
+            ),
+            InkWell(
+                onTap: () {
+//                print(1);
+                  launch(
+                      'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+                },
+                child: Icon(
+                  Icons.mail,
+                )),
+            SizedBox(
+              width: 14,
+            )
+          ],
+          elevation: 0.0,
+          centerTitle: true,
+          title: Text(
+            'Misterpet.ae',
+            style: TextStyle(
+                color: MColors.secondaryColor,
+                fontSize: 22,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold),
           ),
-          Text(
-            "Bag",
-            style: boldFont(MColors.secondaryColor, 16.0),
-          ),
-          MColors.primaryWhiteSmoke,
-          null,
-          true,
-          null,
         ),
         body: FutureBuilder(
           future: bagFuture,

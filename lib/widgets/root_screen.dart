@@ -107,7 +107,7 @@ class _RootScreenState extends State<RootScreen>
     return [
       HomeScreen(),
       AllCategories(),
-      Search(),
+      Search(true),
       InboxScreen(),
       SettingsScreen(),
     ];

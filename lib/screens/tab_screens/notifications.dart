@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/model/notifiers/notifications_notifier.dart';
 
 import 'package:mrpet/model/services/pushNotification_service.dart';
@@ -7,7 +10,10 @@ import 'package:mrpet/screens/tab_screens/homeScreen_pages/notificationDetails.d
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/internetConnectivity.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class InboxScreen extends StatefulWidget {
   InboxScreen({Key key}) : super(key: key);
@@ -37,6 +43,25 @@ class _InboxScreenState extends State<InboxScreen> {
     super.initState();
   }
 
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     NotificationsNotifier notificationsNotifier =
@@ -45,6 +70,61 @@ class _InboxScreenState extends State<InboxScreen> {
 
     return Scaffold(
       backgroundColor: MColors.primaryWhiteSmoke,
+      floatingActionButton: CustomFloatingButton(
+          CurrentScreen(currentScreen: InboxScreen(), tab_no: 0)),
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          size: 20,
+          color: MColors.secondaryColor,
+        ),
+        backgroundColor: MColors.mainColor,
+        actions: [
+          InkWell(
+              onTap: () {
+                launch('tel:+919027553376');
+              },
+              child: Icon(
+                Icons.phone,
+              )),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+                launchWhatsApp(
+                    phone: '7060222315', message: 'Check out this awesome app');
+              },
+              child: Container(
+                  alignment: Alignment.center,
+                  child: FaIcon(FontAwesomeIcons.whatsapp))),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+//                print(1);
+                launch(
+                    'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+              },
+              child: Icon(
+                Icons.mail,
+              )),
+          SizedBox(
+            width: 14,
+          )
+        ],
+        elevation: 0.0,
+        centerTitle: true,
+        title: Text(
+          'Misterpet.ae',
+          style: TextStyle(
+              color: MColors.secondaryColor,
+              fontSize: 22,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold),
+        ),
+      ),
+      drawer: CustomDrawer(),
       body: RefreshIndicator(
         onRefresh: () => getNotifications(notificationsNotifier),
         child: primaryContainer(
@@ -64,7 +144,7 @@ class _InboxScreenState extends State<InboxScreen> {
                   return progressIndicator(MColors.primaryPurple);
                   break;
                 default:
-                  return progressIndicator(MColors.primaryPurple);
+                  return noNotifications();
               }
             },
           ),

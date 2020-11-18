@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -209,6 +210,17 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                         Spacer(),
                         GestureDetector(
                           onTap: () {
+                            final FirebaseAuth _firebaseAuth =
+                                FirebaseAuth.instance;
+                            if (_firebaseAuth.currentUser == null) {
+                              showSimpleSnack(
+                                "Please Login First",
+                                Icons.error_outline,
+                                Colors.amber,
+                                scaffoldKey,
+                              );
+                              return;
+                            }
                             addToBagshowDialog(
                               cartProdID,
                               fil,

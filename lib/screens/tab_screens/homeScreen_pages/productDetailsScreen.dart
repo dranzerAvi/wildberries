@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:fancy_shimmer_image/fancy_shimmer_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropdown/flutter_dropdown.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
@@ -13,10 +17,12 @@ import 'package:mrpet/widgets/similarProducts_Wigdet.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/starRatings.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProductDetailsProv extends StatelessWidget {
   final ProdProducts prodDetails;
   final Iterable<ProdProducts> prods;
+
   ProductDetailsProv(this.prodDetails, this.prods);
 
   @override
@@ -68,6 +74,25 @@ class _ProductDetailsState extends State<ProductDetails> {
     super.initState();
   }
 
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
@@ -105,22 +130,61 @@ class _ProductDetailsState extends State<ProductDetails> {
       key: _scaffoldKey,
       backgroundColor: MColors.primaryWhite,
       appBar: AppBar(
-        elevation: 0.0,
-        brightness: Brightness.light,
-        backgroundColor: MColors.primaryWhite,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: MColors.textGrey,
-            size: 22.0,
-          ),
-          onPressed: () {
-            Navigator.pop(
-              context,
-              _isProductadded,
-            );
+        iconTheme: IconThemeData(
+          size: 20,
+          color: MColors.secondaryColor,
+        ),
+        backgroundColor: MColors.mainColor,
+        leading: InkWell(
+          child: Icon(Icons.arrow_back_ios),
+          onTap: () {
+            Navigator.pop(context);
           },
         ),
+        actions: [
+          InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (BuildContext context) {
+                return Bag();
+              }));
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 36,
+                  color: Color(0xFF6b3600),
+                ),
+                cartList.length != null
+                    ? cartList.length > 0
+                        ? Positioned(
+                            bottom: 30,
+                            left: 20,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 2.0),
+                              child: CircleAvatar(
+                                radius: 8.0,
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                child: Text(
+                                  cartList.length.toString(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container()
+                    : Container(),
+              ],
+            ),
+          )
+        ],
+        elevation: 0.0,
         centerTitle: true,
         title: Text(
           'Misterpet.ae',
@@ -130,58 +194,6 @@ class _ProductDetailsState extends State<ProductDetails> {
               fontFamily: 'Poppins',
               fontWeight: FontWeight.bold),
         ),
-        actions: <Widget>[
-          Container(
-            width: 70,
-            child: RawMaterialButton(
-              child: Container(
-                height: 30.0,
-                child: Stack(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: SvgPicture.asset(
-                        "assets/images/icons/Bag.svg",
-                        height: 24.0,
-                        color: MColors.textGrey,
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      child: Container(
-                        padding: EdgeInsets.all(1),
-                        decoration: BoxDecoration(
-                          color: cartList.isNotEmpty
-                              ? Colors.redAccent
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        constraints: BoxConstraints(
-                          minWidth: 7,
-                          minHeight: 7,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              onPressed: () async {
-                CartNotifier cartNotifier =
-                    Provider.of<CartNotifier>(context, listen: false);
-                var navigationResult = await Navigator.of(context).push(
-                  CupertinoPageRoute(
-                    builder: (context) => Bag(),
-                  ),
-                );
-                if (navigationResult == true) {
-                  setState(() {
-                    getCart(cartNotifier);
-                  });
-                }
-              },
-            ),
-          ),
-        ],
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -1215,6 +1227,16 @@ class _ProductDetailsState extends State<ProductDetails> {
   bool isCartBadge = false;
 
   void _submit(cartNotifier) {
+    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+    if (_firebaseAuth.currentUser == null) {
+      showSimpleSnack(
+        "Please Login First",
+        Icons.error_outline,
+        Colors.amber,
+        _scaffoldKey,
+      );
+      return;
+    }
     var cartProdID = cartNotifier.cartList.map((e) => e.productID);
     setState(() {
       getCart(cartNotifier);
@@ -1252,6 +1274,16 @@ class _ProductDetailsState extends State<ProductDetails> {
   }
 
   void _submitWishlist(wishlistNotifier) {
+    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+    if (_firebaseAuth.currentUser == null) {
+      showSimpleSnack(
+        "Please Login First",
+        Icons.error_outline,
+        Colors.amber,
+        _scaffoldKey,
+      );
+      return;
+    }
     var wishlistProdID = wishlistNotifier.wishlistList.map((e) => e.productID);
     setState(() {
       getWishlist(wishlistNotifier);

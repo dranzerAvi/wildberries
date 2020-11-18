@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mrpet/model/data/Products.dart';
+import 'package:mrpet/model/data/userData.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
@@ -748,18 +749,18 @@ orderTrackerWidget(String status) {
 
 //-------------------------------------------
 Widget blockWigdet(
-  String blockTitle,
-  String blockSubTitle,
-  double _picHeight,
-  double _itemHeight,
-  List<ProdProducts> prods,
-  CartNotifier cartNotifier,
-  Iterable<String> cartProdID,
-  GlobalKey _scaffoldKey,
-  BuildContext context,
-  allProds,
-  void Function() seeMore,
-) {
+    String blockTitle,
+    String blockSubTitle,
+    double _picHeight,
+    double _itemHeight,
+    List<ProdProducts> prods,
+    CartNotifier cartNotifier,
+    Iterable<String> cartProdID,
+    GlobalKey _scaffoldKey,
+    BuildContext context,
+    allProds,
+    void Function() seeMore,
+    UserDataProfile profile) {
   void addToBagshowDialog(
       _product, cartNotifier, cartProdID, scaffoldKey) async {
     await showCupertinoDialog(
@@ -830,7 +831,7 @@ Widget blockWigdet(
               style: boldFont(MColors.textDark, 16.0),
             ),
             Container(
-              height: 15.0,
+              height: 17.0,
               child: RawMaterialButton(
                 onPressed: seeMore,
                 child: Text(
@@ -925,8 +926,15 @@ Widget blockWigdet(
                             ),
                             Spacer(),
                             GestureDetector(
-                              onTap: () => addToBagshowDialog(product,
-                                  cartNotifier, cartProdID, _scaffoldKey),
+                              onTap: () => profile != null
+                                  ? addToBagshowDialog(product, cartNotifier,
+                                      cartProdID, _scaffoldKey)
+                                  : showSimpleSnack(
+                                      "Please login First",
+                                      Icons.error_outline,
+                                      Colors.red,
+                                      _scaffoldKey,
+                                    ),
                               child: Container(
                                 width: 25.0,
                                 height: 25.0,
@@ -982,7 +990,7 @@ Widget blockWigdet2(
               style: boldFont(MColors.textDark, 16.0),
             ),
             Container(
-              height: 15.0,
+              height: 17.0,
               child: RawMaterialButton(
                 onPressed: seeMore,
                 child: Text(
