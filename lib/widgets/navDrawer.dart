@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:getflutter/getflutter.dart';
 import 'package:location/location.dart';
@@ -382,6 +383,49 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   color: Colors.black26,
                 )
               : Container(),
+          ListTile(
+            title: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                        height: 50,
+                        width: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
+                            border: Border.all(
+                                color: MColors.secondaryColor, width: 2)),
+                        alignment: Alignment.center,
+                        child: FaIcon(FontAwesomeIcons.whatsapp)),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                        height: 50,
+                        width: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
+                            border: Border.all(
+                                color: MColors.secondaryColor, width: 2)),
+                        alignment: Alignment.center,
+                        child: FaIcon(FontAwesomeIcons.instagram)),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                        height: 50,
+                        width: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
+                            border: Border.all(
+                                color: MColors.secondaryColor, width: 2)),
+                        alignment: Alignment.center,
+                        child: FaIcon(FontAwesomeIcons.facebook))
+                  ],
+                )),
+          )
         ],
       ),
     );

@@ -49,22 +49,46 @@ class AddressScreen extends StatelessWidget {
 
 class _AddressContainerState extends State<AddressContainer> {
   final List<Cart> cartList;
-  Future addressFuture, cardFuture, completeOrderFuture;
+  Future addressFuture, cardFuture, completeOrderFuture, dateFuture;
+  bool isDateSelected;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Future<bool> isComplete = Future.value(false);
+  DateTime date;
 
   _AddressContainerState(this.cartList);
+  _pickTime() async {
+    DateTime t = await showDatePicker(
+      context: context,
+      initialDate: date,
+      lastDate: DateTime(2021, DateTime.now().month, 30),
+      firstDate: DateTime(2020, DateTime.now().month, DateTime.now().day + 15),
+      builder: (BuildContext context, Widget child) {
+        return Theme(
+          data: ThemeData.dark(),
+          child: child,
+        );
+      },
+    );
+    if (t != null)
+      setState(() {
+        isDateSelected = true;
+        date = t;
+      });
+
+    return date;
+  }
 
   @override
   void initState() {
     UserDataAddressNotifier addressNotifier =
         Provider.of<UserDataAddressNotifier>(context, listen: false);
     addressFuture = getAddress(addressNotifier);
-
+    date = DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day + 15);
     UserDataCardNotifier cardNotifier =
         Provider.of<UserDataCardNotifier>(context, listen: false);
     cardFuture = getCard(cardNotifier);
-
+    isDateSelected = false;
     super.initState();
   }
 
@@ -188,6 +212,18 @@ class _AddressContainerState extends State<AddressContainer> {
                   },
                 ),
               ),
+              SizedBox(
+                height: 20.0,
+              ),
+
+              //Payment Container
+              Container(
+                child:
+                    isDateSelected == true ? dateSelected() : noDateSelected(),
+              ),
+              SizedBox(
+                height: 20.0,
+              ),
             ],
           ),
         ),
@@ -216,7 +252,7 @@ class _AddressContainerState extends State<AddressContainer> {
               var uuid = Uuid();
               var orderID = uuid.v4();
               completeOrderFuture =
-                  addCartToOrders(cartList, orderID, addressList);
+                  addCartToOrders(cartList, orderID, addressList, date);
 
               //Clearing the cart and going home
               completeOrderFuture.then((value) {
@@ -689,6 +725,121 @@ class _AddressContainerState extends State<AddressContainer> {
               }
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget dateSelected() {
+    UserDataCardNotifier cardNotifier =
+        Provider.of<UserDataCardNotifier>(context);
+    var cardList = cardNotifier.userDataCardList;
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: MColors.primaryWhite,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                child: Icon(
+                  Icons.date_range_rounded,
+                  color: MColors.secondaryColor,
+                ),
+              ),
+              SizedBox(
+                width: 5.0,
+              ),
+              Expanded(
+                child: Container(
+                  child: Text(
+                    "Delivery Date",
+                    style: normalFont(MColors.textGrey, 14.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          Container(
+            padding: const EdgeInsets.only(left: 25.0),
+            child: Text(
+              "Your product will be delivered on",
+              style: normalFont(MColors.textGrey, 16.0),
+            ),
+          ),
+          SizedBox(height: 10.0),
+          primaryButtonWhiteSmoke(
+              Text(
+                  '${date.day.toString()}-${date.month.toString()}-${date.year.toString()}',
+                  style: boldFont(MColors.secondaryColor, 16.0)),
+              _pickTime),
+        ],
+      ),
+    );
+  }
+
+  Widget noDateSelected() {
+    UserDataCardNotifier cardNotifier =
+        Provider.of<UserDataCardNotifier>(context);
+    var cardList = cardNotifier.userDataCardList;
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: MColors.primaryWhite,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                child: Icon(
+                  Icons.date_range_rounded,
+                  color: MColors.secondaryColor,
+                ),
+              ),
+              SizedBox(
+                width: 5.0,
+              ),
+              Expanded(
+                child: Container(
+                  child: Text(
+                    "Delivery Date",
+                    style: normalFont(MColors.textGrey, 14.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          Container(
+            padding: const EdgeInsets.only(left: 25.0),
+            child: Text(
+              "Please select a date for delivery",
+              style: normalFont(MColors.textGrey, 16.0),
+            ),
+          ),
+          SizedBox(height: 10.0),
+          primaryButtonWhiteSmoke(
+              Text("Delivery Date",
+                  style: boldFont(MColors.secondaryColor, 16.0)),
+              _pickTime),
         ],
       ),
     );

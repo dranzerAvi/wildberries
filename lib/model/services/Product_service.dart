@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/data/bannerAds.dart';
 import 'package:mrpet/model/data/brands.dart';
@@ -13,6 +14,7 @@ import 'package:mrpet/model/notifiers/orders_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/auth_service.dart';
+import 'package:mrpet/widgets/allWidgets.dart';
 
 final db = FirebaseFirestore.instance;
 
@@ -48,9 +50,17 @@ getCat(CategoryNotifier categoryNotifier) async {
 }
 
 //Adding users' product to cart
-addProductToCart(product) async {
+addProductToCart(product, _scaffoldKey) async {
   final uEmail = await AuthService().getCurrentEmail();
-
+  if (uEmail == null) {
+    showSimpleSnack(
+      "Please login First",
+      Icons.error_outline,
+      Colors.red,
+      _scaffoldKey,
+    );
+    return;
+  }
   await db
       .collection("userCart")
       .doc(uEmail)
@@ -63,9 +73,17 @@ addProductToCart(product) async {
 }
 
 //Adding users' product to wishlist
-addProductToWishlist(product) async {
+addProductToWishlist(product, _scaffoldKey) async {
   final uEmail = await AuthService().getCurrentEmail();
-
+  if (uEmail == null) {
+    showSimpleSnack(
+      "Please login First",
+      Icons.error_outline,
+      Colors.red,
+      _scaffoldKey,
+    );
+    return;
+  }
   await db
       .collection("userWishlist")
       .doc(uEmail)
@@ -228,7 +246,7 @@ clearCartAfterPurchase() async {
 }
 
 //Adding users' product to cart
-addCartToOrders(cartList, orderID, addressList) async {
+addCartToOrders(cartList, orderID, addressList, date) async {
   final uEmail = await AuthService().getCurrentEmail();
   var orderDate = FieldValue.serverTimestamp();
 
@@ -249,6 +267,7 @@ addCartToOrders(cartList, orderID, addressList) async {
       'orderStatus': orderStatus,
       'shippingAddress': shippingAddress,
       'order': cartList.map((i) => i.toMap()).toList(),
+      'deliveryDate': date
     },
   ).catchError((e) {
     print(e);
@@ -266,6 +285,7 @@ addCartToOrders(cartList, orderID, addressList) async {
       'orderDate': orderDate,
       'shippingAddress': shippingAddress,
       'order': cartList.map((i) => i.toMap()).toList(),
+      'deliveryDate': date
     },
   ).catchError((e) {
     print(e);

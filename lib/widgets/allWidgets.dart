@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,6 +13,7 @@ import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:wc_flutter_share/wc_flutter_share.dart';
@@ -800,7 +802,7 @@ Widget blockWigdet(
                       scaffoldKey,
                     );
                   } else {
-                    addProductToCart(_product);
+                    addProductToCart(_product, _scaffoldKey);
                     showSimpleSnack(
                       "Product added to bag",
                       Icons.check_circle_outline,
@@ -845,7 +847,7 @@ Widget blockWigdet(
       ),
       SizedBox(height: 5.0),
       Container(
-        height: 185,
+        height: 200,
         padding: EdgeInsets.symmetric(horizontal: 10.0),
         child: ListView.builder(
             physics: BouncingScrollPhysics(),
@@ -920,21 +922,14 @@ Widget blockWigdet(
                           children: <Widget>[
                             Container(
                               child: Text(
-                                "\$${product.price}",
+                                "AED\n${product.price}",
                                 style: boldFont(MColors.secondaryColor, 15.0),
                               ),
                             ),
                             Spacer(),
                             GestureDetector(
-                              onTap: () => profile != null
-                                  ? addToBagshowDialog(product, cartNotifier,
-                                      cartProdID, _scaffoldKey)
-                                  : showSimpleSnack(
-                                      "Please login First",
-                                      Icons.error_outline,
-                                      Colors.red,
-                                      _scaffoldKey,
-                                    ),
+                              onTap: () => addToBagshowDialog(product,
+                                  cartNotifier, cartProdID, _scaffoldKey),
                               child: Container(
                                 width: 25.0,
                                 height: 25.0,
@@ -971,6 +966,7 @@ Widget blockWigdet2(
   List<Cat> prods,
   CartNotifier cartNotifier,
   ProductsNotifier productsNotifier,
+  CategoryNotifier catNotifier,
   Iterable<String> cartProdID,
   GlobalKey _scaffoldKey,
   BuildContext context,
@@ -1036,13 +1032,14 @@ Widget blockWigdet2(
                         print(v.pet);
                         print(product.name);
                       }
-                      var _prods = categorySpecificProducts.toList();
+                      Iterable<Category> categories = await getCat(catNotifier);
+                      print('===========$categories');
 
                       var navigationResult = await Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (context) => SeeAllInCategory(
+                          builder: (context) => SeeSubCategories(
                             title: title,
-                            products: _prods,
+                            category: product,
                             productsNotifier: productsNotifier,
                             cartNotifier: cartNotifier,
                             cartProdID: cartProdID,

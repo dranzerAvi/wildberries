@@ -2,15 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
 import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/custom_floating_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -110,14 +107,14 @@ class _SeeAllInCategoryState extends State<SeeAllInCategory> {
             width: 8,
           ),
           InkWell(
-              onTap: () {
-//                print(1);
-                launch(
-                    'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
-              },
-              child: Icon(
-                Icons.mail,
-              )),
+            onTap: () {
+              launch(
+                  'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+            },
+            child: Icon(
+              Icons.mail,
+            ),
+          ),
           SizedBox(
             width: 14,
           )

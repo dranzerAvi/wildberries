@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mrpet/widgets/root_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:splashscreen/splashscreen.dart';
 
 import 'model/notifiers/bannerAd_notifier.dart';
 import 'model/notifiers/brands_notifier.dart';
@@ -27,9 +28,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  final String isSkipped;
-
-  const MyApp({Key key, this.isSkipped}) : super(key: key);
+  const MyApp({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -51,22 +50,29 @@ class MyApp extends StatelessWidget {
                 statusBarIconBrightness: Brightness.dark,
                 systemNavigationBarIconBrightness: Brightness.dark,
               ),
-              child: HomeController(
-                isSkipped: this.isSkipped,
-              ),
+              child: HomeController(),
             ),
           );
         }
-        return SplashScreen();
+        return MaterialApp(
+          home: Scaffold(
+            body: new SplashScreen(
+                seconds: 3,
+                navigateAfterSeconds: AfterSplash(),
+                image: new Image.asset('assets/images/mrpetsplash.jpg'),
+                backgroundColor: Colors.white,
+                styleTextUnderTheLoader: new TextStyle(),
+                photoSize: 400.0,
+                loaderColor: Colors.transparent),
+          ),
+        );
       },
     );
   }
 }
 
 class HomeController extends StatefulWidget {
-  final String isSkipped;
-
-  const HomeController({Key key, this.isSkipped}) : super(key: key);
+  const HomeController({Key key}) : super(key: key);
 
   @override
   _HomeControllerState createState() => _HomeControllerState();
@@ -77,53 +83,69 @@ class _HomeControllerState extends State<HomeController> {
   Widget build(BuildContext context) {
     final AuthService auth = MyProvider.of(context).auth;
 
-    return StreamBuilder(
-        stream: auth.onAuthStateChanged,
-        builder: (context, AsyncSnapshot<String> snapshot) {
-          if (snapshot.connectionState == ConnectionState.active) {
-            final bool signedIn = snapshot.hasData;
-            return MaterialApp(
-              title: "Pet Shop",
-              theme: ThemeData(
-                accentColor: MColors.primaryPurple,
-                primaryColor: MColors.primaryPurple,
-              ),
-              debugShowCheckedModeBanner: false,
-              home: MultiProvider(
-                providers: [
-                  ChangeNotifierProvider(
-                    create: (context) => ProductsNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => CategoryNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => BrandsNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => CartNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => UserDataProfileNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => UserDataAddressNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => OrderListNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => NotificationsNotifier(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => BannerAdNotifier(),
-                  ),
-                ],
-                child: RootScreen(),
-              ),
-            );
-          }
-          return SplashScreen();
-        });
+    return MaterialApp(
+      home: Scaffold(
+        body: SplashScreen(
+          seconds: 3,
+          navigateAfterSeconds: AfterSplash(),
+          image: new Image.asset('assets/images/mrpetsplash.jpg'),
+          backgroundColor: Colors.white,
+          // styleTextUnderTheLoader: new TextStyle(),
+          photoSize: 400.0,
+          useLoader: false,
+        ),
+      ),
+    );
+  }
+}
+
+class AfterSplash extends StatefulWidget {
+  @override
+  _AfterSplashState createState() => _AfterSplashState();
+}
+
+class _AfterSplashState extends State<AfterSplash> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "Pet Shop",
+      theme: ThemeData(
+        accentColor: MColors.primaryPurple,
+        primaryColor: MColors.primaryPurple,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => ProductsNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => CategoryNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => BrandsNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => CartNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => UserDataProfileNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => UserDataAddressNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => OrderListNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => NotificationsNotifier(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => BannerAdNotifier(),
+          ),
+        ],
+        child: RootScreen(),
+      ),
+    );
   }
 }

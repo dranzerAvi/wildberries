@@ -363,17 +363,6 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
                                 Spacer(),
                                 GestureDetector(
                                   onTap: () => () {
-                                    final FirebaseAuth _firebaseAuth =
-                                        FirebaseAuth.instance;
-                                    if (_firebaseAuth.currentUser == null) {
-                                      showSimpleSnack(
-                                        "Please Login First",
-                                        Icons.error_outline,
-                                        Colors.amber,
-                                        scaffoldKey,
-                                      );
-                                      return;
-                                    }
                                     addToBagshowDialog(product);
                                     HapticFeedback.heavyImpact();
                                   }(),
@@ -450,7 +439,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
                       scaffoldKey,
                     );
                   } else {
-                    addProductToCart(_product);
+                    addProductToCart(_product, scaffoldKey);
                     showSimpleSnack(
                       "Product added to bag",
                       Icons.check_circle_outline,

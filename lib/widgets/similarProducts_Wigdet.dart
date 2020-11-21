@@ -100,7 +100,7 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                       scaffoldKey,
                     );
                   } else {
-                    addProductToCart(fil);
+                    addProductToCart(fil, scaffoldKey);
                     showSimpleSnack(
                       "Product added to bag",
                       Icons.check_circle_outline,
@@ -203,24 +203,13 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                       children: <Widget>[
                         Container(
                           child: Text(
-                            "\$${fil.price}",
-                            style: boldFont(MColors.secondaryColor, 20.0),
+                            "AED\n${fil.price}",
+                            style: boldFont(MColors.secondaryColor, 17.0),
                           ),
                         ),
                         Spacer(),
                         GestureDetector(
                           onTap: () {
-                            final FirebaseAuth _firebaseAuth =
-                                FirebaseAuth.instance;
-                            if (_firebaseAuth.currentUser == null) {
-                              showSimpleSnack(
-                                "Please Login First",
-                                Icons.error_outline,
-                                Colors.amber,
-                                scaffoldKey,
-                              );
-                              return;
-                            }
                             addToBagshowDialog(
                               cartProdID,
                               fil,

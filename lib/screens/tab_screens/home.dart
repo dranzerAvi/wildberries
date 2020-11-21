@@ -417,6 +417,7 @@ class _HomeScreenState extends State<HomeScreen>
                         _cats,
                         cartNotifier,
                         productsNotifier,
+                        categoryNotifier,
                         cartProdID,
                         _scaffoldKey,
                         context,

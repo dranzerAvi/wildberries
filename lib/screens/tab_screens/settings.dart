@@ -134,9 +134,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         "assets/images/password.svg",
         "assets/images/icons/Wallet.svg",
         "assets/images/icons/Location.svg",
-        "assets/images/gift.svg",
-        "assets/images/help.svg",
-        "assets/images/question.svg",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
         "assets/images/logout.svg",
       ];
 
@@ -145,10 +147,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         "Security",
         "Cards",
         "Address",
-        "Invite a friend",
-        "Help",
-        "FAQs",
-        "Sign out",
+        "Terms and Conditions",
+        "Return Policy",
+        "Cancellation Policy",
+        "Privacy Policy",
+        "Refund Policy",
+        "Sign Out",
       ];
 
       listTileActions = [
@@ -195,11 +199,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         },
         () {
-          shareWidget();
+          launch('https://www.misterpet.ae/terms-and-conditions/');
         },
-        () {},
         () {
-          mockNotifications();
+          launch('https://www.misterpet.ae/return-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/cancellation-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/privacy-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/refund-policy/');
         },
         () {
           _showLogOutDialog();
@@ -207,26 +219,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ];
     } else {
       listTileIcons = [
-        "assets/images/gift.svg",
-        "assets/images/help.svg",
-        "assets/images/question.svg",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
         "assets/images/logout.svg",
       ];
 
       listTileNames = [
-        "Invite a friend",
-        "Help",
-        "FAQs",
+        "Terms and Conditions",
+        "Return Policy",
+        "Cancellation Policy",
+        "Privacy Policy",
+        "Refund Policy",
         "Sign in",
       ];
 
       listTileActions = [
         () {
-          shareWidget();
+          launch('https://www.misterpet.ae/terms-and-conditions/');
         },
-        () {},
         () {
-          mockNotifications();
+          launch('https://www.misterpet.ae/return-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/cancellation-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/privacy-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/refund-policy/');
         },
         () {
           pushNewScreen(
@@ -463,7 +487,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     listTileActions[i],
                                     listTileIcons[i],
                                     listTileNames[i],
-                                    i == 6 ? Colors.red : MColors.primaryPurple,
+                                    i == 9 ? Colors.red : MColors.primaryPurple,
                                   ),
                                   Divider(
                                     height: 1.0,

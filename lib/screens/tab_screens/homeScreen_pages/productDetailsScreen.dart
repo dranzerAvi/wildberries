@@ -7,15 +7,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dropdown/flutter_dropdown.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:mrpet/model/notifiers/products_notifier.dart';
+import 'package:mrpet/model/notifiers/userData_notifier.dart';
 import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/bag.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/similarProducts_Wigdet.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/starRatings.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -97,8 +102,14 @@ class _ProductDetailsState extends State<ProductDetails> {
   Widget build(BuildContext context) {
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     var cartList = cartNotifier.cartList;
+    var cartProdID = cartList.map((e) => e.productID);
+    ProductsNotifier productsNotifier = Provider.of<ProductsNotifier>(context);
+    var prods = productsNotifier.productsList;
     WishlistNotifier wishlistNotifier = Provider.of<WishlistNotifier>(context);
     var wishlistList = wishlistNotifier.wishlistList;
+    UserDataProfileNotifier userNotifier =
+        Provider.of<UserDataProfileNotifier>(context);
+    var profileData = userNotifier.userDataProfile;
 
     void addQty() {
       setState(() {
@@ -125,6 +136,136 @@ class _ProductDetailsState extends State<ProductDetails> {
     }
 
     var prod = prodDetails;
+    void addToBagshowDialog(
+      cartProdID,
+      fil,
+    ) async {
+      CartNotifier cartNotifier =
+          Provider.of<CartNotifier>(context, listen: false);
+
+      await showCupertinoDialog(
+        context: context,
+        builder: (context) {
+          return CupertinoAlertDialog(
+            content: Text(
+              "Sure you want to add to Bag?",
+              style: normalFont(MColors.textDark, null),
+            ),
+            actions: <Widget>[
+              CupertinoDialogAction(
+                child: Text(
+                  "Cancel",
+                  style: normalFont(Colors.red, null),
+                ),
+                onPressed: () async {
+                  setState(() {
+                    getCart(cartNotifier);
+                  });
+                  Navigator.of(context).pop();
+                },
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text(
+                  "Yes",
+                  style: normalFont(Colors.blue, null),
+                ),
+                onPressed: () {
+                  setState(() {
+                    getCart(cartNotifier);
+                  });
+                  if (cartProdID.contains(fil.productID)) {
+                    showSimpleSnack(
+                      "Product already in bag",
+                      Icons.error_outline,
+                      Colors.amber,
+                      _scaffoldKey,
+                    );
+                  } else {
+                    addProductToCart(fil, _scaffoldKey);
+                    showSimpleSnack(
+                      "Product added to bag",
+                      Icons.check_circle_outline,
+                      Colors.green,
+                      _scaffoldKey,
+                    );
+                    setState(() {
+                      getCart(cartNotifier);
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    void addToBagshowDialogCombined(cartProdID, fil, fil2) async {
+      CartNotifier cartNotifier =
+          Provider.of<CartNotifier>(context, listen: false);
+
+      await showCupertinoDialog(
+        context: context,
+        builder: (context) {
+          return CupertinoAlertDialog(
+            content: Text(
+              "Sure you want to add to Bag?",
+              style: normalFont(MColors.textDark, null),
+            ),
+            actions: <Widget>[
+              CupertinoDialogAction(
+                child: Text(
+                  "Cancel",
+                  style: normalFont(Colors.red, null),
+                ),
+                onPressed: () async {
+                  setState(() {
+                    getCart(cartNotifier);
+                  });
+                  Navigator.of(context).pop();
+                },
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text(
+                  "Yes",
+                  style: normalFont(Colors.blue, null),
+                ),
+                onPressed: () {
+                  setState(() {
+                    getCart(cartNotifier);
+                  });
+                  if (cartProdID.contains(fil.productID) ||
+                      cartProdID.contains(fil2.productID)) {
+                    showSimpleSnack(
+                      "Product already in bag",
+                      Icons.error_outline,
+                      Colors.amber,
+                      _scaffoldKey,
+                    );
+                  } else {
+                    addProductToCart(fil, _scaffoldKey);
+                    addProductToCart(fil2, _scaffoldKey);
+                    showSimpleSnack(
+                      "Products added to bag",
+                      Icons.check_circle_outline,
+                      Colors.green,
+                      _scaffoldKey,
+                    );
+                    setState(() {
+                      getCart(cartNotifier);
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -239,15 +380,57 @@ class _ProductDetailsState extends State<ProductDetails> {
                                       width: MediaQuery.of(context).size.width *
                                           0.6,
                                       child: Hero(
-                                        child: FadeInImage.assetNetwork(
-                                          image: urlUniv,
-                                          placeholder:
-                                              "assets/images/placeholder.jpg",
-                                          placeholderScale:
-                                              MediaQuery.of(context)
+                                        child: InkWell(
+                                          onTap: () {
+                                            _scaffoldKey.currentState
+                                                .showBottomSheet((context) {
+                                              return StatefulBuilder(builder:
+                                                  (BuildContext context,
+                                                      StateSetter state) {
+                                                return Container(
+                                                  color: Colors.white,
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .height *
+                                                      0.8,
+                                                  width: MediaQuery.of(context)
                                                       .size
-                                                      .height /
-                                                  2,
+                                                      .width,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      // InkWell(
+                                                      //
+                                                      //   child: Icon(
+                                                      //     Icons
+                                                      //         .keyboard_arrow_down,
+                                                      //     size: 30,
+                                                      //   ),
+                                                      // ),
+                                                      Expanded(
+                                                        child: PhotoView(
+                                                          imageProvider:
+                                                              NetworkImage(
+                                                                  urlUniv),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              });
+                                            });
+                                          },
+                                          child: FadeInImage.assetNetwork(
+                                            image: urlUniv,
+                                            placeholder:
+                                                "assets/images/placeholder.jpg",
+                                            placeholderScale:
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height /
+                                                    2,
+                                          ),
                                         ),
                                         tag: prod.productID,
                                       ),
@@ -935,19 +1118,81 @@ class _ProductDetailsState extends State<ProductDetails> {
                               children: <Widget>[
                                 Expanded(
                                   child: Container(
-                                    child: IconTheme(
-                                      data: IconThemeData(
-                                        color: Colors.amberAccent,
-                                        size: 18,
-                                      ),
-                                      child: StarDisplay(value: 4),
-                                    ),
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.5,
+                                    child: prodDetails.discount != null
+                                        ? Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              IconTheme(
+                                                data: IconThemeData(
+                                                  color: Colors.amberAccent,
+                                                  size: 18,
+                                                ),
+                                                child: StarDisplay(value: 4),
+                                              ),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                            Radius.circular(5)),
+                                                    color: Colors.red
+                                                        .withOpacity(0.7)),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(4.0),
+                                                  child: Text(
+                                                    '${prodDetails.discount}% OFF',
+                                                    style: boldFont(
+                                                        MColors
+                                                            .primaryWhiteSmoke,
+                                                        12.0),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : IconTheme(
+                                            data: IconThemeData(
+                                              color: Colors.amberAccent,
+                                              size: 18,
+                                            ),
+                                            child: StarDisplay(value: 4),
+                                          ),
                                   ),
                                 ),
-                                Text(
-                                  "AED ${prodDetails.price}",
-                                  style: boldFont(MColors.secondaryColor, 20.0),
-                                ),
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      prodDetails.discount == null
+                                          ? Text(
+                                              "AED ${prodDetails.price}",
+                                              style: boldFont(
+                                                  MColors.secondaryColor, 17.0),
+                                            )
+                                          : Text(
+                                              "AED ${prodDetails.price}",
+                                              style: GoogleFonts.montserrat(
+                                                  color: MColors.secondaryColor,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  decoration: TextDecoration
+                                                      .lineThrough),
+                                            ),
+                                      prodDetails.discount == null
+                                          ? Container()
+                                          : Text(
+                                              "AED ${(prodDetails.price * (100 - prodDetails.discount) / 100)}",
+                                              style: boldFont(
+                                                  MColors.secondaryColor, 17.0),
+                                            ),
+                                    ],
+                                  ),
+                                )
                               ],
                             ),
                           );
@@ -969,6 +1214,342 @@ class _ProductDetailsState extends State<ProductDetails> {
                             style: normalFont(MColors.textGrey, 14.0),
                           ),
                         ),
+                        SizedBox(
+                          height: 20.0,
+                        ),
+                        Container(
+                          child: Text(
+                            "People Also Bought",
+                            style: boldFont(MColors.textDark, 16.0),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20.0,
+                        ),
+                        Container(
+                          height: 200,
+                          padding: EdgeInsets.symmetric(horizontal: 10.0),
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  CartNotifier cartNotifier =
+                                      Provider.of<CartNotifier>(context,
+                                          listen: false);
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => ProductDetailsProv(
+                                          prods[0] == prodDetails
+                                              ? prods[1]
+                                              : prods[0],
+                                          prods),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    setState(() {
+                                      getCart(cartNotifier);
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.all(5.0),
+                                  width: 110.0,
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: MColors.primaryWhite,
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Color.fromRGBO(0, 0, 0, 0.03),
+                                          offset: Offset(0, 10),
+                                          blurRadius: 10,
+                                          spreadRadius: 0),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      Container(
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          child: FadeInImage.assetNetwork(
+                                            image: prods[0] == prodDetails
+                                                ? prods[1].productImage
+                                                : prods[0].productImage,
+                                            fit: BoxFit.fill,
+                                            height: 90,
+                                            placeholder:
+                                                "assets/images/placeholder.jpg",
+                                            placeholderScale:
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height /
+                                                    2,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 10.0),
+                                      Align(
+                                        alignment: Alignment.bottomLeft,
+                                        child: Container(
+                                          child: Text(
+                                            prods[0] == prodDetails
+                                                ? prods[1].name
+                                                : prods[0].name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: normalFont(
+                                                MColors.textGrey, 10.0),
+                                          ),
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Container(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            Container(
+                                              child: Text(
+                                                "AED\n${prods[0] == prodDetails ? prods[1].price : prods[0].price}",
+                                                style: boldFont(
+                                                    MColors.secondaryColor,
+                                                    15.0),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            GestureDetector(
+                                              onTap: () => addToBagshowDialog(
+                                                cartProdID,
+                                                prods[0] == prodDetails
+                                                    ? prods[1]
+                                                    : prods[0],
+                                              ),
+                                              child: Container(
+                                                width: 25.0,
+                                                height: 25.0,
+                                                padding:
+                                                    const EdgeInsets.all(4.0),
+                                                decoration: BoxDecoration(
+                                                  color: MColors.dashPurple,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
+                                                ),
+                                                child: SvgPicture.asset(
+                                                  "assets/images/icons/basket.svg",
+                                                  height: 20.0,
+                                                  color: MColors.textGrey,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.add,
+                                color: MColors.secondaryColor,
+                              ),
+                              GestureDetector(
+                                onTap: () async {
+                                  CartNotifier cartNotifier =
+                                      Provider.of<CartNotifier>(context,
+                                          listen: false);
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => ProductDetailsProv(
+                                          prodDetails, prods),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    setState(() {
+                                      getCart(cartNotifier);
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.all(5.0),
+                                  width: 110.0,
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: MColors.primaryWhite,
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Color.fromRGBO(0, 0, 0, 0.03),
+                                          offset: Offset(0, 10),
+                                          blurRadius: 10,
+                                          spreadRadius: 0),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      Container(
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          child: FadeInImage.assetNetwork(
+                                            image: prodDetails.productImage,
+                                            fit: BoxFit.fill,
+                                            height: 90,
+                                            placeholder:
+                                                "assets/images/placeholder.jpg",
+                                            placeholderScale:
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .height /
+                                                    2,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 10.0),
+                                      Align(
+                                        alignment: Alignment.bottomLeft,
+                                        child: Container(
+                                          child: Text(
+                                            prodDetails.name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: normalFont(
+                                                MColors.textGrey, 10.0),
+                                          ),
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Container(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            Container(
+                                              child: Text(
+                                                "AED\n${prodDetails.price}",
+                                                style: boldFont(
+                                                    MColors.secondaryColor,
+                                                    15.0),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            GestureDetector(
+                                              onTap: () => addToBagshowDialog(
+                                                  cartProdID, prodDetails),
+                                              child: Container(
+                                                width: 25.0,
+                                                height: 25.0,
+                                                padding:
+                                                    const EdgeInsets.all(4.0),
+                                                decoration: BoxDecoration(
+                                                  color: MColors.dashPurple,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
+                                                ),
+                                                child: SvgPicture.asset(
+                                                  "assets/images/icons/basket.svg",
+                                                  height: 20.0,
+                                                  color: MColors.textGrey,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.drag_handle,
+                                color: MColors.secondaryColor,
+                              ),
+                              Container(
+                                margin: EdgeInsets.all(5.0),
+                                width: 110.0,
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: MColors.primaryWhite,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10.0),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Color.fromRGBO(0, 0, 0, 0.03),
+                                        offset: Offset(0, 10),
+                                        blurRadius: 10,
+                                        spreadRadius: 0),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                    Spacer(),
+                                    Container(
+                                      child: Text(
+                                        "AED\n${(prods[0] == prodDetails ? prods[1].price : prods[0].price + prodDetails.price)}",
+                                        style: GoogleFonts.montserrat(
+                                            color: MColors.secondaryColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            decoration:
+                                                TextDecoration.lineThrough),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_downward_rounded,
+                                      color: MColors.secondaryColor,
+                                    ),
+                                    Container(
+                                      child: Text(
+                                        "AED\n${(prods[0] == prodDetails ? prods[1].price : prods[0].price + prodDetails.price) * 0.9}",
+                                        style: GoogleFonts.montserrat(
+                                          color: MColors.secondaryColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    GestureDetector(
+                                      onTap: () => addToBagshowDialogCombined(
+                                          cartProdID,
+                                          prods[0] == prodDetails
+                                              ? prods[1]
+                                              : prods[0],
+                                          prodDetails),
+                                      child: Container(
+                                        width: 100.0,
+                                        height: 25.0,
+                                        padding: const EdgeInsets.all(4.0),
+                                        decoration: BoxDecoration(
+                                          color: MColors.dashPurple,
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                        ),
+                                        child: SvgPicture.asset(
+                                          "assets/images/icons/basket.svg",
+                                          height: 20.0,
+                                          color: MColors.textGrey,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Container(
                           child: ExpansionTile(
                             title: Text(
@@ -984,6 +1565,27 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 ),
                                 child: Text(
                                   prodDetails.moreDesc,
+                                  style: normalFont(MColors.textGrey, 14.0),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          child: ExpansionTile(
+                            title: Text(
+                              "Brand",
+                              style: boldFont(MColors.textDark, 16.0),
+                            ),
+                            children: <Widget>[
+                              Container(
+                                padding: const EdgeInsets.only(
+                                  left: 30.0,
+                                  bottom: 10.0,
+                                  right: 30.0,
+                                ),
+                                child: Text(
+                                  prodDetails.brand,
                                   style: normalFont(MColors.textGrey, 14.0),
                                 ),
                               ),
@@ -1151,6 +1753,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                             style: boldFont(MColors.textDark, 16.0),
                           ),
                         ),
+                        SizedBox(
+                          height: 20.0,
+                        ),
                         SimilarProductsWidget(
                           prods: prods,
                           prodDetails: prodDetails,
@@ -1227,16 +1832,6 @@ class _ProductDetailsState extends State<ProductDetails> {
   bool isCartBadge = false;
 
   void _submit(cartNotifier) {
-    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    if (_firebaseAuth.currentUser == null) {
-      showSimpleSnack(
-        "Please Login First",
-        Icons.error_outline,
-        Colors.amber,
-        _scaffoldKey,
-      );
-      return;
-    }
     var cartProdID = cartNotifier.cartList.map((e) => e.productID);
     setState(() {
       getCart(cartNotifier);
@@ -1254,7 +1849,7 @@ class _ProductDetailsState extends State<ProductDetails> {
         prodDetails.quantity = quantity;
         prodDetails.totalPrice = prodDetails.price * prodDetails.quantity;
 
-        addProductToCart(prodDetails);
+        addProductToCart(prodDetails, _scaffoldKey);
         showSimpleSnack(
           "Product added to bag",
           Icons.check_circle_outline,
@@ -1274,16 +1869,6 @@ class _ProductDetailsState extends State<ProductDetails> {
   }
 
   void _submitWishlist(wishlistNotifier) {
-    final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    if (_firebaseAuth.currentUser == null) {
-      showSimpleSnack(
-        "Please Login First",
-        Icons.error_outline,
-        Colors.amber,
-        _scaffoldKey,
-      );
-      return;
-    }
     var wishlistProdID = wishlistNotifier.wishlistList.map((e) => e.productID);
     setState(() {
       getWishlist(wishlistNotifier);
@@ -1301,7 +1886,7 @@ class _ProductDetailsState extends State<ProductDetails> {
         prodDetails.quantity = quantity;
         prodDetails.totalPrice = prodDetails.price * prodDetails.quantity;
 
-        addProductToWishlist(prodDetails);
+        addProductToWishlist(prodDetails, _scaffoldKey);
         showSimpleSnack(
           "Product added to Wishlist",
           Icons.check_circle_outline,

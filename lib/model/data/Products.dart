@@ -20,6 +20,7 @@ class ProdProducts {
   String service;
   String tag;
   int quantity;
+  int discount;
   List<dynamic> nameSearch;
   List<dynamic> catSearch;
 
@@ -47,6 +48,7 @@ class ProdProducts {
     quantity = data["quantity"];
     nameSearch = data["nameSearch"];
     catSearch = data["categorySearch"];
+    discount = data["discount"];
   }
 
   Map<String, dynamic> toMap() {
@@ -73,7 +75,8 @@ class ProdProducts {
       'tag': tag,
       'quantity': quantity,
       'nameSearch': nameSearch,
-      'categorySearch': catSearch
+      'categorySearch': catSearch,
+      'discount': discount
     };
   }
 }
@@ -81,16 +84,14 @@ class ProdProducts {
 class Cat {
   String productImage;
   String name;
-
+  List sCat;
   Cat.fromMap(Map<String, dynamic> data) {
     productImage = data["imageURL"];
     name = data["catName"];
+    sCat = data["sCatDetails"];
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'imageURL': productImage,
-      'catName': name,
-    };
+    return {'imageURL': productImage, 'catName': name, 'sCatDetails': sCat};
   }
 }
