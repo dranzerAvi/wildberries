@@ -146,96 +146,101 @@ class _SeeSubCategoriesState extends State<SeeSubCategories> {
         ),
         floatingActionButton: CustomFloatingButton(
             CurrentScreen(currentScreen: SeeSubCategories(), tab_no: 0)),
-        body: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: primaryContainer(GridView.count(
-                physics: BouncingScrollPhysics(),
-                crossAxisCount: 2,
-                childAspectRatio: 0.7,
-                mainAxisSpacing: 15.0,
-                crossAxisSpacing: 15.0,
-                children:
-                    List<Widget>.generate(widget.category.sCat.length, (i) {
-                  return GestureDetector(
-                    onTap: () async {
-                      Iterable<ProdProducts> allProducts =
-                          productsNotifier.productsList;
-                      Iterable<ProdProducts> categorySpecificProducts;
+        body: widget.category.sCat != null
+            ? Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: primaryContainer(GridView.count(
+                    physics: BouncingScrollPhysics(),
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    mainAxisSpacing: 15.0,
+                    crossAxisSpacing: 15.0,
+                    children:
+                        List<Widget>.generate(widget.category.sCat.length, (i) {
+                      return GestureDetector(
+                        onTap: () async {
+                          Iterable<ProdProducts> allProducts =
+                              productsNotifier.productsList;
+                          Iterable<ProdProducts> categorySpecificProducts;
 
-                      categorySpecificProducts = allProducts.where((e) =>
-                          e.subCategory == widget.category.sCat[i]['sCatName']);
+                          categorySpecificProducts = allProducts.where((e) =>
+                              e.subCategory ==
+                              widget.category.sCat[i]['sCatName']);
 
-                      for (var v in allProducts) {
-                        print(v.pet);
-                        // print(product.name);
-                      }
-                      var _prods = categorySpecificProducts.toList();
+                          for (var v in allProducts) {
+                            print(v.pet);
+                          }
+                          var _prods = categorySpecificProducts.toList();
 
-                      var navigationResult = await Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => SeeAllInCategory(
-                            title: widget.category.sCat[i]['sCatName'],
-                            products: _prods,
-                            productsNotifier: productsNotifier,
-                            cartNotifier: cartNotifier,
-                            cartProdID: cartProdID,
+                          var navigationResult =
+                              await Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              builder: (context) => SeeAllInCategory(
+                                title: widget.category.sCat[i]['sCatName'],
+                                products: _prods,
+                                productsNotifier: productsNotifier,
+                                cartNotifier: cartNotifier,
+                                cartProdID: cartProdID,
+                              ),
+                            ),
+                          );
+                          if (navigationResult == true) {
+                            getCart(cartNotifier);
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: MColors.primaryWhite,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10.0),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Color.fromRGBO(0, 0, 0, 0.03),
+                                  offset: Offset(0, 10),
+                                  blurRadius: 10,
+                                  spreadRadius: 0),
+                            ],
+                          ),
+                          child: Column(
+                            children: <Widget>[
+                              Expanded(
+                                child: Container(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: FadeInImage.assetNetwork(
+                                      image: widget.category.sCat[i]['sCatURL'],
+                                      fit: BoxFit.fill,
+                                      // height: 200,
+                                      placeholder:
+                                          "assets/images/placeholder.jpg",
+                                      placeholderScale:
+                                          MediaQuery.of(context).size.height /
+                                              2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 10.0),
+                              Container(
+                                child: Text(
+                                  widget.category.sCat[i]['sCatName'],
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: boldFont(MColors.textDark, 16.0),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
-                      if (navigationResult == true) {
-                        getCart(cartNotifier);
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: MColors.primaryWhite,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(10.0),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Color.fromRGBO(0, 0, 0, 0.03),
-                              offset: Offset(0, 10),
-                              blurRadius: 10,
-                              spreadRadius: 0),
-                        ],
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          Expanded(
-                            child: Container(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: FadeInImage.assetNetwork(
-                                  image: widget.category.sCat[i]['sCatURL'],
-                                  fit: BoxFit.fill,
-                                  // height: 200,
-                                  placeholder: "assets/images/placeholder.jpg",
-                                  placeholderScale:
-                                      MediaQuery.of(context).size.height / 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Container(
-                            child: Text(
-                              widget.category.sCat[i]['sCatName'],
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: boldFont(MColors.textDark, 16.0),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              )),
-            )));
+                    }),
+                  )),
+                ))
+            : Container());
   }
 }

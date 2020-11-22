@@ -783,6 +783,11 @@ class _AddressContainerState extends State<AddressContainer> {
                   '${date.day.toString()}-${date.month.toString()}-${date.year.toString()}',
                   style: boldFont(MColors.secondaryColor, 16.0)),
               _pickTime),
+          SizedBox(height: 10.0),
+          Text(
+            'Selected products can only be delivered after 15 days',
+            style: boldFont(MColors.textDark, 16.0),
+          ),
         ],
       ),
     );
@@ -840,6 +845,11 @@ class _AddressContainerState extends State<AddressContainer> {
               Text("Delivery Date",
                   style: boldFont(MColors.secondaryColor, 16.0)),
               _pickTime),
+          SizedBox(height: 10.0),
+          Text(
+            'Selected products can only be delivered after 15 days',
+            style: boldFont(MColors.textDark, 12.0),
+          ),
         ],
       ),
     );

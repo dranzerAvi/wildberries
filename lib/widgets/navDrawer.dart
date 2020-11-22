@@ -141,10 +141,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
             break;
           case ConnectionState.waiting:
-            return Container();
+            return retNavDrawer(user, addressList);
             break;
           default:
-            return Container();
+            return retNavDrawer(user, addressList);
         }
       },
     );

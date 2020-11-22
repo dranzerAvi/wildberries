@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'homeScreen_pages/seeAllInCategory.dart';
+import 'homeScreen_pages/sizeSelectorScreen.dart';
 
 class AllCategories extends StatefulWidget {
   String from;
@@ -51,6 +52,9 @@ class _AllCategoriesState extends State<AllCategories> {
   @override
   Widget build(BuildContext context) {
     ProductsNotifier productsNotifier = Provider.of<ProductsNotifier>(context);
+    CategoryNotifier categoriesNotifier =
+        Provider.of<CategoryNotifier>(context);
+
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     var cartList = cartNotifier.cartList;
     var cartProdID = cartList.map((e) => e.productID);
@@ -137,25 +141,25 @@ class _AllCategoriesState extends State<AllCategories> {
                         padding: const EdgeInsets.all(8.0),
                         child: InkWell(
                           onTap: () async {
-                            Iterable<ProdProducts> allProducts =
-                                productsNotifier.productsList;
-                            Iterable<ProdProducts> categorySpecificProducts;
+                            getCat(categoriesNotifier);
+                            Iterable<Cat> categories =
+                                await categoriesNotifier.catList;
+                            print(categories);
+                            List<Cat> catList = categories.toList();
 
-                            categorySpecificProducts =
-                                allProducts.where((e) => e.pet == 'dog');
-
-                            for (var v in allProducts) {
-                              print(v.pet);
-                              // print(product.name);
+                            var currentCategory;
+                            for (var v in catList) {
+                              if (v.name == 'Dogs') {
+                                currentCategory = await v;
+                              }
                             }
-                            var _prods = categorySpecificProducts.toList();
 
                             var navigationResult =
                                 await Navigator.of(context).push(
                               CupertinoPageRoute(
-                                builder: (context) => SeeAllInCategory(
+                                builder: (context) => SizeSelection(
                                   title: 'DOGS',
-                                  products: _prods,
+                                  category: currentCategory,
                                   productsNotifier: productsNotifier,
                                   cartNotifier: cartNotifier,
                                   cartProdID: cartProdID,
@@ -191,25 +195,24 @@ class _AllCategoriesState extends State<AllCategories> {
                         padding: const EdgeInsets.all(8.0),
                         child: InkWell(
                           onTap: () async {
-                            Iterable<ProdProducts> allProducts =
-                                productsNotifier.productsList;
-                            Iterable<ProdProducts> categorySpecificProducts;
+                            getCat(categoriesNotifier);
+                            Iterable<Cat> categories =
+                                await categoriesNotifier.catList;
+                            print(categories);
+                            List<Cat> catList = categories.toList();
 
-                            categorySpecificProducts =
-                                allProducts.where((e) => e.pet == 'cat');
-
-                            for (var v in allProducts) {
-                              print(v.pet);
-                              // print(product.name);
+                            var currentCategory;
+                            for (var v in catList) {
+                              if (v.name == 'Cats') {
+                                currentCategory = await v;
+                              }
                             }
-                            var _prods = categorySpecificProducts.toList();
-
                             var navigationResult =
                                 await Navigator.of(context).push(
                               CupertinoPageRoute(
-                                builder: (context) => SeeAllInCategory(
+                                builder: (context) => SizeSelection(
                                   title: 'CATS',
-                                  products: _prods,
+                                  category: currentCategory,
                                   productsNotifier: productsNotifier,
                                   cartNotifier: cartNotifier,
                                   cartProdID: cartProdID,
@@ -249,25 +252,24 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
-                          Iterable<ProdProducts> allProducts =
-                              productsNotifier.productsList;
-                          Iterable<ProdProducts> categorySpecificProducts;
+                          getCat(categoriesNotifier);
+                          Iterable<Cat> categories =
+                              await categoriesNotifier.catList;
+                          print(categories);
+                          List<Cat> catList = categories.toList();
 
-                          categorySpecificProducts =
-                              allProducts.where((e) => e.pet == 'rabbit');
-
-                          for (var v in allProducts) {
-                            print(v.pet);
-                            // print(product.name);
+                          var currentCategory;
+                          for (var v in catList) {
+                            if (v.name == 'Rabbits') {
+                              currentCategory = await v;
+                            }
                           }
-                          var _prods = categorySpecificProducts.toList();
-
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SeeAllInCategory(
+                              builder: (context) => SizeSelection(
                                 title: 'RABBITS',
-                                products: _prods,
+                                category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
                                 cartProdID: cartProdID,
@@ -300,25 +302,24 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
-                          Iterable<ProdProducts> allProducts =
-                              productsNotifier.productsList;
-                          Iterable<ProdProducts> categorySpecificProducts;
+                          getCat(categoriesNotifier);
+                          Iterable<Cat> categories =
+                              await categoriesNotifier.catList;
+                          print(categories);
+                          List<Cat> catList = categories.toList();
 
-                          categorySpecificProducts =
-                              allProducts.where((e) => e.pet == 'bird');
-
-                          for (var v in allProducts) {
-                            print(v.pet);
-                            // print(product.name);
+                          var currentCategory;
+                          for (var v in catList) {
+                            if (v.name == 'Birds') {
+                              currentCategory = await v;
+                            }
                           }
-                          var _prods = categorySpecificProducts.toList();
-
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SeeAllInCategory(
+                              builder: (context) => SizeSelection(
                                 title: 'BIRDS',
-                                products: _prods,
+                                category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
                                 cartProdID: cartProdID,
@@ -357,25 +358,24 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
-                          Iterable<ProdProducts> allProducts =
-                              productsNotifier.productsList;
-                          Iterable<ProdProducts> categorySpecificProducts;
+                          getCat(categoriesNotifier);
+                          Iterable<Cat> categories =
+                              await categoriesNotifier.catList;
+                          print(categories);
+                          List<Cat> catList = categories.toList();
 
-                          categorySpecificProducts =
-                              allProducts.where((e) => e.pet == 'hamster');
-
-                          for (var v in allProducts) {
-                            print(v.pet);
-                            // print(product.name);
+                          var currentCategory;
+                          for (var v in catList) {
+                            if (v.name == 'Hamsters') {
+                              currentCategory = await v;
+                            }
                           }
-                          var _prods = categorySpecificProducts.toList();
-
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SeeAllInCategory(
+                              builder: (context) => SizeSelection(
                                 title: 'HAMSTERS',
-                                products: _prods,
+                                category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
                                 cartProdID: cartProdID,
@@ -408,25 +408,24 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
-                          Iterable<ProdProducts> allProducts =
-                              productsNotifier.productsList;
-                          Iterable<ProdProducts> categorySpecificProducts;
+                          getCat(categoriesNotifier);
+                          Iterable<Cat> categories =
+                              await categoriesNotifier.catList;
+                          print(categories);
+                          List<Cat> catList = categories.toList();
 
-                          categorySpecificProducts =
-                              allProducts.where((e) => e.pet == 'other');
-
-                          for (var v in allProducts) {
-                            print(v.pet);
-                            // print(product.name);
+                          var currentCategory;
+                          for (var v in catList) {
+                            if (v.name == 'Others') {
+                              currentCategory = await v;
+                            }
                           }
-                          var _prods = categorySpecificProducts.toList();
-
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SeeAllInCategory(
+                              builder: (context) => SizeSelection(
                                 title: 'OTHER PRODUCTS',
-                                products: _prods,
+                                category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
                                 cartProdID: cartProdID,

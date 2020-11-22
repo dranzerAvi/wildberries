@@ -329,8 +329,8 @@ class _HomeScreenState extends State<HomeScreen>
                                       Container(
                                         width:
                                             MediaQuery.of(context).size.width *
-                                                0.4,
-                                        height: 25,
+                                                0.45,
+                                        height: 22,
                                         child: Text('$currentLocationAddress',
                                             style: normalFont(
                                                 MColors.textGrey, 15)),

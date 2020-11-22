@@ -283,45 +283,48 @@ class _ProductDetailsState extends State<ProductDetails> {
           },
         ),
         actions: [
-          InkWell(
-            onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (BuildContext context) {
-                return Bag();
-              }));
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                Icon(
-                  Icons.shopping_cart_outlined,
-                  size: 36,
-                  color: Color(0xFF6b3600),
-                ),
-                cartList.length != null
-                    ? cartList.length > 0
-                        ? Positioned(
-                            bottom: 30,
-                            left: 20,
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 2.0),
-                              child: CircleAvatar(
-                                radius: 8.0,
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                child: Text(
-                                  cartList.length.toString(),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12.0,
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (BuildContext context) {
+                  return Bag();
+                }));
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 36,
+                    color: Color(0xFF6b3600),
+                  ),
+                  cartList.length != null
+                      ? cartList.length > 0
+                          ? Positioned(
+                              bottom: 30,
+                              left: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 2.0),
+                                child: CircleAvatar(
+                                  radius: 8.0,
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  child: Text(
+                                    cartList.length.toString(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.0,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          )
-                        : Container()
-                    : Container(),
-              ],
+                            )
+                          : Container()
+                      : Container(),
+                ],
+              ),
             ),
           )
         ],
@@ -421,15 +424,49 @@ class _ProductDetailsState extends State<ProductDetails> {
                                               });
                                             });
                                           },
-                                          child: FadeInImage.assetNetwork(
-                                            image: urlUniv,
-                                            placeholder:
-                                                "assets/images/placeholder.jpg",
-                                            placeholderScale:
-                                                MediaQuery.of(context)
-                                                        .size
-                                                        .height /
-                                                    2,
+                                          child: Stack(
+                                            children: [
+                                              FadeInImage.assetNetwork(
+                                                image: urlUniv,
+                                                placeholder:
+                                                    "assets/images/placeholder.jpg",
+                                                placeholderScale:
+                                                    MediaQuery.of(context)
+                                                            .size
+                                                            .height /
+                                                        2,
+                                              ),
+                                              Positioned(
+                                                left: 0,
+                                                bottom: 0,
+                                                child: Container(
+                                                  height: 60,
+                                                  width: 60,
+                                                  alignment:
+                                                      Alignment.bottomLeft,
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.red
+                                                          .withOpacity(0.9),
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                              topRight: Radius
+                                                                  .circular(
+                                                                      60))),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      '${prodDetails.discount}%\nOFF',
+                                                      style: boldFont(
+                                                          MColors
+                                                              .primaryWhiteSmoke,
+                                                          12.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
                                           ),
                                         ),
                                         tag: prod.productID,
@@ -1186,7 +1223,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                       prodDetails.discount == null
                                           ? Container()
                                           : Text(
-                                              "AED ${(prodDetails.price * (100 - prodDetails.discount) / 100)}",
+                                              "AED ${(prodDetails.price * (100 - prodDetails.discount) / 100).toStringAsPrecision(4)}",
                                               style: boldFont(
                                                   MColors.secondaryColor, 17.0),
                                             ),

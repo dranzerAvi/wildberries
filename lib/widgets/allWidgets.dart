@@ -14,6 +14,7 @@ import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/sizeSelectorScreen.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:wc_flutter_share/wc_flutter_share.dart';
@@ -1037,7 +1038,7 @@ Widget blockWigdet2(
 
                       var navigationResult = await Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (context) => SeeSubCategories(
+                          builder: (context) => SizeSelection(
                             title: title,
                             category: product,
                             productsNotifier: productsNotifier,
@@ -1075,6 +1076,7 @@ Widget blockWigdet2(
                                   image: product.productImage,
                                   fit: BoxFit.fill,
                                   height: _picHeight,
+                                  width: 150,
                                   placeholder: "assets/images/placeholder.jpg",
                                   placeholderScale:
                                       MediaQuery.of(context).size.height / 2,
