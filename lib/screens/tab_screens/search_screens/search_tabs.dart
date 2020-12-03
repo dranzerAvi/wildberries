@@ -440,12 +440,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
                     );
                   } else {
                     addProductToCart(_product, scaffoldKey);
-                    showSimpleSnack(
-                      "Product added to bag",
-                      Icons.check_circle_outline,
-                      Colors.green,
-                      scaffoldKey,
-                    );
+
                     setState(() {
                       getCart(cartNotifier);
                     });

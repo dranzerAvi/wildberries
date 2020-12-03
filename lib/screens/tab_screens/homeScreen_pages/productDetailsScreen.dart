@@ -183,12 +183,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                     );
                   } else {
                     addProductToCart(fil, _scaffoldKey);
-                    showSimpleSnack(
-                      "Product added to bag",
-                      Icons.check_circle_outline,
-                      Colors.green,
-                      _scaffoldKey,
-                    );
+
                     setState(() {
                       getCart(cartNotifier);
                     });
@@ -248,12 +243,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                   } else {
                     addProductToCart(fil, _scaffoldKey);
                     addProductToCart(fil2, _scaffoldKey);
-                    showSimpleSnack(
-                      "Products added to bag",
-                      Icons.check_circle_outline,
-                      Colors.green,
-                      _scaffoldKey,
-                    );
+
                     setState(() {
                       getCart(cartNotifier);
                     });
@@ -1887,12 +1877,7 @@ class _ProductDetailsState extends State<ProductDetails> {
         prodDetails.totalPrice = prodDetails.price * prodDetails.quantity;
 
         addProductToCart(prodDetails, _scaffoldKey);
-        showSimpleSnack(
-          "Product added to bag",
-          Icons.check_circle_outline,
-          Colors.green,
-          _scaffoldKey,
-        );
+
         setState(() {
           getCart(cartNotifier);
           isCartBadge = true;

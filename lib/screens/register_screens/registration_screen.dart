@@ -197,7 +197,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           SizedBox(height: 10.0),
                           Container(
                             child: Text(
-                              "Your password must have 6 or more characters, a capital letter and must contain at least one number.",
+                              "Your password must have 6 or more characters.",
                               style: normalFont(MColors.secondaryColor, null),
                             ),
                           ),

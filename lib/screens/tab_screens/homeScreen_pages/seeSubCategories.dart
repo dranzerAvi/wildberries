@@ -10,6 +10,7 @@ import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/sizeSelectorScreen.dart';
 import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
@@ -162,26 +163,34 @@ class _SeeSubCategoriesState extends State<SeeSubCategories> {
                         List<Widget>.generate(widget.category.sCat.length, (i) {
                       return GestureDetector(
                         onTap: () async {
+                          var title = category.name.toUpperCase();
                           Iterable<ProdProducts> allProducts =
                               productsNotifier.productsList;
                           Iterable<ProdProducts> categorySpecificProducts;
-
-                          categorySpecificProducts = allProducts.where((e) =>
-                              e.subCategory ==
-                              widget.category.sCat[i]['sCatName']);
+                          if (category.name == 'Dogs') {
+                            categorySpecificProducts =
+                                allProducts.where((e) => e.pet == 'dog');
+                          } else if (category.name == 'Cats') {
+                            categorySpecificProducts =
+                                allProducts.where((e) => e.pet == 'cat');
+                          } else if (category.name == 'Birds') {
+                            categorySpecificProducts =
+                                allProducts.where((e) => e.pet == 'bird');
+                          }
 
                           for (var v in allProducts) {
                             print(v.pet);
+                            print(category.name);
                           }
-                          var _prods = categorySpecificProducts.toList();
 
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SeeAllInCategory(
-                                title: widget.category.sCat[i]['sCatName'],
-                                products: _prods,
+                              builder: (context) => SizeSelection(
+                                title: title,
+                                category: category,
                                 productsNotifier: productsNotifier,
+                                subCategory: widget.category.sCat[i],
                                 cartNotifier: cartNotifier,
                                 cartProdID: cartProdID,
                               ),

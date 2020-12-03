@@ -15,6 +15,7 @@ import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'bag.dart';
@@ -23,6 +24,7 @@ class SizeSelection extends StatefulWidget {
   final String title;
   final Cat category;
   final CartNotifier cartNotifier;
+  final subCategory;
   final ProductsNotifier productsNotifier;
   final Iterable<String> cartProdID;
 
@@ -32,12 +34,13 @@ class SizeSelection extends StatefulWidget {
     this.category,
     this.cartNotifier,
     this.productsNotifier,
+    this.subCategory,
     this.cartProdID,
   }) : super(key: key);
 
   @override
   _SizeSelectionState createState() => _SizeSelectionState(
-      title, category, cartNotifier, productsNotifier, cartProdID);
+      title, category, cartNotifier, productsNotifier, subCategory, cartProdID);
 }
 
 class _SizeSelectionState extends State<SizeSelection> {
@@ -45,6 +48,7 @@ class _SizeSelectionState extends State<SizeSelection> {
   final Cat category;
   final CartNotifier cartNotifier;
   final ProductsNotifier productsNotifier;
+  final subCategory;
   final Iterable<String> cartProdID;
 
   _SizeSelectionState(
@@ -52,6 +56,7 @@ class _SizeSelectionState extends State<SizeSelection> {
     this.category,
     this.cartNotifier,
     this.productsNotifier,
+    this.subCategory,
     this.cartProdID,
   );
   void launchWhatsApp({
@@ -81,11 +86,14 @@ class _SizeSelectionState extends State<SizeSelection> {
     super.initState();
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     var cartList = cartNotifier.cartList;
 
     return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           iconTheme: IconThemeData(
             size: 20,
@@ -145,8 +153,6 @@ class _SizeSelectionState extends State<SizeSelection> {
                 fontWeight: FontWeight.bold),
           ),
         ),
-        floatingActionButton: CustomFloatingButton(
-            CurrentScreen(currentScreen: SizeSelection(), tab_no: 0)),
         body: Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
@@ -176,12 +182,26 @@ class _SizeSelectionState extends State<SizeSelection> {
                           children: [
                             GestureDetector(
                               onTap: () async {
+                                Iterable<ProdProducts> allProducts =
+                                    productsNotifier.productsList;
+                                Iterable<ProdProducts> categorySpecificProducts;
+
+                                categorySpecificProducts = allProducts.where(
+                                    (e) =>
+                                        e.subCategory ==
+                                        widget.subCategory['sCatName']);
+
+                                for (var v in allProducts) {
+                                  print(v.pet);
+                                }
+                                var _prods = categorySpecificProducts.toList();
+
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeSubCategories(
-                                      title: title,
-                                      category: category,
+                                    builder: (context) => SeeAllInCategory(
+                                      title: widget.subCategory['sCatName'],
+                                      products: _prods,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -222,12 +242,26 @@ class _SizeSelectionState extends State<SizeSelection> {
                             ),
                             GestureDetector(
                               onTap: () async {
+                                Iterable<ProdProducts> allProducts =
+                                    productsNotifier.productsList;
+                                Iterable<ProdProducts> categorySpecificProducts;
+
+                                categorySpecificProducts = allProducts.where(
+                                    (e) =>
+                                        e.subCategory ==
+                                        widget.subCategory['sCatName']);
+
+                                for (var v in allProducts) {
+                                  print(v.pet);
+                                }
+                                var _prods = categorySpecificProducts.toList();
+
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeSubCategories(
-                                      title: title,
-                                      category: category,
+                                    builder: (context) => SeeAllInCategory(
+                                      title: widget.subCategory['sCatName'],
+                                      products: _prods,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -268,12 +302,26 @@ class _SizeSelectionState extends State<SizeSelection> {
                             ),
                             GestureDetector(
                               onTap: () async {
+                                Iterable<ProdProducts> allProducts =
+                                    productsNotifier.productsList;
+                                Iterable<ProdProducts> categorySpecificProducts;
+
+                                categorySpecificProducts = allProducts.where(
+                                    (e) =>
+                                        e.subCategory ==
+                                        widget.subCategory['sCatName']);
+
+                                for (var v in allProducts) {
+                                  print(v.pet);
+                                }
+                                var _prods = categorySpecificProducts.toList();
+
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeSubCategories(
-                                      title: title,
-                                      category: category,
+                                    builder: (context) => SeeAllInCategory(
+                                      title: widget.subCategory['sCatName'],
+                                      products: _prods,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -314,12 +362,26 @@ class _SizeSelectionState extends State<SizeSelection> {
                             ),
                             GestureDetector(
                               onTap: () async {
+                                Iterable<ProdProducts> allProducts =
+                                    productsNotifier.productsList;
+                                Iterable<ProdProducts> categorySpecificProducts;
+
+                                categorySpecificProducts = allProducts.where(
+                                    (e) =>
+                                        e.subCategory ==
+                                        widget.subCategory['sCatName']);
+
+                                for (var v in allProducts) {
+                                  print(v.pet);
+                                }
+                                var _prods = categorySpecificProducts.toList();
+
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeSubCategories(
-                                      title: title,
-                                      category: category,
+                                    builder: (context) => SeeAllInCategory(
+                                      title: widget.subCategory['sCatName'],
+                                      products: _prods,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -360,12 +422,26 @@ class _SizeSelectionState extends State<SizeSelection> {
                             ),
                             GestureDetector(
                               onTap: () async {
+                                Iterable<ProdProducts> allProducts =
+                                    productsNotifier.productsList;
+                                Iterable<ProdProducts> categorySpecificProducts;
+
+                                categorySpecificProducts = allProducts.where(
+                                    (e) =>
+                                        e.subCategory ==
+                                        widget.subCategory['sCatName']);
+
+                                for (var v in allProducts) {
+                                  print(v.pet);
+                                }
+                                var _prods = categorySpecificProducts.toList();
+
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeSubCategories(
-                                      title: title,
-                                      category: category,
+                                    builder: (context) => SeeAllInCategory(
+                                      title: widget.subCategory['sCatName'],
+                                      products: _prods,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -406,12 +482,26 @@ class _SizeSelectionState extends State<SizeSelection> {
                             ),
                             GestureDetector(
                               onTap: () async {
+                                Iterable<ProdProducts> allProducts =
+                                    productsNotifier.productsList;
+                                Iterable<ProdProducts> categorySpecificProducts;
+
+                                categorySpecificProducts = allProducts.where(
+                                    (e) =>
+                                        e.subCategory ==
+                                        widget.subCategory['sCatName']);
+
+                                for (var v in allProducts) {
+                                  print(v.pet);
+                                }
+                                var _prods = categorySpecificProducts.toList();
+
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeSubCategories(
-                                      title: title,
-                                      category: category,
+                                    builder: (context) => SeeAllInCategory(
+                                      title: widget.subCategory['sCatName'],
+                                      products: _prods,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -453,6 +543,39 @@ class _SizeSelectionState extends State<SizeSelection> {
                           ]),
                     ),
                   ),
+                  InkWell(
+                      onTap: () {
+                        _scaffoldKey.currentState.showBottomSheet((context) {
+                          return StatefulBuilder(builder:
+                              (BuildContext context, StateSetter state) {
+                            return Container(
+                              color: Colors.white,
+                              height: MediaQuery.of(context).size.height * 0.8,
+                              width: MediaQuery.of(context).size.width,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  // InkWell(
+                                  //
+                                  //   child: Icon(
+                                  //     Icons
+                                  //         .keyboard_arrow_down,
+                                  //     size: 30,
+                                  //   ),
+                                  // ),
+                                  Expanded(
+                                    child: PhotoView(
+                                      imageProvider: AssetImage(
+                                          'assets/images/sizeChart.jpeg'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          });
+                        });
+                      },
+                      child: Image.asset('assets/images/sizeChart.jpeg'))
                 ],
               )),
         ));

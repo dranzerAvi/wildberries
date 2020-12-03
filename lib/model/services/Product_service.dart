@@ -53,6 +53,7 @@ getCat(CategoryNotifier categoryNotifier) async {
 addProductToCart(product, _scaffoldKey) async {
   final uEmail = await AuthService().getCurrentEmail();
   if (uEmail == null) {
+    print('Logged Out');
     showSimpleSnack(
       "Please login First",
       Icons.error_outline,
@@ -70,6 +71,12 @@ addProductToCart(product, _scaffoldKey) async {
       .catchError((e) {
     print(e);
   });
+  showSimpleSnack(
+    "Product added to bag",
+    Icons.check_circle_outline,
+    Colors.green,
+    _scaffoldKey,
+  );
 }
 
 //Adding users' product to wishlist

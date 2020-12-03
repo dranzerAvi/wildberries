@@ -15,6 +15,7 @@ class AuthService {
 
   //Get Email
   Future<String> getCurrentEmail() async {
+    if (_firebaseAuth.currentUser == null) return null;
     return (_firebaseAuth.currentUser).email;
   }
 

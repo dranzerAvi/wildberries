@@ -804,12 +804,6 @@ Widget blockWigdet(
                     );
                   } else {
                     addProductToCart(_product, _scaffoldKey);
-                    showSimpleSnack(
-                      "Product added to bag",
-                      Icons.check_circle_outline,
-                      Colors.green,
-                      scaffoldKey,
-                    );
 
                     getCart(cartNotifier);
                   }
@@ -1014,32 +1008,10 @@ Widget blockWigdet2(
                 children: [
                   GestureDetector(
                     onTap: () async {
-                      var title = product.name.toUpperCase();
-                      Iterable<ProdProducts> allProducts =
-                          productsNotifier.productsList;
-                      Iterable<ProdProducts> categorySpecificProducts;
-                      if (product.name == 'Dogs') {
-                        categorySpecificProducts =
-                            allProducts.where((e) => e.pet == 'dog');
-                      } else if (product.name == 'Cats') {
-                        categorySpecificProducts =
-                            allProducts.where((e) => e.pet == 'cat');
-                      } else if (product.name == 'Birds') {
-                        categorySpecificProducts =
-                            allProducts.where((e) => e.pet == 'bird');
-                      }
-
-                      for (var v in allProducts) {
-                        print(v.pet);
-                        print(product.name);
-                      }
-                      Iterable<Category> categories = await getCat(catNotifier);
-                      print('===========$categories');
-
                       var navigationResult = await Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (context) => SizeSelection(
-                            title: title,
+                          builder: (context) => SeeSubCategories(
+                            title: product.name.toUpperCase(),
                             category: product,
                             productsNotifier: productsNotifier,
                             cartNotifier: cartNotifier,

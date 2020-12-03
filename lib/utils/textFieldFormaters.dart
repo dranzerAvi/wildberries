@@ -42,8 +42,8 @@ class PasswordValiditor {
     print(val);
     if (val.isEmpty) {
       return "Enter a password";
-    } else if (val.length < 6 || (!regex.hasMatch(val))) {
-      return "Password not strong enough";
+    } else if (val.length < 6) {
+      return "Password is too short";
     } else {
       return null;
     }

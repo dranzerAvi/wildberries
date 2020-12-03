@@ -6,12 +6,17 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:getflutter/getflutter.dart';
 import 'package:location/location.dart';
+import 'package:mrpet/model/data/Products.dart';
+import 'package:mrpet/model/notifiers/cart_notifier.dart';
+import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/notifiers/userData_notifier.dart';
+import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/model/services/auth_service.dart';
 import 'package:mrpet/model/services/user_management.dart';
 import 'package:mrpet/screens/getstarted_screens/intro_screen.dart';
 import 'package:mrpet/screens/tab_screens/allCategories.dart';
 import 'package:mrpet/screens/tab_screens/history.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/screens/tab_screens/settings.dart';
 import 'package:mrpet/screens/wishlistScreen.dart';
 import 'package:mrpet/utils/colors.dart';
@@ -136,21 +141,28 @@ class _CustomDrawerState extends State<CustomDrawer> {
             break;
           case ConnectionState.done:
             return checkUser.isEmpty || checkUser == null
-                ? retNavDrawer(user, addressList)
-                : retNavDrawer(user, addressList);
+                ? retNavDrawer(user, addressList, context)
+                : retNavDrawer(user, addressList, context);
 
             break;
           case ConnectionState.waiting:
-            return retNavDrawer(user, addressList);
+            return retNavDrawer(user, addressList, context);
             break;
           default:
-            return retNavDrawer(user, addressList);
+            return retNavDrawer(user, addressList, context);
         }
       },
     );
   }
 
-  Widget retNavDrawer(user, addressList) {
+  Widget retNavDrawer(user, addressList, context) {
+    ProductsNotifier productsNotifier = Provider.of<ProductsNotifier>(context);
+    var prods = productsNotifier.productsList;
+
+    CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
+    var cartList = cartNotifier.cartList;
+    var cartProdID = cartList.map((e) => e.productID);
+
     var _checkAddress;
     addressList == null || addressList.isEmpty
         ? _checkAddress = null
@@ -332,6 +344,44 @@ class _CustomDrawerState extends State<CustomDrawer> {
               pushNewScreen(context, screen: HistoryScreen());
             },
           ),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            height: 0.5,
+            color: Colors.black26,
+          ),
+          ListTile(
+              title: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                child: Text(
+                  'On Sale',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: 'nunito',
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              onTap: () async {
+                Iterable<ProdProducts> popular =
+                    prods.where((e) => e.discount != null);
+                var _prods = popular.toList();
+                var title = "Best Sellers";
+
+                var navigationResult = await Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (context) => SeeMoreScreen(
+                      title: title,
+                      products: prods,
+                      productsNotifier: productsNotifier,
+                      cartNotifier: cartNotifier,
+                      cartProdID: cartProdID,
+                    ),
+                  ),
+                );
+                if (navigationResult == true) {
+                  getCart(cartNotifier);
+                }
+              }),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 20),
             height: 0.5,

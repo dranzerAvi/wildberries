@@ -25,8 +25,11 @@ class _IntroScreenState extends State<IntroScreen> {
         return Future.value(true);
       },
       child: Scaffold(
-        body: primaryContainer(
-          Center(
+        backgroundColor: Colors.white,
+        body: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          color: Colors.white,
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -47,15 +50,15 @@ class _IntroScreenState extends State<IntroScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.all(20.0),
-                  child: SvgPicture.asset(
-                    "assets/images/pets.svg",
+                  child: Image.asset(
+                    "assets/images/misterpetIcon.png",
                     height: 200,
                   ),
                 ),
                 SizedBox(height: 30.0),
                 Container(
                   child: Text(
-                    "Welcome to Pet Shop",
+                    "Welcome to Mister Pet",
                     style: boldFont(MColors.textDark, 30.0),
                     textAlign: TextAlign.center,
                   ),
@@ -63,7 +66,7 @@ class _IntroScreenState extends State<IntroScreen> {
                 SizedBox(height: 10.0),
                 Container(
                   child: Text(
-                    Strings.onBoardTitle_sub1,
+                    'Here you will find everything for your fur friend. Shop pet house, pet supplies, accessories and more!',
                     style: normalFont(MColors.textGrey, 18.0),
                     textAlign: TextAlign.center,
                   ),

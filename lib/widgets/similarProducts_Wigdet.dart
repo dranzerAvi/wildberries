@@ -101,12 +101,7 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                     );
                   } else {
                     addProductToCart(fil, scaffoldKey);
-                    showSimpleSnack(
-                      "Product added to bag",
-                      Icons.check_circle_outline,
-                      Colors.green,
-                      scaffoldKey,
-                    );
+
                     setState(() {
                       getCart(cartNotifier);
                     });
