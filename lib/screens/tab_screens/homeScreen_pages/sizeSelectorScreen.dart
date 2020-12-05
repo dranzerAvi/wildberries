@@ -176,7 +176,7 @@ class _SizeSelectionState extends State<SizeSelection> {
                       child: GridView.count(
                           physics: BouncingScrollPhysics(),
                           crossAxisCount: 2,
-                          childAspectRatio: 1.5,
+                          childAspectRatio: 1.7,
                           mainAxisSpacing: 15.0,
                           crossAxisSpacing: 15.0,
                           children: [
@@ -185,23 +185,22 @@ class _SizeSelectionState extends State<SizeSelection> {
                                 Iterable<ProdProducts> allProducts =
                                     productsNotifier.productsList;
                                 Iterable<ProdProducts> categorySpecificProducts;
+                                //
+                                // categorySpecificProducts = allProducts.where(
+                                //     (e) =>
+                                //         e.subCategory ==
+                                //         widget.subCategory['sCatName']);
 
-                                categorySpecificProducts = allProducts.where(
-                                    (e) =>
-                                        e.subCategory ==
-                                        widget.subCategory['sCatName']);
-
-                                for (var v in allProducts) {
-                                  print(v.pet);
-                                }
-                                var _prods = categorySpecificProducts.toList();
+                                // for (var v in allProducts) {
+                                //   print(v.pet);
+                                // }
+                                // var _prods = categorySpecificProducts.toList();
 
                                 var navigationResult =
                                     await Navigator.of(context).push(
                                   CupertinoPageRoute(
-                                    builder: (context) => SeeAllInCategory(
-                                      title: widget.subCategory['sCatName'],
-                                      products: _prods,
+                                    builder: (context) => SeeSubCategories(
+                                      category: widget.category,
                                       productsNotifier: productsNotifier,
                                       cartNotifier: cartNotifier,
                                       cartProdID: cartProdID,
@@ -241,37 +240,7 @@ class _SizeSelectionState extends State<SizeSelection> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () async {
-                                Iterable<ProdProducts> allProducts =
-                                    productsNotifier.productsList;
-                                Iterable<ProdProducts> categorySpecificProducts;
-
-                                categorySpecificProducts = allProducts.where(
-                                    (e) =>
-                                        e.subCategory ==
-                                        widget.subCategory['sCatName']);
-
-                                for (var v in allProducts) {
-                                  print(v.pet);
-                                }
-                                var _prods = categorySpecificProducts.toList();
-
-                                var navigationResult =
-                                    await Navigator.of(context).push(
-                                  CupertinoPageRoute(
-                                    builder: (context) => SeeAllInCategory(
-                                      title: widget.subCategory['sCatName'],
-                                      products: _prods,
-                                      productsNotifier: productsNotifier,
-                                      cartNotifier: cartNotifier,
-                                      cartProdID: cartProdID,
-                                    ),
-                                  ),
-                                );
-                                if (navigationResult == true) {
-                                  getCart(cartNotifier);
-                                }
-                              },
+                              onTap: () async {},
                               child: Container(
                                 alignment: Alignment.center,
                                 padding: EdgeInsets.all(10),
@@ -575,7 +544,9 @@ class _SizeSelectionState extends State<SizeSelection> {
                           });
                         });
                       },
-                      child: Image.asset('assets/images/sizeChart.jpeg'))
+                      child: Image.asset(
+                        'assets/images/sizeChart.jpeg',
+                      ))
                 ],
               )),
         ));

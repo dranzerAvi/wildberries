@@ -8,6 +8,7 @@ import 'package:mrpet/model/data/Products.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
+import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
 import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
@@ -195,13 +196,22 @@ class _AllCategoriesState extends State<AllCategories> {
                         padding: const EdgeInsets.all(8.0),
                         child: InkWell(
                           onTap: () async {
+                            Iterable<ProdProducts> allProducts =
+                                productsNotifier.productsList;
+                            Iterable<ProdProducts> categorySpecificProducts;
                             getCat(categoriesNotifier);
                             Iterable<Cat> categories =
                                 await categoriesNotifier.catList;
-                            print(categories);
+                            categorySpecificProducts =
+                                await allProducts.where((e) => e.pet == 'cat');
+                            print('-------${categorySpecificProducts}');
+                            for (var v in allProducts) {
+                              print(v.category);
+                            }
+                            var _prods = categorySpecificProducts.toList();
+                            var currentCategory;
                             List<Cat> catList = categories.toList();
 
-                            var currentCategory;
                             for (var v in catList) {
                               if (v.name == 'Cats') {
                                 currentCategory = await v;
@@ -210,8 +220,7 @@ class _AllCategoriesState extends State<AllCategories> {
                             var navigationResult =
                                 await Navigator.of(context).push(
                               CupertinoPageRoute(
-                                builder: (context) => SizeSelection(
-                                  title: 'CATS',
+                                builder: (context) => SeeSubCategories(
                                   category: currentCategory,
                                   productsNotifier: productsNotifier,
                                   cartNotifier: cartNotifier,
@@ -252,13 +261,22 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
+                          Iterable<ProdProducts> allProducts =
+                              productsNotifier.productsList;
+                          Iterable<ProdProducts> categorySpecificProducts;
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          print(categories);
+                          categorySpecificProducts =
+                              await allProducts.where((e) => e.pet == 'rabbit');
+                          print('-------${categorySpecificProducts}');
+                          for (var v in allProducts) {
+                            print(v.category);
+                          }
+                          var _prods = categorySpecificProducts.toList();
+                          var currentCategory;
                           List<Cat> catList = categories.toList();
 
-                          var currentCategory;
                           for (var v in catList) {
                             if (v.name == 'Rabbits') {
                               currentCategory = await v;
@@ -267,8 +285,7 @@ class _AllCategoriesState extends State<AllCategories> {
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SizeSelection(
-                                title: 'RABBITS',
+                              builder: (context) => SeeSubCategories(
                                 category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
@@ -302,13 +319,22 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
+                          Iterable<ProdProducts> allProducts =
+                              productsNotifier.productsList;
+                          Iterable<ProdProducts> categorySpecificProducts;
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          print(categories);
+                          categorySpecificProducts =
+                              await allProducts.where((e) => e.pet == 'bird');
+                          print('-------${categorySpecificProducts}');
+                          for (var v in allProducts) {
+                            print(v.category);
+                          }
+                          var _prods = categorySpecificProducts.toList();
+                          var currentCategory;
                           List<Cat> catList = categories.toList();
 
-                          var currentCategory;
                           for (var v in catList) {
                             if (v.name == 'Birds') {
                               currentCategory = await v;
@@ -317,8 +343,7 @@ class _AllCategoriesState extends State<AllCategories> {
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SizeSelection(
-                                title: 'BIRDS',
+                              builder: (context) => SeeSubCategories(
                                 category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
@@ -358,13 +383,22 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
+                          Iterable<ProdProducts> allProducts =
+                              productsNotifier.productsList;
+                          Iterable<ProdProducts> categorySpecificProducts;
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          print(categories);
+                          categorySpecificProducts = await allProducts
+                              .where((e) => e.pet == 'hamster');
+                          print('-------${categorySpecificProducts}');
+                          for (var v in allProducts) {
+                            print(v.category);
+                          }
+                          var _prods = categorySpecificProducts.toList();
+                          var currentCategory;
                           List<Cat> catList = categories.toList();
 
-                          var currentCategory;
                           for (var v in catList) {
                             if (v.name == 'Hamsters') {
                               currentCategory = await v;
@@ -373,8 +407,7 @@ class _AllCategoriesState extends State<AllCategories> {
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SizeSelection(
-                                title: 'HAMSTERS',
+                              builder: (context) => SeeSubCategories(
                                 category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,
@@ -408,13 +441,22 @@ class _AllCategoriesState extends State<AllCategories> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
+                          Iterable<ProdProducts> allProducts =
+                              productsNotifier.productsList;
+                          Iterable<ProdProducts> categorySpecificProducts;
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          print(categories);
+                          categorySpecificProducts =
+                              await allProducts.where((e) => e.pet == 'other');
+                          print('-------${categorySpecificProducts}');
+                          for (var v in allProducts) {
+                            print(v.category);
+                          }
+                          var _prods = categorySpecificProducts.toList();
+                          var currentCategory;
                           List<Cat> catList = categories.toList();
 
-                          var currentCategory;
                           for (var v in catList) {
                             if (v.name == 'Others') {
                               currentCategory = await v;
@@ -423,8 +465,7 @@ class _AllCategoriesState extends State<AllCategories> {
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SizeSelection(
-                                title: 'OTHER PRODUCTS',
+                              builder: (context) => SeeSubCategories(
                                 category: currentCategory,
                                 productsNotifier: productsNotifier,
                                 cartNotifier: cartNotifier,

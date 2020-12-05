@@ -147,7 +147,7 @@ class _SeeSubCategoriesState extends State<SeeSubCategories> {
         ),
         floatingActionButton: CustomFloatingButton(
             CurrentScreen(currentScreen: SeeSubCategories(), tab_no: 0)),
-        body: widget.category.sCat != null
+        body: widget.category != null
             ? Container(
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
@@ -162,35 +162,68 @@ class _SeeSubCategoriesState extends State<SeeSubCategories> {
                     children:
                         List<Widget>.generate(widget.category.sCat.length, (i) {
                       return GestureDetector(
-                        onTap: () async {
-                          var title = category.name.toUpperCase();
+                        onTap:
+                            // widget.category.name == 'Dogs'
+                            //     ? () async {
+                            //         var title = category.name.toUpperCase();
+                            //         Iterable<ProdProducts> allProducts =
+                            //             productsNotifier.productsList;
+                            //         Iterable<ProdProducts> categorySpecificProducts;
+                            //         if (category.name == 'Dogs') {
+                            //           categorySpecificProducts =
+                            //               allProducts.where((e) => e.pet == 'dog');
+                            //         } else if (category.name == 'Cats') {
+                            //           categorySpecificProducts =
+                            //               allProducts.where((e) => e.pet == 'cat');
+                            //         } else if (category.name == 'Birds') {
+                            //           categorySpecificProducts =
+                            //               allProducts.where((e) => e.pet == 'bird');
+                            //         }
+                            //
+                            //         for (var v in allProducts) {
+                            //           print(v.pet);
+                            //           print(category.name);
+                            //         }
+                            //
+                            //         var navigationResult =
+                            //             await Navigator.of(context).push(
+                            //           CupertinoPageRoute(
+                            //             builder: (context) => SizeSelection(
+                            //               title: title,
+                            //               category: category,
+                            //               productsNotifier: productsNotifier,
+                            //               subCategory: widget.category.sCat[i],
+                            //               cartNotifier: cartNotifier,
+                            //               cartProdID: cartProdID,
+                            //             ),
+                            //           ),
+                            //         );
+                            //         if (navigationResult == true) {
+                            //           getCart(cartNotifier);
+                            //         }
+                            //       }
+                            //     :
+                            () async {
                           Iterable<ProdProducts> allProducts =
                               productsNotifier.productsList;
                           Iterable<ProdProducts> categorySpecificProducts;
-                          if (category.name == 'Dogs') {
-                            categorySpecificProducts =
-                                allProducts.where((e) => e.pet == 'dog');
-                          } else if (category.name == 'Cats') {
-                            categorySpecificProducts =
-                                allProducts.where((e) => e.pet == 'cat');
-                          } else if (category.name == 'Birds') {
-                            categorySpecificProducts =
-                                allProducts.where((e) => e.pet == 'bird');
-                          }
+
+                          categorySpecificProducts = allProducts.where((e) =>
+                              e.subCategory ==
+                              widget.category.sCat[i]['sCatName']);
 
                           for (var v in allProducts) {
                             print(v.pet);
-                            print(category.name);
                           }
+                          var _prods = categorySpecificProducts.toList();
 
                           var navigationResult =
                               await Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (context) => SizeSelection(
-                                title: title,
-                                category: category,
+                              builder: (context) => SeeAllInCategory(
+                                // title: widget.subCategory['sCatName'],
+                                products: _prods,
                                 productsNotifier: productsNotifier,
-                                subCategory: widget.category.sCat[i],
                                 cartNotifier: cartNotifier,
                                 cartProdID: cartProdID,
                               ),
