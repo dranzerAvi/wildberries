@@ -21,6 +21,7 @@ import 'package:mrpet/screens/tab_screens/settings.dart';
 import 'package:mrpet/screens/wishlistScreen.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/internetConnectivity.dart';
+import 'package:mrpet/utils/navbarController.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/provider.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
@@ -273,8 +274,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     fontFamily: 'nunito',
                     fontWeight: FontWeight.w600),
               ),
-            ),
+            ),x
             onTap: () {
+              setState(() {
+                Controller.controller.index = 0;
+              });
               Navigator.of(context).pop();
             },
           ),

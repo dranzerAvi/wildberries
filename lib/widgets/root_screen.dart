@@ -7,6 +7,7 @@ import 'package:mrpet/screens/tab_screens/notifications.dart';
 import 'package:mrpet/screens/tab_screens/search_screens/search_screen.dart';
 import 'package:mrpet/screens/tab_screens/settings.dart';
 import 'package:mrpet/utils/colors.dart';
+import 'package:mrpet/utils/navbarController.dart';
 
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'dart:math' as math;
@@ -79,15 +80,15 @@ class _RootScreenState extends State<RootScreen>
     }
   }
 
-  PersistentTabController _controllerTab =
-      PersistentTabController(initialIndex: 0);
+  // PersistentTabController _controllerTab =
+  //     PersistentTabController(initialIndex: 0);
 
   @override
   Widget build(BuildContext context) {
     return PersistentTabView(
       backgroundColor: MColors.secondaryColor,
 
-      controller: _controllerTab,
+      controller: Controller.controller,
       items: navBarItems,
       screens: _buildScreens(),
 //      showElevation: true,
