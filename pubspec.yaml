@@ -41,6 +41,7 @@ dependencies:
   google_fonts:
   wc_flutter_share: ^0.2.0
   flutter_rating_bar: ^3.2.0+1
+  device_info: ^1.0.0
   persistent_bottom_nav_bar: ^2.1.0
   fancy_shimmer_image: ^1.2.0
   flutter_dropdown: ^0.0.8

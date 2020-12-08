@@ -1,12 +1,18 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mrpet/main.dart';
+import 'package:mrpet/model/data/cart.dart';
 import 'package:mrpet/screens/register_screens/registration_screen.dart';
 import 'package:mrpet/screens/register_screens/reset_screen.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/utils/textFieldFormaters.dart';
 import 'package:mrpet/widgets/provider.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:mrpet/model/notifiers/cart_notifier.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key key}) : super(key: key);
@@ -17,9 +23,10 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  CartNotifier _cartNotifier;
   final formKey = GlobalKey<FormState>();
   final loginKey = GlobalKey<_LoginScreenState>();
-
+  var id='';
   String _email;
   String _password;
   String _error;
@@ -27,6 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isButtonDisabled = false;
   bool _obscureText = true;
   bool _isEnabled = true;
+  final db = FirebaseFirestore.instance;
+
 
   @override
   Widget build(BuildContext context) {
@@ -220,8 +229,52 @@ class _LoginScreenState extends State<LoginScreen> {
       _obscureText = !_obscureText;
     });
   }
+Future<dynamic> Cartdetails(CartNotifier cartNotifier)async{
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  if (Platform.isAndroid) {
 
-  void _submit() async {
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    print('Running on ${androidInfo.id}');
+
+    id=androidInfo.id;
+  } else if (Platform.isIOS) {
+    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    print('Running on ${iosInfo.model}');
+    id=iosInfo.model;
+  }
+  QuerySnapshot snapshot = await FirebaseFirestore.instance
+      .collection("tempUserCart")
+      .doc(id)
+      .collection("cartItems")
+      .get();
+
+
+  List<Cart> cartList = [];
+  snapshot.docs.forEach((document) async{
+    Cart cart = Cart.fromMap(document.data());
+    cartList.add(cart);
+
+  });
+
+  cartNotifier.cartList = cartList;
+
+  QuerySnapshot snapshot2 = await FirebaseFirestore.instance
+      .collection("userCart")
+      .doc(_email)
+      .collection("cartItems")
+      .get();
+
+
+  List<Cart> cartList2 = [];
+  snapshot.docs.forEach((document) async{
+    Cart cart = Cart.fromMap(document.data());
+    cartList2.add(cart);
+
+  });
+
+  cartNotifier.cartList = cartList2;
+}
+ void  _submit() async {
     final form = formKey.currentState;
 
     try {
@@ -235,8 +288,10 @@ class _LoginScreenState extends State<LoginScreen> {
             _isEnabled = false;
           });
         }
-
         String uid = await auth.signInWithEmailAndPassword(_email, _password);
+
+Cartdetails(_cartNotifier);
+
         print("Signed in with $uid");
 
         Navigator.of(context).pushReplacement(
@@ -253,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.message;
+          _error = e.toString();
           _isButtonDisabled = false;
           _isEnabled = true;
         });

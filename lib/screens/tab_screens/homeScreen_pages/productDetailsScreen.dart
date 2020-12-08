@@ -1855,7 +1855,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                       child: InkWell(
                         onTap: _isbuttonDisabled
                             ? null
-                            : () => _submit(cartNotifier),
+                            : () =>_submit(cartNotifier),
                         child: Text(
                           "Add to Bag",
                           style: boldFont(MColors.secondaryColor, 15.0),

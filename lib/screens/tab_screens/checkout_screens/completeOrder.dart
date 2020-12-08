@@ -5,6 +5,7 @@ import 'package:mrpet/model/data/cart.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/userData_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
+import 'package:mrpet/model/services/auth_service.dart';
 import 'package:mrpet/model/services/user_management.dart';
 import 'package:mrpet/screens/tab_screens/checkout_screens/addPaymentMethod.dart';
 import 'package:uuid/uuid.dart';
@@ -237,7 +238,16 @@ class _AddressContainerState extends State<AddressContainer> {
             style: boldFont(MColors.primaryWhite, 16.0),
           ),
           () async {
-            if (addressList.isEmpty || cardList.isEmpty) {
+            final uEmail = await AuthService().getCurrentEmail();
+            if(uEmail==null){
+              print('Logged Out');
+    showSimpleSnack(
+      "Please login First",
+      Icons.error_outline,
+      Colors.red,
+      _scaffoldKey,);
+            }
+            else if (addressList.isEmpty || cardList.isEmpty) {
               showSimpleSnack(
                 'Please complete shipping and card details',
                 Icons.error_outline,

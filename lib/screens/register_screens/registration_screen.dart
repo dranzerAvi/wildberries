@@ -1,7 +1,13 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mrpet/main.dart';
+import 'package:mrpet/model/data/cart.dart';
+import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/notifiers/userData_notifier.dart';
 import 'package:mrpet/model/services/user_management.dart';
 import 'package:mrpet/screens/register_screens/login_screen.dart';
@@ -21,7 +27,9 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final formKey = GlobalKey<FormState>();
-
+var id='';
+CartNotifier cartNotifier;
+final db=FirebaseFirestore.instance;
   String _name;
   String _phone;
   String _email;
@@ -332,7 +340,50 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _obscureText = !_obscureText;
     });
   }
+Future<dynamic>Cartdetails(CartNotifier cartNotifier)async{
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  if (Platform.isAndroid) {
 
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    print('Running on ${androidInfo.id}');
+
+    id=androidInfo.id;
+  } else if (Platform.isIOS) {
+    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    print('Running on ${iosInfo.model}');
+    id=iosInfo.model;
+  }
+  QuerySnapshot snapshot = await FirebaseFirestore.instance
+      .collection("tempUserCart")
+      .doc(id)
+      .collection("cartItems")
+      .get();
+
+
+  List<Cart> cartList = [];
+  snapshot.docs.forEach((document) async{
+    Cart cart = Cart.fromMap(document.data());
+    cartList.add(cart);
+    await db
+        .collection("userCart")
+        .doc(_email)
+        .collection("cartItems")
+        .doc(cart.productID)
+        .set(cart.toMap())
+        .catchError((e) {
+      print(e);
+    });
+
+  });
+
+  cartNotifier.cartList = cartList;
+
+
+
+
+
+
+}
   void _submit() async {
     final form = formKey.currentState;
 
@@ -356,6 +407,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         );
 
         storeNewUser(_name, _phone, _email);
+
+Cartdetails(cartNotifier);
         print("Signed Up with new $uid");
 
         Navigator.of(context).pushReplacement(
