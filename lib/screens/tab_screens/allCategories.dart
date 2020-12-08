@@ -142,24 +142,31 @@ class _AllCategoriesState extends State<AllCategories> {
                         padding: const EdgeInsets.all(8.0),
                         child: InkWell(
                           onTap: () async {
+                            Iterable<ProdProducts> allProducts =
+                                productsNotifier.productsList;
+                            Iterable<ProdProducts> categorySpecificProducts;
                             getCat(categoriesNotifier);
                             Iterable<Cat> categories =
-                                await categoriesNotifier.catList;
-                            print(categories);
+                            await categoriesNotifier.catList;
+                            categorySpecificProducts =
+                            await allProducts.where((e) => e.pet == 'dog');
+                            print('-------${categorySpecificProducts}');
+                            for (var v in allProducts) {
+                              print(v.category);
+                            }
+                            var _prods = categorySpecificProducts.toList();
+                            var currentCategory;
                             List<Cat> catList = categories.toList();
 
-                            var currentCategory;
                             for (var v in catList) {
                               if (v.name == 'Dogs') {
                                 currentCategory = await v;
                               }
                             }
-
                             var navigationResult =
-                                await Navigator.of(context).push(
+                            await Navigator.of(context).push(
                               CupertinoPageRoute(
-                                builder: (context) => SizeSelection(
-                                  title: 'DOGS',
+                                builder: (context) => SeeSubCategories(
                                   category: currentCategory,
                                   productsNotifier: productsNotifier,
                                   cartNotifier: cartNotifier,

@@ -204,6 +204,31 @@ class _SeeSubCategoriesState extends State<SeeSubCategories> {
                             //       }
                             //     :
                             () async {
+                          if(widget.category.name=='Dogs'){
+                            print('------*********');
+                            for(int i =0;i<widget.category.sCat.length;i++){
+                              print('&&&&&&&&&');
+                              print(widget.category.sCat[i]['sCatName']);
+                              if(widget.category.sCat[i]['sCatName']=='Dog House'){
+                                print('========');
+                                var navigationResult =
+                                await Navigator.of(context).push(
+                                  CupertinoPageRoute(
+                                    builder: (context) => SizeSelection(
+                                       title: 'DOGS',
+                                      category:widget.category,
+                                      productsNotifier: productsNotifier,
+                                      cartNotifier: cartNotifier,
+                                      cartProdID: cartProdID,
+                                    ),
+                                  ),
+                                );
+                                if (navigationResult == true) {
+                                  getCart(cartNotifier);
+                                }
+                              }
+                            }
+                          }
                           Iterable<ProdProducts> allProducts =
                               productsNotifier.productsList;
                           Iterable<ProdProducts> categorySpecificProducts;

@@ -274,7 +274,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     fontFamily: 'nunito',
                     fontWeight: FontWeight.w600),
               ),
-            ),x
+            ),
             onTap: () {
               setState(() {
                 Controller.controller.index = 0;

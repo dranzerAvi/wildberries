@@ -14,6 +14,7 @@ import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
 import 'package:mrpet/model/data/Products.dart';
+import 'package:mrpet/review_rating.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/bag.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/utils/colors.dart';
@@ -1146,7 +1147,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 Expanded(
                                   child: Container(
                                     width:
-                                        MediaQuery.of(context).size.width * 0.5,
+                                        MediaQuery.of(context).size.width * 0.7,
                                     child: prodDetails.discount != null
                                         ? Column(
                                             crossAxisAlignment:
@@ -1159,6 +1160,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                                                 ),
                                                 child: StarDisplay(value: 4),
                                               ),
+                                              InkWell(onTap:(){
+                                                Navigator.push(context,MaterialPageRoute(builder:(context)=>ReviewRating(widget.prodDetails.name)));
+                                              },child: Text('See all Reviews',style:TextStyle(color:Colors.blue,fontSize:14))),
                                               Container(
                                                 decoration: BoxDecoration(
                                                     borderRadius:

@@ -1,12 +1,18 @@
+
+
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mrpet/main.dart';
 import 'package:mrpet/model/data/userData.dart';
 import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/utils/colors.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/widgets/root_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderPlaced extends StatefulWidget {
   final List<UserDataAddress> addressList;
@@ -18,31 +24,81 @@ class OrderPlaced extends StatefulWidget {
 class _OrderPlacedState extends State<OrderPlaced> {
   final List<UserDataAddress> addressList;
   _OrderPlacedState(this.addressList);
+  void launchWhatsApp({
+    @required String phone,
+    @required String message,
+  }) async {
+    String url() {
+      if (Platform.isIOS) {
+        return "whatsapp://wa.me/$phone/?text=${Uri.parse(message)}";
+      } else {
+        return "whatsapp://send?   phone=$phone&text=${Uri.parse(message)}";
+      }
+    }
+
+    if (await canLaunch(url())) {
+      await launch(url());
+    } else {
+      throw 'Could not launch ${url()}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MColors.primaryWhiteSmoke,
-      appBar: primaryAppBar(
-        IconButton(
-          icon: Icon(
-            Icons.close,
-            color: MColors.textGrey,
-          ),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              CupertinoPageRoute(
-                builder: (_) => MyApp(),
-              ),
-              (Route<dynamic> route) => false,
-            );
-          },
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          size: 20,
+          color: MColors.secondaryColor,
         ),
-        null,
-        MColors.primaryWhiteSmoke,
-        null,
-        false,
-        null,
+        backgroundColor: MColors.mainColor,
+        actions: [
+          InkWell(
+              onTap: () {
+                launch('tel:+919027553376');
+              },
+              child: Icon(
+                Icons.phone,
+              )),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+                launchWhatsApp(
+                    phone: '7060222315',
+                    message: 'Check out this awesome app');
+              },
+              child: Container(
+                  alignment: Alignment.center,
+                  child: FaIcon(FontAwesomeIcons.whatsapp))),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+//                print(1);
+                launch(
+                    'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+              },
+              child: Icon(
+                Icons.mail,
+              )),
+          SizedBox(
+            width: 14,
+          )
+        ],
+        elevation: 0.0,
+        centerTitle: true,
+        title: Text(
+          'Misterpet.ae',
+          style: TextStyle(
+              color: MColors.secondaryColor,
+              fontSize: 22,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold),
+        ),
       ),
       body: primaryContainer(
         SingleChildScrollView(
