@@ -24,33 +24,33 @@ class _ReviewState extends State<Review> {
   TextEditingController contrl = new TextEditingController();
 
   var ratingGlobal = '1';
-  String name,number;
-  getUserDetails()async{
-    User user=FirebaseAuth.instance.currentUser;
-   var ref=FirebaseFirestore.instance.collection('UserData');
-ref.doc(user.uid).collection('profile').doc(user.uid).get().then((value){
-Map<String,dynamic>map=value.data();
-name=map['name'];
-number=map['phone'];
-FirebaseFirestore.instance.collection('Reviews').add({
-  "username":name,
-  "useremail":user.uid,
-  "user_phn_no":number,
-  "rating":ratingGlobal,
-  "details":contrl.text,
-  "productName":widget.productname,
-});
-Fluttertoast.showToast(
-    msg: 'Review Added', toastLength: Toast.LENGTH_SHORT);
- Navigator.of(context).push(
-  CupertinoPageRoute(
-    builder: (context) => HomeScreen()
-    ),
-  );
-
-});
-
+  String name, number;
+  getUserDetails() async {
+    User user = FirebaseAuth.instance.currentUser;
+    var ref = FirebaseFirestore.instance.collection('userData');
+    ref
+        .doc(user.email)
+        .collection('profile')
+        .doc(user.email)
+        .get()
+        .then((value) {
+      Map<String, dynamic> map = value.data();
+      name = map['name'];
+      number = map['phone'];
+      FirebaseFirestore.instance.collection('Reviews').add({
+        "username": name,
+        "useremail": user.email,
+        "user_phn_no": number,
+        "rating": ratingGlobal,
+        "details": contrl.text,
+        "productName": widget.productname,
+      });
+      Fluttertoast.showToast(
+          msg: 'Review Added', toastLength: Toast.LENGTH_SHORT);
+      Navigator.pop(context);
+    });
   }
+
   TextEditingController controller = TextEditingController();
   bool showSuffixIcon = false;
   bool hasRestaurantBeenAdded = false;
@@ -59,6 +59,7 @@ Fluttertoast.showToast(
   void postReview() async {
     await getUserDetails();
   }
+
   @override
   Widget build(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
@@ -83,14 +84,8 @@ Fluttertoast.showToast(
               children: <Widget>[
                 InkWell(
                   onTap: () {
-            Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (context) =>HomeScreen(),
-            ),
-          );
-
-      },
-
+                    Navigator.pop(context);
+                  },
                   child: Center(
                     child: Container(
                       margin: const EdgeInsets.only(left: 4),
@@ -121,9 +116,8 @@ Fluttertoast.showToast(
                       child: Text(
                         'Post',
                         style: textTheme.bodyText2.copyWith(
-                          color: canPost
-                              ? MColors.secondaryColor
-                              : Colors.black,
+                          color:
+                              canPost ? MColors.secondaryColor : Colors.black,
                           fontSize: 20.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -142,72 +136,73 @@ Fluttertoast.showToast(
           ),
           child: ListView(
             children: <Widget>[
-          Container(
-          width: MediaQuery.of(context).size.width * 0.8,
-          height: 70,
-          child: Row(
-            children: [
               Container(
-                width: MediaQuery.of(context).size.width * 0.84,
-                // height: 60,
-                child: InkWell(
-                  onTap: (){},
-                  child: TextFormField(
-                    controller: controller,
-                    enabled: false,
-                    style: TextStyle(color:Colors.black,fontSize:16,fontFamily: 'Poppins'),
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                        BorderSide(color: Colors.grey, width: 0.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide:
-                        BorderSide(color: Colors.grey, width: 0.0),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Colors.grey,
-                          width: 0.0,
-                          style: BorderStyle.none,
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 70,
+                child: Row(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.84,
+                      // height: 60,
+                      child: InkWell(
+                        onTap: () {},
+                        child: TextFormField(
+                          controller: controller,
+                          enabled: false,
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontFamily: 'Poppins'),
+                          decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.grey, width: 0.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.grey, width: 0.0),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.grey,
+                                width: 0.0,
+                                style: BorderStyle.none,
+                              ),
+                            ),
+                            prefixIcon: InkWell(
+                              onTap: () {},
+                              child: Icon(Icons.search),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 0,
+                              vertical: 22,
+                            ),
+                            hintText: 'Find Products',
+                            hintStyle: TextStyle(color: Colors.grey),
+                            filled: false,
+                          ),
+                          obscureText: false,
+                          onChanged: (value) => _onChange(value),
                         ),
                       ),
-                      prefixIcon: InkWell(
-                        onTap: (){},
-                        child: Icon(Icons.search),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 0,
-                        vertical:22,
-                      ),
-                      hintText: 'Find Products',
-                      hintStyle: TextStyle(color:Colors.grey),
-                      filled: false,
-
                     ),
-                    obscureText: false,
-                    onChanged:  (value) => _onChange(value),
-                  ),
+                    Center(
+                      child: InkWell(
+                        onTap: () {
+                          controller.clear();
+                          changeState(
+                            showSuffixIcon: false,
+                            isCardShowing: false,
+                            hasRestaurantBeenAdded: false,
+                          );
+                        },
+                        child: Icon(Icons.sort),
+                      ),
+                    )
+                  ],
                 ),
               ),
-              Center(
-                child: InkWell(
-                  onTap:   () {
-                    controller.clear();
-                    changeState(
-                      showSuffixIcon: false,
-                      isCardShowing: false,
-                      hasRestaurantBeenAdded: false,
-                    );
-                  },
-
-                    child: Icon(Icons.sort),
-                ),
-              )
-            ],
-          ),
-        ),
 
 //              isCardShowing ? SizedBox(height:30) : Container(),
 //              isCardShowing
@@ -229,7 +224,7 @@ Fluttertoast.showToast(
 //                },
 //              )
 //                  : Container(),
-              SizedBox(height:30),
+              SizedBox(height: 30),
               Center(
                 child: Text(
                   'Rating',
@@ -240,12 +235,12 @@ Fluttertoast.showToast(
                   ),
                 ),
               ),
-              SizedBox(height:12.0),
+              SizedBox(height: 12.0),
               Container(
                 width: MediaQuery.of(context).size.width - 60,
                 padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 16.0),
                 decoration: BoxDecoration(
-                  color:Color(0xFFEEF7FF) ,
+                  color: Color(0xFFEEF7FF),
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
                 child: Center(
@@ -271,7 +266,7 @@ Fluttertoast.showToast(
                   ),
                 ),
               ),
-              SizedBox(height:12.0),
+              SizedBox(height: 12.0),
               Center(
                 child: Text(
                   'Rate your experience',
@@ -281,7 +276,7 @@ Fluttertoast.showToast(
                   ),
                 ),
               ),
-              SizedBox(height:30),
+              SizedBox(height: 30),
               _buildReview(context: context),
             ],
           ),
@@ -324,16 +319,14 @@ Fluttertoast.showToast(
             fontSize: 20,
           ),
         ),
-        SizedBox(height:16.0),
+        SizedBox(height: 16.0),
         TextFormField(
-
           controller: contrl,
           maxLines: 10,
-          decoration:InputDecoration(hintText: "Write your experience",hintStyle: TextStyle(color:Colors.grey,fontSize: 16.0),contentPadding: EdgeInsets.all(8.0)),
-
-
-
-
+          decoration: InputDecoration(
+              hintText: "Write your experience",
+              hintStyle: TextStyle(color: Colors.grey, fontSize: 16.0),
+              contentPadding: EdgeInsets.all(8.0)),
         ),
       ],
     );
@@ -348,5 +341,3 @@ Fluttertoast.showToast(
     );
   }
 }
-
-

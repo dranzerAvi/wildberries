@@ -204,58 +204,54 @@ class _SeeSubCategoriesState extends State<SeeSubCategories> {
                             //       }
                             //     :
                             () async {
-                          if(widget.category.name=='Dogs'){
-                            print('------*********');
-                            for(int i =0;i<widget.category.sCat.length;i++){
-                              print('&&&&&&&&&');
-                              print(widget.category.sCat[i]['sCatName']);
-                              if(widget.category.sCat[i]['sCatName']=='Dog House'){
-                                print('========');
-                                var navigationResult =
+                          if (widget.category.sCat[i]['sCatName'] ==
+                              'Dog House') {
+                            var navigationResult =
                                 await Navigator.of(context).push(
-                                  CupertinoPageRoute(
-                                    builder: (context) => SizeSelection(
-                                       title: 'DOGS',
-                                      category:widget.category,
-                                      productsNotifier: productsNotifier,
-                                      cartNotifier: cartNotifier,
-                                      cartProdID: cartProdID,
-                                    ),
-                                  ),
-                                );
-                                if (navigationResult == true) {
-                                  getCart(cartNotifier);
-                                }
-                              }
-                            }
-                          }
-                          Iterable<ProdProducts> allProducts =
-                              productsNotifier.productsList;
-                          Iterable<ProdProducts> categorySpecificProducts;
-
-                          categorySpecificProducts = allProducts.where((e) =>
-                              e.subCategory ==
-                              widget.category.sCat[i]['sCatName']);
-
-                          for (var v in allProducts) {
-                            print(v.pet);
-                          }
-                          var _prods = categorySpecificProducts.toList();
-
-                          var navigationResult =
-                              await Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) => SeeAllInCategory(
-                                // title: widget.subCategory['sCatName'],
-                                products: _prods,
-                                productsNotifier: productsNotifier,
-                                cartNotifier: cartNotifier,
-                                cartProdID: cartProdID,
+                              CupertinoPageRoute(
+                                builder: (context) => SizeSelection(
+                                  title: 'DOGS',
+                                  category: widget.category,
+                                  subCategory: widget.category.sCat[i]
+                                      ['sCatName'],
+                                  productsNotifier: productsNotifier,
+                                  cartNotifier: cartNotifier,
+                                  cartProdID: cartProdID,
+                                ),
                               ),
-                            ),
-                          );
-                          if (navigationResult == true) {
-                            getCart(cartNotifier);
+                            );
+                            if (navigationResult == true) {
+                              getCart(cartNotifier);
+                            }
+                          } else {
+                            Iterable<ProdProducts> allProducts =
+                                productsNotifier.productsList;
+                            Iterable<ProdProducts> categorySpecificProducts;
+
+                            categorySpecificProducts = allProducts.where((e) =>
+                                e.subCategory ==
+                                widget.category.sCat[i]['sCatName']);
+
+                            for (var v in allProducts) {
+                              print(v.pet);
+                            }
+                            var _prods = categorySpecificProducts.toList();
+
+                            var navigationResult =
+                                await Navigator.of(context).push(
+                              CupertinoPageRoute(
+                                builder: (context) => SeeAllInCategory(
+                                  // title: widget.subCategory['sCatName'],
+                                  products: _prods,
+                                  productsNotifier: productsNotifier,
+                                  cartNotifier: cartNotifier,
+                                  cartProdID: cartProdID,
+                                ),
+                              ),
+                            );
+                            if (navigationResult == true) {
+                              getCart(cartNotifier);
+                            }
                           }
                         },
                         child: Container(

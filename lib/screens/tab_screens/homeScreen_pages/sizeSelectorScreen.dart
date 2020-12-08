@@ -180,8 +180,7 @@ class _SizeSelectionState extends State<SizeSelection> {
                           mainAxisSpacing: 15.0,
                           crossAxisSpacing: 15.0,
                           children: [
-
-    GestureDetector(
+                            GestureDetector(
                               onTap: () async {
 //                                Iterable<ProdProducts> allProducts =
 //                                    productsNotifier.productsList;
@@ -215,10 +214,8 @@ class _SizeSelectionState extends State<SizeSelection> {
                                     productsNotifier.productsList;
                                 Iterable<ProdProducts> categorySpecificProducts;
 
-//                                categorySpecificProducts = allProducts.where((e) =>
-//
-//                                e.subCategory ==
-//                                    widget.category.sCat[i]['sCatName']);
+                                categorySpecificProducts = allProducts.where(
+                                    (e) => e.subCategory == widget.subCategory);
 
                                 for (var v in allProducts) {
                                   print(v.pet);
@@ -226,7 +223,7 @@ class _SizeSelectionState extends State<SizeSelection> {
                                 var _prods = categorySpecificProducts.toList();
 
                                 var navigationResult =
-                                await Navigator.of(context).push(
+                                    await Navigator.of(context).push(
                                   CupertinoPageRoute(
                                     builder: (context) => SeeAllInCategory(
                                       // title: widget.subCategory['sCatName'],

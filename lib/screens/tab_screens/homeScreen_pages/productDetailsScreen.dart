@@ -362,8 +362,6 @@ class _ProductDetailsState extends State<ProductDetails> {
                         Container(
                           height: 250,
                           color: MColors.primaryWhite,
-                          // padding:
-                          //     const EdgeInsets.fromLTRB(20.0, 70.0, 20.0, 10.0),
                           child: prod == null
                               ? Center(child: CircularProgressIndicator())
                               : Row(
@@ -1160,9 +1158,20 @@ class _ProductDetailsState extends State<ProductDetails> {
                                                 ),
                                                 child: StarDisplay(value: 4),
                                               ),
-                                              InkWell(onTap:(){
-                                                Navigator.push(context,MaterialPageRoute(builder:(context)=>ReviewRating(widget.prodDetails.name)));
-                                              },child: Text('See all Reviews',style:TextStyle(color:Colors.blue,fontSize:14))),
+                                              InkWell(
+                                                  onTap: () {
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                ReviewRating(widget
+                                                                    .prodDetails
+                                                                    .name)));
+                                                  },
+                                                  child: Text('See all Reviews',
+                                                      style: TextStyle(
+                                                          color: Colors.blue,
+                                                          fontSize: 14))),
                                               Container(
                                                 decoration: BoxDecoration(
                                                     borderRadius:
@@ -1184,12 +1193,30 @@ class _ProductDetailsState extends State<ProductDetails> {
                                               ),
                                             ],
                                           )
-                                        : IconTheme(
-                                            data: IconThemeData(
-                                              color: Colors.amberAccent,
-                                              size: 18,
-                                            ),
-                                            child: StarDisplay(value: 4),
+                                        : Column(
+                                            children: [
+                                              IconTheme(
+                                                data: IconThemeData(
+                                                  color: Colors.amberAccent,
+                                                  size: 18,
+                                                ),
+                                                child: StarDisplay(value: 4),
+                                              ),
+                                              InkWell(
+                                                  onTap: () {
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                ReviewRating(widget
+                                                                    .prodDetails
+                                                                    .name)));
+                                                  },
+                                                  child: Text('See all Reviews',
+                                                      style: TextStyle(
+                                                          color: Colors.blue,
+                                                          fontSize: 14))),
+                                            ],
                                           ),
                                   ),
                                 ),
