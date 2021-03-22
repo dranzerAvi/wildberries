@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:mrpet/model/data/cart.dart';
 import 'package:mrpet/model/data/wishlist.dart';
 
 class WishlistNotifier with ChangeNotifier {
