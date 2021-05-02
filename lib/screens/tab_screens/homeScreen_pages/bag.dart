@@ -178,7 +178,7 @@ class _BagScreenState extends State<BagScreen> {
                     ),
                     SizedBox(height: 5.0),
                     Text(
-                      "\$$total",
+                      "AED $total",
                       style: boldFont(MColors.textGrey, 22.0),
                     ),
                   ],
@@ -270,7 +270,7 @@ class _BagScreenState extends State<BagScreen> {
                                         child: Row(
                                           children: <Widget>[
                                             Text(
-                                              "\$${cartItem.price}",
+                                              "AED ${cartItem.totalPrice}",
                                               style: boldFont(
                                                   MColors.secondaryColor, 22.0),
                                               textAlign: TextAlign.left,
@@ -416,7 +416,7 @@ class _BagScreenState extends State<BagScreen> {
           () {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => AddressScreen(cartList),
+                builder: (context) => AddressScreen(cartList,''),
               ),
             );
           },

@@ -23,6 +23,8 @@ class ProdProducts {
   int discount;
   List<dynamic> nameSearch;
   List<dynamic> catSearch;
+  List<dynamic> variants;
+  String color;
 
   ProdProducts.fromMap(Map<String, dynamic> data) {
     productImage = data["productImage"];
@@ -49,6 +51,8 @@ class ProdProducts {
     nameSearch = data["nameSearch"];
     catSearch = data["categorySearch"];
     discount = data["discount"];
+    variants=data['variants'];
+    color='';
   }
 
   Map<String, dynamic> toMap() {
@@ -76,7 +80,9 @@ class ProdProducts {
       'quantity': quantity,
       'nameSearch': nameSearch,
       'categorySearch': catSearch,
-      'discount': discount
+      'discount': discount,
+      'variants':variants,
+      'color':color,
     };
   }
 }

@@ -24,6 +24,7 @@ import 'package:mrpet/widgets/starRatings.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mrpet/model/data/variants.dart';
 
 class ProductDetailsProv extends StatelessWidget {
   final ProdProducts prodDetails;
@@ -62,11 +63,15 @@ class _ProductDetailsState extends State<ProductDetails> {
   String urlUniv, url2, url3;
   String chosenColor;
   String chosenSize;
-
+ String chosendrop;
+ List<String>colors=[];
+ double price;
   @override
   void initState() {
-    chosenColor = 'White';
-    chosenSize = 'S';
+    check();
+    getvariants();
+
+
     urlUniv = prodDetails.productImage;
     url2 = 'https://homepages.cae.wisc.edu/~ece533/images/airplane.png';
     url3 = 'https://homepages.cae.wisc.edu/~ece533/images/arctichare.png';
@@ -79,8 +84,53 @@ class _ProductDetailsState extends State<ProductDetails> {
 
     super.initState();
   }
+  int j=0;bool drop;List<String>dropdown=[];
+void check(){
+  print('Length:${prodDetails.variants.length}');
+    if(prodDetails.variants.length>1){
+      for(int i=0;i<prodDetails.variants.length;i++) {
+        if (prodDetails.variants[i]['withAC'] == 'N/A') {
+          j++;
+        }
+      }
+      if(j==prodDetails.variants.length){
+        drop=false;
 
-  void launchWhatsApp({
+      }
+      else{
+        drop=true;
+      }
+    }
+}
+void getvariants(){
+  setState(() {
+    alldata.clear();
+  });
+
+  if(prodDetails.variants.length>1){
+    for(int i=0;i<prodDetails.variants.length;i++){
+      if(prodDetails.variants[i]['withAC']=='true'){
+        alldata.add(Variants(List.from(prodDetails.variants[i]['color']),prodDetails.variants[i]['size'],prodDetails.variants[i]['price']));
+
+      }
+      print(alldata.length);
+    }
+    if(alldata.length==0){
+      dropdown.add('Without AC');
+      for(int i=0;i<prodDetails.variants.length;i++){
+        alldata.add(Variants(List.from(prodDetails.variants[i]['color']),prodDetails.variants[i]['size'],prodDetails.variants[i]['price']));
+      }
+    }
+    else{
+      dropdown.add('With AC');
+      dropdown.add('Without AC');
+    }
+    colors=List.from(alldata[0].colors);
+    chosenSize=alldata[0].size;
+    price=double.parse(alldata[0].price);
+  }
+
+}  void launchWhatsApp({
     @required String phone,
     @required String message,
   }) async {
@@ -98,7 +148,7 @@ class _ProductDetailsState extends State<ProductDetails> {
       throw 'Could not launch ${url()}';
     }
   }
-
+List<Variants>alldata=[];
   @override
   Widget build(BuildContext context) {
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
@@ -700,48 +750,89 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   ),
                                 ]),
                               ),
-                              DropDown<String>(
-                                initialValue: 'With AC',
-                                items: <String>['With AC', 'Without AC'],
+
+                              (prodDetails.variants.length>1&&drop)?DropDown<String>(
+                                initialValue: dropdown[0],
+                                items: dropdown,
                                 hint: Text("Select option"),
-                                onChanged: (value) async {},
-                              ),
+                                onChanged: (value) async {
+                                  setState(() {
+                                    alldata.clear();
+                                    colors.clear();
+                                    chosenSize='';
+                                    chosendrop=value;
+                                  });
+
+                                  for(int i=0;i<prodDetails.variants.length;i++){
+                                    if(value=='With AC'){
+
+                                      if(prodDetails.variants[i]['withAC']=='true'){
+                                        setState(() {
+                                          alldata.add(Variants(List.from(prodDetails.variants[i]['color']),prodDetails.variants[i]['size'],prodDetails.variants[i]['price']));
+                                        });
+
+
+                                      }
+                                      print('here:${alldata.length}');
+
+                                    }
+                                    else{
+
+                                      if(prodDetails.variants[i]['withAC']=='false'){
+                                        setState(() {
+                                          alldata.add(Variants(List.from(prodDetails.variants[i]['color']),prodDetails.variants[i]['size'],prodDetails.variants[i]['price']));
+                                        });
+
+                                      }
+                                    }
+                                  }
+                                  print('out:${alldata.length}');
+                                  setState(() {
+                                    chosenSize=alldata[0].size;
+                                    colors=List.from(alldata[0].colors);
+                                    price=double.parse(alldata[0].price);
+                                  });
+
+                                  print('Colors:${colors.length}');
+                                },
+                              ):Container(),
                             ],
                           ),
                         ),
-                        prodDetails.foodType == 'Dry'
+                        prodDetails.foodType == 'Dry'&&prodDetails.variants.length>1
                             ? Container(
                                 child: Column(
                                   children: [
                                     Row(
                                       children: [
                                         Text(
-                                          'Color: ',
+                                          'Color ',
                                           style:
                                               boldFont(MColors.textDark, 16.0),
                                         ),
-                                        Text(
-                                          chosenColor,
-                                          style: normalFont(
-                                              MColors.textGrey, 14.0),
-                                        ),
+//                                        Text(
+//                                          colors[0],
+//                                          style: normalFont(
+//                                              MColors.textGrey, 14.0),
+//                                        ),
                                       ],
                                     ),
-                                    Container(
+                                   colors.length>0? Container(
                                       height: 70,
                                       child: Padding(
                                         padding: const EdgeInsets.all(5.0),
-                                        child: ListView(
+                                        child: ListView.builder(
+                                          itemCount: colors.length,
                                           scrollDirection: Axis.horizontal,
-                                          children: [
-                                            Padding(
+                                          itemBuilder: (context,index){
+                                            return  Padding(
                                               padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 4.0),
                                               child: InkWell(
                                                 onTap: () {
                                                   setState(() {
-                                                    chosenColor = 'White';
+                                                    chosenColor = colors[index];
                                                   });
                                                 },
                                                 child: Container(
@@ -749,147 +840,179 @@ class _ProductDetailsState extends State<ProductDetails> {
                                                   width: 60,
                                                   decoration: BoxDecoration(
                                                       borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  45)),
-                                                      color: Colors.white,
+                                                      BorderRadius.all(
+                                                          Radius.circular(
+                                                              45)),
+                                                      color: Color(int.parse(colors[index],radix: 16)).withOpacity(1.0),
                                                       border: Border.all(
                                                           width: 2,
                                                           color: chosenColor ==
-                                                                  'White'
+                                                              colors[index]
                                                               ? MColors
-                                                                  .secondaryColor
+                                                              .secondaryColor
                                                               : MColors
-                                                                  .primaryWhiteSmoke)),
+                                                              .primaryWhiteSmoke)),
                                                 ),
                                               ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenColor = 'Red';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius
-                                                              .all(
-                                                                  Radius
-                                                                      .circular(
-                                                                          45)),
-                                                      color: Colors.red,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenColor ==
-                                                                  'Red'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenColor = 'Blue';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  45)),
-                                                      color: Colors.blue,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenColor ==
-                                                                  'Blue'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenColor = 'Grey';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  45)),
-                                                      color: Colors.grey,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenColor ==
-                                                                  'Grey'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenColor = 'Green';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  45)),
-                                                      color: Colors.green,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenColor ==
-                                                                  'Green'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            )
-                                          ],
+                                            );
+                                          },
+//                                          children: [
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenColor = 'White';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  45)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenColor ==
+//                                                                  'White'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenColor = 'Red';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius
+//                                                              .all(
+//                                                                  Radius
+//                                                                      .circular(
+//                                                                          45)),
+//                                                      color: Colors.red,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenColor ==
+//                                                                  'Red'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenColor = 'Blue';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  45)),
+//                                                      color: Colors.blue,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenColor ==
+//                                                                  'Blue'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenColor = 'Grey';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  45)),
+//                                                      color: Colors.grey,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenColor ==
+//                                                                  'Grey'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenColor = 'Green';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  45)),
+//                                                      color: Colors.green,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenColor ==
+//                                                                  'Green'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            )
+
                                         ),
                                       ),
-                                    ),
+                                    ):Container(),
                                     SizedBox(
                                       height: 10,
                                     ),
@@ -907,21 +1030,24 @@ class _ProductDetailsState extends State<ProductDetails> {
                                         ),
                                       ],
                                     ),
-                                    Container(
+                                    (alldata.length>0)?Container(
                                       height: 70,
                                       child: Padding(
                                         padding: const EdgeInsets.all(5.0),
-                                        child: ListView(
+                                        child: ListView.builder(
+                                          itemCount: alldata.length,
                                           scrollDirection: Axis.horizontal,
-                                          children: [
-                                            Padding(
+                                          itemBuilder: (context,index){
+                                            return Padding(
                                               padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 4.0),
                                               child: InkWell(
                                                 onTap: () {
                                                   setState(() {
-                                                    chosenSize = 'XS';
+                                                    chosenSize = alldata[index].size;
+                                                    colors=List.from(alldata[index].colors);
+                                                    price=double.parse(alldata[index].price);
                                                   });
                                                 },
                                                 child: Container(
@@ -929,211 +1055,249 @@ class _ProductDetailsState extends State<ProductDetails> {
                                                   width: 60,
                                                   alignment: Alignment.center,
                                                   child: Text(
-                                                    'XS',
+                                                    alldata[index].size,
                                                     style: boldFont(
                                                         MColors.textDark, 20.0),
                                                   ),
                                                   decoration: BoxDecoration(
                                                       borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  5)),
+                                                      BorderRadius.all(
+                                                          Radius.circular(
+                                                              5)),
                                                       color: Colors.white,
                                                       border: Border.all(
                                                           width: 2,
                                                           color: chosenSize ==
-                                                                  'XS'
+                                                              alldata[index].size
                                                               ? MColors
-                                                                  .secondaryColor
+                                                              .secondaryColor
                                                               : MColors
-                                                                  .primaryWhiteSmoke)),
+                                                              .primaryWhiteSmoke)),
                                                 ),
                                               ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenSize = 'S';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                    'S',
-                                                    style: boldFont(
-                                                        MColors.textDark, 20.0),
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  5)),
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenSize ==
-                                                                  'S'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenSize = 'M';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                    'M',
-                                                    style: boldFont(
-                                                        MColors.textDark, 20.0),
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  5)),
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenSize ==
-                                                                  'M'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenSize = 'L';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                    'L',
-                                                    style: boldFont(
-                                                        MColors.textDark, 20.0),
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  5)),
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenSize ==
-                                                                  'L'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenSize = 'XL';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                    'XL',
-                                                    style: boldFont(
-                                                        MColors.textDark, 20.0),
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  5)),
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenSize ==
-                                                                  'XL'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    chosenSize = 'XXL';
-                                                  });
-                                                },
-                                                child: Container(
-                                                  height: 70,
-                                                  width: 60,
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                    'XXL',
-                                                    style: boldFont(
-                                                        MColors.textDark, 20.0),
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  5)),
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          width: 2,
-                                                          color: chosenSize ==
-                                                                  'XXL'
-                                                              ? MColors
-                                                                  .secondaryColor
-                                                              : MColors
-                                                                  .primaryWhiteSmoke)),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                            );
+                                          },
+//                                          children: [
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenSize = 'XS';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  alignment: Alignment.center,
+//                                                  child: Text(
+//                                                    'XS',
+//                                                    style: boldFont(
+//                                                        MColors.textDark, 20.0),
+//                                                  ),
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  5)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenSize ==
+//                                                                  'XS'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenSize = 'S';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  alignment: Alignment.center,
+//                                                  child: Text(
+//                                                    'S',
+//                                                    style: boldFont(
+//                                                        MColors.textDark, 20.0),
+//                                                  ),
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  5)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenSize ==
+//                                                                  'S'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenSize = 'M';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  alignment: Alignment.center,
+//                                                  child: Text(
+//                                                    'M',
+//                                                    style: boldFont(
+//                                                        MColors.textDark, 20.0),
+//                                                  ),
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  5)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenSize ==
+//                                                                  'M'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenSize = 'L';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  alignment: Alignment.center,
+//                                                  child: Text(
+//                                                    'L',
+//                                                    style: boldFont(
+//                                                        MColors.textDark, 20.0),
+//                                                  ),
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  5)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenSize ==
+//                                                                  'L'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenSize = 'XL';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  alignment: Alignment.center,
+//                                                  child: Text(
+//                                                    'XL',
+//                                                    style: boldFont(
+//                                                        MColors.textDark, 20.0),
+//                                                  ),
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  5)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenSize ==
+//                                                                  'XL'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                            Padding(
+//                                              padding:
+//                                                  const EdgeInsets.symmetric(
+//                                                      horizontal: 4.0),
+//                                              child: InkWell(
+//                                                onTap: () {
+//                                                  setState(() {
+//                                                    chosenSize = 'XXL';
+//                                                  });
+//                                                },
+//                                                child: Container(
+//                                                  height: 70,
+//                                                  width: 60,
+//                                                  alignment: Alignment.center,
+//                                                  child: Text(
+//                                                    'XXL',
+//                                                    style: boldFont(
+//                                                        MColors.textDark, 20.0),
+//                                                  ),
+//                                                  decoration: BoxDecoration(
+//                                                      borderRadius:
+//                                                          BorderRadius.all(
+//                                                              Radius.circular(
+//                                                                  5)),
+//                                                      color: Colors.white,
+//                                                      border: Border.all(
+//                                                          width: 2,
+//                                                          color: chosenSize ==
+//                                                                  'XXL'
+//                                                              ? MColors
+//                                                                  .secondaryColor
+//                                                              : MColors
+//                                                                  .primaryWhiteSmoke)),
+//                                                ),
+//                                              ),
+//                                            ),
+//                                          ],
                                         ),
                                       ),
-                                    )
+                                    ):Container()
                                   ],
                                 ),
                               )
@@ -1227,27 +1391,41 @@ class _ProductDetailsState extends State<ProductDetails> {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       prodDetails.discount == null
-                                          ? Text(
-                                              "AED ${prodDetails.price}",
+                                          ? (price!=null)?Text(
+                                              "AED ${price}",
                                               style: boldFont(
                                                   MColors.secondaryColor, 17.0),
-                                            )
-                                          : Text(
-                                              "AED ${prodDetails.price}",
+                                            ):Text(
+                                      "AED ${prodDetails.totalPrice}",
+                                      style: boldFont(
+                                          MColors.secondaryColor, 17.0))
+                                          : (price!=null)?Text(
+                                              "AED ${price}",
                                               style: GoogleFonts.montserrat(
                                                   color: MColors.secondaryColor,
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w600,
                                                   decoration: TextDecoration
                                                       .lineThrough),
-                                            ),
+                                            ):Text(
+                                        "AED ${prodDetails.totalPrice}",
+                                        style: GoogleFonts.montserrat(
+                                            color: MColors.secondaryColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            decoration: TextDecoration
+                                                .lineThrough),
+                                      ),
                                       prodDetails.discount == null
                                           ? Container()
-                                          : Text(
-                                              "AED ${(prodDetails.price * (100 - prodDetails.discount) / 100).toStringAsPrecision(4)}",
+                                          : (price!=null)?Text(
+                                              "AED ${(price * (100 - prodDetails.discount) / 100).toStringAsPrecision(4)}",
                                               style: boldFont(
                                                   MColors.secondaryColor, 17.0),
-                                            ),
+                                            ):Text(
+                          "AED ${(prodDetails.totalPrice * (100 - prodDetails.discount) / 100).toStringAsPrecision(4)}",
+                          style: boldFont(
+                          MColors.secondaryColor, 17.0)),
                                     ],
                                   ),
                                 )
@@ -1551,7 +1729,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 child: Column(
                                   children: <Widget>[
                                     Spacer(),
-                                    Container(
+                                    (price!=null)?Container(
                                       child: Text(
                                         "AED\n${(prods[0] == prodDetails ? prods[1].price : prods[0].price + prodDetails.price)}",
                                         style: GoogleFonts.montserrat(
@@ -1562,14 +1740,35 @@ class _ProductDetailsState extends State<ProductDetails> {
                                                 TextDecoration.lineThrough),
                                         textAlign: TextAlign.center,
                                       ),
+                                    ):Container(
+                                      child: Text(
+                                        "AED\n${(prods[0] == prodDetails ? prods[1].totalPrice : prods[0].price + prodDetails.totalPrice)}",
+                                        style: GoogleFonts.montserrat(
+                                            color: MColors.secondaryColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            decoration:
+                                            TextDecoration.lineThrough),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
                                     Icon(
                                       Icons.arrow_downward_rounded,
                                       color: MColors.secondaryColor,
                                     ),
-                                    Container(
+                                    (price!=null)?Container(
                                       child: Text(
                                         "AED\n${(prods[0] == prodDetails ? prods[1].price : prods[0].price + prodDetails.price) * 0.9}",
+                                        style: GoogleFonts.montserrat(
+                                          color: MColors.secondaryColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ):Container(
+                                      child: Text(
+                                        "AED\n${(prods[0] == prodDetails ? prods[1].totalPrice : prods[0].price + prodDetails.totalPrice) * 0.9}",
                                         style: GoogleFonts.montserrat(
                                           color: MColors.secondaryColor,
                                           fontSize: 15,
@@ -1611,7 +1810,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         Container(
                           child: ExpansionTile(
                             title: Text(
-                              "More",
+                              "Description",
                               style: boldFont(MColors.textDark, 16.0),
                             ),
                             children: <Widget>[
@@ -1763,7 +1962,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         Container(
                           child: ExpansionTile(
                             title: Text(
-                              "Directions",
+                              "Specification",
                               style: boldFont(MColors.textDark, 16.0),
                             ),
                             children: <Widget>[
@@ -1904,9 +2103,21 @@ class _ProductDetailsState extends State<ProductDetails> {
           _scaffoldKey,
         );
       } else {
-        prodDetails.quantity = quantity;
-        prodDetails.totalPrice = prodDetails.price * prodDetails.quantity;
+        setState(() {
+          cartNotifier.cartList.map((e){
+            setState(() {
+              e.size=chosenSize;
+              e.color=chosenColor;
+            });
+          });
+          prodDetails.quantity = quantity;
+          (price!=null)?prodDetails.totalPrice = price * prodDetails.quantity:prodDetails.totalPrice = prodDetails.totalPrice * prodDetails.quantity;
+          prodDetails.size=chosenSize;
+          prodDetails.color=chosenColor;
 
+        });
+
+print('totalprice:${prodDetails.totalPrice}');
         addProductToCart(prodDetails, _scaffoldKey);
 
         setState(() {
@@ -1936,8 +2147,19 @@ class _ProductDetailsState extends State<ProductDetails> {
           _scaffoldKey,
         );
       } else {
-        prodDetails.quantity = quantity;
-        prodDetails.totalPrice = prodDetails.price * prodDetails.quantity;
+        wishlistNotifier.wishlistList.map((e2) {
+          setState(() {
+            e2.size = chosenSize;
+            e2.color = chosenColor;
+          });
+        });
+        setState(() {
+          prodDetails.quantity = quantity;
+          (price!=null)?prodDetails.totalPrice = price * prodDetails.quantity:prodDetails.totalPrice = prodDetails.totalPrice * prodDetails.quantity;
+          prodDetails.size=chosenSize;
+          prodDetails.color=chosenColor;
+
+        });
 
         addProductToWishlist(prodDetails, _scaffoldKey);
         showSimpleSnack(

@@ -136,73 +136,73 @@ class _ReviewState extends State<Review> {
           ),
           child: ListView(
             children: <Widget>[
-              Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: 70,
-                child: Row(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.84,
-                      // height: 60,
-                      child: InkWell(
-                        onTap: () {},
-                        child: TextFormField(
-                          controller: controller,
-                          enabled: false,
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontFamily: 'Poppins'),
-                          decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.grey, width: 0.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.grey, width: 0.0),
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey,
-                                width: 0.0,
-                                style: BorderStyle.none,
-                              ),
-                            ),
-                            prefixIcon: InkWell(
-                              onTap: () {},
-                              child: Icon(Icons.search),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 0,
-                              vertical: 22,
-                            ),
-                            hintText: 'Find Products',
-                            hintStyle: TextStyle(color: Colors.grey),
-                            filled: false,
-                          ),
-                          obscureText: false,
-                          onChanged: (value) => _onChange(value),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: InkWell(
-                        onTap: () {
-                          controller.clear();
-                          changeState(
-                            showSuffixIcon: false,
-                            isCardShowing: false,
-                            hasRestaurantBeenAdded: false,
-                          );
-                        },
-                        child: Icon(Icons.sort),
-                      ),
-                    )
-                  ],
-                ),
-              ),
+//              Container(
+//                width: MediaQuery.of(context).size.width * 0.8,
+//                height: 70,
+//                child: Row(
+//                  children: [
+//                    Container(
+//                      width: MediaQuery.of(context).size.width * 0.84,
+//                      // height: 60,
+//                      child: InkWell(
+//                        onTap: () {},
+//                        child: TextFormField(
+//                          controller: controller,
+//                          enabled: false,
+//                          style: TextStyle(
+//                              color: Colors.black,
+//                              fontSize: 16,
+//                              fontFamily: 'Poppins'),
+//                          decoration: InputDecoration(
+//                            enabledBorder: OutlineInputBorder(
+//                              borderSide:
+//                                  BorderSide(color: Colors.grey, width: 0.0),
+//                            ),
+//                            focusedBorder: OutlineInputBorder(
+//                              borderSide:
+//                                  BorderSide(color: Colors.grey, width: 0.0),
+//                            ),
+//                            border: OutlineInputBorder(
+//                              borderRadius: BorderRadius.circular(12),
+//                              borderSide: BorderSide(
+//                                color: Colors.grey,
+//                                width: 0.0,
+//                                style: BorderStyle.none,
+//                              ),
+//                            ),
+//                            prefixIcon: InkWell(
+//                              onTap: () {},
+//                              child: Icon(Icons.search),
+//                            ),
+//                            contentPadding: EdgeInsets.symmetric(
+//                              horizontal: 0,
+//                              vertical: 22,
+//                            ),
+//                            hintText: 'Find Products',
+//                            hintStyle: TextStyle(color: Colors.grey),
+//                            filled: false,
+//                          ),
+//                          obscureText: false,
+//                          onChanged: (value) => _onChange(value),
+//                        ),
+//                      ),
+//                    ),
+//                    Center(
+//                      child: InkWell(
+//                        onTap: () {
+//                          controller.clear();
+//                          changeState(
+//                            showSuffixIcon: false,
+//                            isCardShowing: false,
+//                            hasRestaurantBeenAdded: false,
+//                          );
+//                        },
+//                        child: Icon(Icons.sort),
+//                      ),
+//                    )
+//                  ],
+//                ),
+//              ),
 
 //              isCardShowing ? SizedBox(height:30) : Container(),
 //              isCardShowing

@@ -15,14 +15,14 @@ import 'package:mrpet/widgets/root_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderPlaced extends StatefulWidget {
-  final List<UserDataAddress> addressList;
+  final String addressList;
   OrderPlaced(this.addressList);
   @override
   _OrderPlacedState createState() => _OrderPlacedState(addressList);
 }
 
 class _OrderPlacedState extends State<OrderPlaced> {
-  final List<UserDataAddress> addressList;
+  final String addressList;
   _OrderPlacedState(this.addressList);
   void launchWhatsApp({
     @required String phone,
@@ -169,9 +169,7 @@ class _OrderPlacedState extends State<OrderPlaced> {
                       textAlign: TextAlign.center,
                     ),
                     Text(
-                      addressList.first.addressNumber +
-                          ", " +
-                          addressList.first.addressLocation,
+                      addressList,
                       style: boldFont(MColors.textGrey, 16),
                       textAlign: TextAlign.center,
                     ),

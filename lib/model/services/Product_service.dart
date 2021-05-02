@@ -406,14 +406,12 @@ clearCartAfterPurchase() async {
 }
 
 //Adding users' product to cart
-addCartToOrders(cartList, orderID, addressList, date) async {
+addCartToOrders(cartList, orderID, address, date,orderType,time) async {
   final uEmail = await AuthService().getCurrentEmail();
   var orderDate = FieldValue.serverTimestamp();
 
   var orderStatus = "processing";
-  var shippingAddress = addressList.first.addressNumber +
-      ", " +
-      addressList.first.addressLocation;
+  var shippingAddress = address;
 
   await db
       .collection("userOrder")
@@ -427,7 +425,9 @@ addCartToOrders(cartList, orderID, addressList, date) async {
       'orderStatus': orderStatus,
       'shippingAddress': shippingAddress,
       'order': cartList.map((i) => i.toMap()).toList(),
-      'deliveryDate': date
+      'deliveryDate': date,
+      'deliveryTime':time,
+      'orderType':orderType
     },
   ).catchError((e) {
     print(e);
@@ -445,7 +445,9 @@ addCartToOrders(cartList, orderID, addressList, date) async {
       'orderDate': orderDate,
       'shippingAddress': shippingAddress,
       'order': cartList.map((i) => i.toMap()).toList(),
-      'deliveryDate': date
+      'deliveryDate': date,
+      'deliveryTime':time,
+      'orderType':orderType
     },
   ).catchError((e) {
     print(e);

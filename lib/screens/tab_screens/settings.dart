@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -22,6 +22,7 @@ import 'package:mrpet/widgets/provider.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mrpet/screens/address/myaddresses.dart';
 
 import 'checkout_screens/enterAddress.dart';
 
@@ -36,9 +37,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Future profileFuture;
   Future addressFuture;
-
+User user;
   @override
   void initState() {
+    user =  FirebaseAuth.instance.currentUser;
     checkInternetConnectivity().then((value) => {
           value == true
               ? () {
@@ -180,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         () async {
           var navigationResult = await Navigator.of(context).push(
             CupertinoPageRoute(
-              builder: (_) => Address(_address, addressList),
+              builder: (_) => MyAddresses(user.email),
             ),
           );
           if (navigationResult == true) {

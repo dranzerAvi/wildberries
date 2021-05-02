@@ -28,6 +28,7 @@ import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class CustomDrawer extends StatefulWidget {
   @override
@@ -36,6 +37,7 @@ class CustomDrawer extends StatefulWidget {
 
 class _CustomDrawerState extends State<CustomDrawer> {
   List categories = [];
+  final GoogleSignIn googleSignIn = GoogleSignIn();
   getCategories() {
     Firestore.instance.collection('Categories').getDocuments().then((value) {
       for (var v in value.documents) {
@@ -531,6 +533,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 onPressed: () async {
                   try {
                     AuthService auth = MyProvider.of(context).auth;
+                    googleSignIn.signOut();
                     auth.signOut();
                     Navigator.of(context).pop();
                     Navigator.of(context).pushReplacement(

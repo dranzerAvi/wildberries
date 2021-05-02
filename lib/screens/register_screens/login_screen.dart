@@ -2,10 +2,15 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info/device_info.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:getflutter/components/loader/gf_loader.dart';
+import 'package:getflutter/types/gf_loader_type.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mrpet/main.dart';
 import 'package:mrpet/model/data/cart.dart';
+import 'package:mrpet/model/services/user_management.dart';
 import 'package:mrpet/screens/register_screens/registration_screen.dart';
 import 'package:mrpet/screens/register_screens/reset_screen.dart';
 import 'package:mrpet/utils/colors.dart';
@@ -13,6 +18,7 @@ import 'package:mrpet/utils/textFieldFormaters.dart';
 import 'package:mrpet/widgets/provider.dart';
 import 'package:mrpet/widgets/allWidgets.dart';
 import 'package:mrpet/model/notifiers/cart_notifier.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key key}) : super(key: key);
@@ -201,6 +207,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             _isButtonDisabled ? null : _submit,
                           ),
                     SizedBox(height: 20.0),
+                    _signInButton(),
+                    SizedBox(height: 20.0),
                     GestureDetector(
                       onTap: () {
                         Navigator.of(context).push(
@@ -222,6 +230,73 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  int j = 0;
+  int length = 0;
+  Future<String> signInWithGoogle() async {
+    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+    final GoogleSignInAuthentication googleSignInAuthentication =
+    await googleSignInAccount.authentication;
+    final ProgressDialog pr = await ProgressDialog(context);
+    pr.style(
+        message: 'Logging in..',
+        backgroundColor: Colors.white,
+        progressWidget: GFLoader(
+          type: GFLoaderType.ios,
+        ),
+        elevation: 10.0,
+        insetAnimCurve: Curves.easeInOut,
+        progress: 0.0,
+        maxProgress: 100.0,
+        progressTextStyle: TextStyle(
+            color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+        messageTextStyle: TextStyle(
+            color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
+    await pr.show();
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleSignInAuthentication.accessToken,
+      idToken: googleSignInAuthentication.idToken,
+    );
+
+    final authResult = await _auth.signInWithCredential(credential);
+    final User user = authResult.user;
+
+    if (user != null) {
+      assert(!user.isAnonymous);
+      assert(await user.getIdToken() != null);
+
+      final User currentUser = await _auth.currentUser;
+      assert(user.uid == currentUser.uid);
+
+      print('signInWithGoogle succeeded: $user');
+      FirebaseFirestore.instance.collection('userData').snapshots().listen((element) {
+        length = element.docs.length;
+        print(length);
+        for (int i = 0; i < element.docs.length; i++) {
+          if (element.docs[i].id != googleSignIn.currentUser.email) {
+            print(element.docs[i].id);
+            j++;
+            print(j.toString());
+          }
+        }
+        if (j == length) {
+         storeNewUser(googleSignIn.currentUser.displayName, '', googleSignIn.currentUser.email);
+        }
+      });
+
+      await pr.hide();
+      return '$user';
+    }
+
+    return null;
+  }
+
+  Future<void> signOutGoogle() async {
+    await googleSignIn.signOut();
+
+    print("User Signed Out");
   }
 
   void _toggle() {
@@ -317,6 +392,62 @@ Cartdetails(_cartNotifier);
       print("ERRORR ==>");
       print(e);
     }
+  }
+  Widget _signInButton() {
+    return Container(
+      width: 400,
+      child: OutlineButton(
+        splashColor: Colors.grey,
+        onPressed: () {
+          signInWithGoogle().then((result) {
+            if (result != null) {
+              Cartdetails(_cartNotifier);
+
+              print("Signed in with $googleSignIn");
+
+              Navigator.of(context).pushReplacement(
+                CupertinoPageRoute(
+                  builder: (_) => MyApp(),
+                ),
+              );
+//              _getToken();
+//              Navigator.of(context).push(
+//                MaterialPageRoute(
+//                  builder: (context) {
+//                    return RootScreen();
+//                  },
+//                ),
+//              );
+            }
+          });
+        },
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        highlightElevation: 0,
+        borderSide: BorderSide(color: Colors.grey),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Image(
+                  image: AssetImage("assets/images/google.png"), height: 30.0),
+              SizedBox(width:10),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                  'Sign in with Google',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget showAlert() {

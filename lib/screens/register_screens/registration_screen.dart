@@ -223,7 +223,7 @@ final db=FirebaseFirestore.instance;
                               primaryTextField(
                                 null,
                                 null,
-                                "e.g +971 4 4475 70",
+                                "",
                                 (val) => _phone = val,
                                 _isEnabled,
                                 PhoneNumberValiditor.validate,
@@ -231,7 +231,7 @@ final db=FirebaseFirestore.instance;
                                 _autoValidate,
                                 true,
                                 TextInputType.numberWithOptions(),
-                                [maskTextInputFormatter],
+                                [],
                                 null,
                                 0.50,
                               ),
@@ -403,10 +403,10 @@ Future<dynamic>Cartdetails(CartNotifier cartNotifier)async{
         String uid = await auth.createUserWithEmailAndPassword(
           _email,
           _password,
-          _phone,
+         '+971${_phone}',
         );
 
-        storeNewUser(_name, _phone, _email);
+        storeNewUser(_name, '+971${_phone}' , _email);
 
 Cartdetails(cartNotifier);
         print("Signed Up with new $uid");

@@ -53,7 +53,7 @@ class PasswordValiditor {
 class PhoneNumberValiditor {
   static String validate(String val) {
     print(val);
-    if (val.length < 15) {
+    if (val.length < 1) {
       return "Enter a valid phone number";
     } else {
       return null;
