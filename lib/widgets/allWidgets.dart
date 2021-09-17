@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,12 +10,8 @@ import 'package:mrpet/model/notifiers/products_notifier.dart';
 import 'package:mrpet/model/services/Product_service.dart';
 import 'package:mrpet/screens/tab_screens/home.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/sizeSelectorScreen.dart';
 import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:wc_flutter_share/wc_flutter_share.dart';
 
 //SCAFFOLDS-----------------------------------
@@ -89,6 +84,14 @@ TextStyle boldFont(Color color, double size) {
     fontSize: size,
     fontWeight: FontWeight.w600,
   );
+}
+
+TextStyle boldFontStriked(Color color, double size) {
+  return GoogleFonts.montserrat(
+      color: color,
+      fontSize: size,
+      fontWeight: FontWeight.w400,
+      decoration: TextDecoration.lineThrough);
 }
 
 TextStyle normalFont(
@@ -802,12 +805,12 @@ Widget blockWigdet(
                       Colors.amber,
                       scaffoldKey,
                     );
+                    Navigator.of(context).pop();
                   } else {
                     addProductToCart(_product, _scaffoldKey);
 
                     getCart(cartNotifier);
                   }
-                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -842,7 +845,7 @@ Widget blockWigdet(
       ),
       SizedBox(height: 5.0),
       Container(
-        height: 200,
+        height: 280,
         padding: EdgeInsets.symmetric(horizontal: 10.0),
         child: ListView.builder(
             physics: BouncingScrollPhysics(),
@@ -865,7 +868,7 @@ Widget blockWigdet(
                 },
                 child: Container(
                   margin: EdgeInsets.all(5.0),
-                  width: 110.0,
+                  width: 150.0,
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: MColors.primaryWhite,
@@ -889,7 +892,7 @@ Widget blockWigdet(
                             child: FadeInImage.assetNetwork(
                               image: product.productImage,
                               fit: BoxFit.fill,
-                              height: 90,
+                              height: 150,
                               placeholder: "assets/images/placeholder.jpg",
                               placeholderScale:
                                   MediaQuery.of(context).size.height / 2,
@@ -905,8 +908,8 @@ Widget blockWigdet(
                           child: Text(
                             product.name,
                             maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: normalFont(MColors.textGrey, 10.0),
+                            overflow: TextOverflow.clip,
+                            style: normalFont(MColors.textGrey, 15.0),
                           ),
                         ),
                       ),
@@ -915,28 +918,39 @@ Widget blockWigdet(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
-                            Container(
-                              child: Text(
-                                "AED\n${product.price}",
-                                style: boldFont(MColors.secondaryColor, 15.0),
-                              ),
+                            Column(
+                              children: [
+                                Container(
+                                  child: Text(
+                                    "₹ ${product.price}",
+                                    style: boldFont(MColors.textDark, 18.0),
+                                  ),
+                                ),
+                                Container(
+                                  child: Text(
+                                    "₹ ${product.price}",
+                                    style:
+                                        boldFontStriked(MColors.textGrey, 15.0),
+                                  ),
+                                ),
+                              ],
                             ),
                             Spacer(),
                             GestureDetector(
                               onTap: () => addToBagshowDialog(product,
                                   cartNotifier, cartProdID, _scaffoldKey),
                               child: Container(
-                                width: 25.0,
-                                height: 25.0,
-                                padding: const EdgeInsets.all(4.0),
+                                width: 45.0,
+                                height: 45.0,
+                                padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
-                                  color: MColors.dashPurple,
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  color: MColors.mainColor,
+                                  borderRadius: BorderRadius.circular(18.0),
                                 ),
                                 child: SvgPicture.asset(
                                   "assets/images/icons/basket.svg",
                                   height: 20.0,
-                                  color: MColors.textGrey,
+                                  color: MColors.primaryWhite,
                                 ),
                               ),
                             ),
@@ -986,7 +1000,7 @@ Widget blockWigdet2(
                 onPressed: seeMore,
                 child: Text(
                   "See more",
-                  style: boldFont(MColors.secondaryColor, 14.0),
+                  style: boldFont(MColors.mainColor, 14.0),
                 ),
               ),
             ),
@@ -995,87 +1009,73 @@ Widget blockWigdet2(
       ),
       SizedBox(height: 5.0),
       Container(
-        height: _itemHeight / 1.53,
-        padding: EdgeInsets.symmetric(horizontal: 10.0),
-        child: ListView.builder(
-            physics: BouncingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: prods.length,
-            itemBuilder: (context, i) {
-              var product = prods[i];
+        height: 480,
+        padding: EdgeInsets.only(left: 18.0),
+        child: GridView.builder(
+          physics: BouncingScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: prods.length,
+          itemBuilder: (context, i) {
+            var product = prods[i];
 
-              return Row(
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      var navigationResult = await Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => SeeSubCategories(
-                            title: product.name.toUpperCase(),
-                            category: product,
-                            productsNotifier: productsNotifier,
-                            cartNotifier: cartNotifier,
-                            cartProdID: cartProdID,
-                          ),
+            return Row(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    var navigationResult = await Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (context) => SeeSubCategories(
+                          title: product.name.toUpperCase(),
+                          category: product,
+                          productsNotifier: productsNotifier,
+                          cartNotifier: cartNotifier,
+                          cartProdID: cartProdID,
                         ),
-                      );
-                      if (navigationResult == true) {
-                        getCart(cartNotifier);
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: MColors.primaryWhite,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(10.0),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Color.fromRGBO(0, 0, 0, 0.03),
-                              offset: Offset(0, 10),
-                              blurRadius: 10,
-                              spreadRadius: 0),
-                        ],
                       ),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10.0),
-                              child: Hero(
-                                child: FadeInImage.assetNetwork(
-                                  image: product.productImage,
-                                  fit: BoxFit.fill,
-                                  height: _picHeight,
-                                  width: 150,
-                                  placeholder: "assets/images/placeholder.jpg",
-                                  placeholderScale:
-                                      MediaQuery.of(context).size.height / 2,
-                                ),
-                                tag: HomeScreen(),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Container(
-                              child: Text(
-                                product.name.toUpperCase(),
-                                overflow: TextOverflow.ellipsis,
-                                style: myFont(MColors.secondaryColor, 14.0),
-                              ),
-                            ),
-                          ),
-                        ],
+                    );
+                    if (navigationResult == true) {
+                      getCart(cartNotifier);
+                    }
+                  },
+                  child: Container(
+//                      padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: MColors.primaryWhite,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Color.fromRGBO(0, 0, 0, 0.03),
+                            offset: Offset(0, 10),
+                            blurRadius: 10,
+                            spreadRadius: 0),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Hero(
+                        child: FadeInImage.assetNetwork(
+                          image: product.productImage,
+                          fit: BoxFit.fill,
+                          height: _picHeight,
+                          width: 150,
+                          placeholder: "assets/images/placeholder.jpg",
+                          placeholderScale:
+                              MediaQuery.of(context).size.height / 2,
+                        ),
+                        tag: HomeScreen(),
                       ),
                     ),
                   ),
-                  SizedBox(width: 2.0),
-                ],
-              );
-            }),
+                ),
+//                  SizedBox(width: 2.0),
+              ],
+            );
+          },
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              childAspectRatio: 1, crossAxisCount: 3, crossAxisSpacing: 0),
+        ),
       ),
     ],
   );

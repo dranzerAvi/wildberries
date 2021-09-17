@@ -92,7 +92,7 @@ class _CustomFloatingButtonState extends State<CustomFloatingButton>
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 36,
-                    color: Color(0xFF6b3600),
+                    color: Color(0xFFFFFFFF),
                   ),
                   cartList.length != null
                       ? cartList.length > 0
@@ -126,7 +126,7 @@ class _CustomFloatingButtonState extends State<CustomFloatingButton>
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 36,
-                    color: Color(0xFF6b3600),
+                    color: Color(0xFFFFFFFF),
                   ),
                   cartList.length != null
                       ? cartList.length > 0

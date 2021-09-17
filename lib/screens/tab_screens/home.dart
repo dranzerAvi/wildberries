@@ -48,13 +48,14 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void initState() {
-    selectedDate= DateTime(
+    calculateNextDelivery();
+    selectedDate = DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day + 15);
-    dateAddition=15;
+    dateAddition = 15;
     // addDishParams();
     checkLastSlot();
     time();
-    minOrderValue =  '100';
+    minOrderValue = '50';
     date = DateTime.now();
     date2 = DateTime(date.year, date.month, date.day + dateAddition);
     print('Date2:${date2}');
@@ -83,12 +84,33 @@ class _HomeScreenState extends State<HomeScreen>
 
     super.initState();
   }
+
   DateTime date;
   DateTime selectedDate;
   String selectedTime = '';
-  var currentLocationAddress = 'Dubai, UAE';
+  int nextDelivery = 8;
+  var currentLocationAddress = 'Bareilly, Uttar Pradesh';
 
   var result;
+  calculateNextDelivery() {
+    int hour = DateTime.now().hour;
+
+    if (hour < 9) {
+      setState(() {
+        nextDelivery = 9 - hour;
+      });
+    }
+    if (hour > 9 && hour < 13) {
+      setState(() {
+        nextDelivery = 14 - hour;
+      });
+    }
+    if (hour > 13 && hour < 18) {
+      setState(() {
+        nextDelivery = 19 - hour;
+      });
+    }
+  }
 
   void showPlacePicker() async {
     result = await Navigator.of(context).push(MaterialPageRoute(
@@ -114,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen>
       print("${first.featureName} : ${first.addressLine}");
 
       setState(() {
-        currentLocationAddress = '${first.locality}, ${first.adminArea}';
+        currentLocationAddress = '${first.subLocality}, ${first.locality}';
       });
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {
@@ -151,9 +173,13 @@ class _HomeScreenState extends State<HomeScreen>
       throw 'Could not launch ${url()}';
     }
   }
+
   List<String> timeSlots2 = [];
   void time() {
-   FirebaseFirestore.instance.collection('Timeslots').snapshots().forEach((element) {
+    FirebaseFirestore.instance
+        .collection('Timeslots')
+        .snapshots()
+        .forEach((element) {
       for (int i = 0; i < element.docs[0]['Timeslots'].length; i++) {
         DateTime dt = DateTime.now();
 
@@ -183,17 +209,14 @@ class _HomeScreenState extends State<HomeScreen>
           }
 
           double d = double.parse(s);
-          if (d > (dt.hour) &&
-              element.docs[0]['Timeslots'][i].contains('AM')) {
+          if (d > (dt.hour) && element.docs[0]['Timeslots'][i].contains('AM')) {
             timeSlots2.add(element.docs[0]['Timeslots'][i]);
           }
         }
       }
       if (timeSlots2.length == 0) {
         selectedDate = selectedDate.add(new Duration(days: 1));
-        for (int i = 0;
-        i < element.docs[0]['Timeslots'].length;
-        i++) {
+        for (int i = 0; i < element.docs[0]['Timeslots'].length; i++) {
           timeSlots2.add(element.docs[0]['Timeslots'][i]);
         }
       }
@@ -215,6 +238,7 @@ class _HomeScreenState extends State<HomeScreen>
       });
     }
   }
+
   int dateAddition;
   checkLastSlot() async {
     await FirebaseFirestore.instance
@@ -240,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen>
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     _pickTime() async {
@@ -247,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen>
       DateTime t = await showDatePicker(
         context: context,
         initialDate:
-        DateTime(today.year, today.month, today.day + dateAddition),
+            DateTime(today.year, today.month, today.day + dateAddition),
         lastDate: DateTime(today.year, today.month, today.day + 21),
         firstDate: DateTime(
             today.year, DateTime.now().month, today.day + dateAddition),
@@ -264,6 +289,7 @@ class _HomeScreenState extends State<HomeScreen>
         });
       return date;
     }
+
     UserDataProfileNotifier userNotifier =
         Provider.of<UserDataProfileNotifier>(context);
     var profileData = userNotifier.userDataProfile;
@@ -318,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen>
               InkWell(
                   onTap: () {
                     launchWhatsApp(
-                        phone: '7060222315',
+                        phone: '+919027553376',
                         message: 'Check out this awesome app');
                   },
                   child: Container(
@@ -342,13 +368,16 @@ class _HomeScreenState extends State<HomeScreen>
             ],
             elevation: 0.0,
             centerTitle: true,
-            title: Text(
-              'Misterpet.ae',
-              style: TextStyle(
-                  color: MColors.secondaryColor,
-                  fontSize: 22,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold),
+            title: Padding(
+              padding: const EdgeInsets.only(right: 18.0),
+              child: Text(
+                'Budget Mart',
+                style: TextStyle(
+                    color: MColors.secondaryColor,
+                    fontSize: 22,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold),
+              ),
             ),
           ),
           drawer: CustomDrawer(),
@@ -428,11 +457,15 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   Container(
                     width: MediaQuery.of(context).size.width,
-                    color: MColors.secondaryColor,
+                    color: MColors.mainColor,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          SizedBox(
+                            width: 25,
+                          ),
                           Icon(Icons.map, color: Colors.white),
                           SizedBox(
                             width: 5,
@@ -440,41 +473,43 @@ class _HomeScreenState extends State<HomeScreen>
                           Container(
                               width: MediaQuery.of(context).size.width * 0.6,
                               child: currentLocationAddress != null
-                                  ? Text('Deliver to ${currentLocationAddress}',
-                                  maxLines: 2,
-                                  style: TextStyle(color: Colors.white))
-                                  : Text('Deliver to Sharjah, UAE',
-                                  style: TextStyle(color: Colors.white))),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          InkWell(
-                              onTap: () async {
-     showLocationPicker(
-    context,
-    'AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw',
-    initialCenter: LatLng(31.1975844, 29.9598339),
-    automaticallyAnimateToCurrentLocation: true,
-//                      mapStylePath: 'assets/mapStyle.json',
-    myLocationButtonEnabled: true,
-    // requiredGPS: true,
-    layersButtonEnabled: true,
-    countries: ['AE'],
+                                  ? Text('Deliver to $currentLocationAddress',
+                                      maxLines: 2,
+                                      style: TextStyle(color: Colors.white))
+                                  : Text('Deliver to Bareilly, UP',
+                                      style: TextStyle(color: Colors.white))),
 
-//                      resultCardAlignment: Alignment.bottomCenter,
-//                       desiredAccuracy: LocationAccuracy.best,
-    );
-    print("result = $result");
-    setState(() {
-  currentLocationAddress=result;
-    if (currentLocationAddress != null) {
-   minOrderValue= Navigator.of(context).push(MaterialPageRoute(
-    builder: (context) =>
-    ConfirmAddress(currentLocationAddress)));
-
+//                          InkWell(
+//                              onTap: () async {
+//                                showLocationPicker(
+//                                  context,
+//                                  'AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw',
+//                                  initialCenter: LatLng(31.1975844, 29.9598339),
+//                                  automaticallyAnimateToCurrentLocation: true,
+////                      mapStylePath: 'assets/mapStyle.json',
+//                                  myLocationButtonEnabled: true,
+//                                  // requiredGPS: true,
+//                                  layersButtonEnabled: true,
+//                                  countries: ['AE'],
 //
-                              }});},
-                              child: Icon(Icons.edit, color: Colors.white)),
+////                      resultCardAlignment: Alignment.bottomCenter,
+////                       desiredAccuracy: LocationAccuracy.best,
+//                                );
+//                                print("result = $result");
+//                                setState(() {
+//                                  currentLocationAddress = result;
+//                                  if (currentLocationAddress != null) {
+//                                    minOrderValue = Navigator.of(context).push(
+//                                        MaterialPageRoute(
+//                                            builder: (context) =>
+//                                                ConfirmAddress(
+//                                                    currentLocationAddress)));
+//
+////
+//                                  }
+//                                });
+//                              },
+//                              child: Icon(Icons.edit, color: Colors.white)),
 //                            Container(
 //                                width: MediaQuery.of(context).size.width * 0.1,
 //                                child: Text('${minOrderValue}',
@@ -490,61 +525,56 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Text(
-                        'Minimum Order Value : AED ${minOrderValue}',
-                        style: TextStyle(color: Color(0xFF8B0000)),
-                      ),
-                    ),
-                  ),
+
                   Container(
                     decoration: BoxDecoration(
                         border: Border.all(color: MColors.mainColor),
                         borderRadius: BorderRadius.all(Radius.zero)),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('    Next Delivery: '),
                         Icon(
                           Icons.delivery_dining,
-                          color: MColors.secondaryColor,
+                          color: MColors.mainColor,
                         ),
                         SizedBox(width: 5),
-                        InkWell(
-                            onTap: () {
-                              _pickTime().then((value) {
-                                setState(() {
-                                  selectedDate = value;
-                                });
-                              });
-                            },
-                            child: selectedDate != null
-                                ? Text(
-                              '${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()} ',
-                              style:
-                              TextStyle(color: Color(0xFF6b3600)),
-                            )
-                                : Text(
-                              '${date2.day.toString()}/${date2.month.toString()}/${date2.year.toString()} ',
-                              style:
-                              TextStyle(color: Color(0xFF6b3600)),
-                            )),
-                        Text(' at '),
-                        Icon(
-                          Icons.timer,
-                          size: 19,
-                          color: MColors.secondaryColor,
+                        Text(
+                          'Next Delivery in $nextDelivery hours | Minimum Order Value : ₹ $minOrderValue',
+                          style: TextStyle(color: Color(0xFF8B0000)),
                         ),
-                        SizedBox(width: 5),
-                        InkWell(
-                            onTap: () {
-                              _timeDialog(context);
-                            },
-                            child: Text(
-                              '$selectedTime ',
-                              style: TextStyle(color: Color(0xFF6b3600)),
-                            )),
+
+//                        InkWell(
+//                            onTap: () {
+//                              _pickTime().then((value) {
+//                                setState(() {
+//                                  selectedDate = value;
+//                                });
+//                              });
+//                            },
+//                            child: selectedDate != null
+//                                ? Text(
+//                                    '${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()} ',
+//                                    style: TextStyle(color: Color(0xFF6b3600)),
+//                                  )
+//                                : Text(
+//                                    '${date2.day.toString()}/${date2.month.toString()}/${date2.year.toString()} ',
+//                                    style: TextStyle(color: Color(0xFF6b3600)),
+//                                  )),
+//                        Text(' at '),
+//                        Icon(
+//                          Icons.timer,
+//                          size: 19,
+//                          color: MColors.secondaryColor,
+//                        ),
+//                        SizedBox(width: 5),
+//                        InkWell(
+//                            onTap: () {
+//                              _timeDialog(context);
+//                            },
+//                            child: Text(
+//                              '$selectedTime ',
+//                              style: TextStyle(color: Color(0xFF6b3600)),
+//                            )),
 //                        InkWell(
 //                            onTap: () {
 //                              _locationDialog(context);
@@ -656,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen>
                     color: MColors.mainColor,
                     child: Center(
                       child: Text(
-                        'Your love...Our Care...Their Comfort',
+                        'Best Savings | Fast Delivery | Sealed and Sanatized',
                         style: normalFont(MColors.secondaryColor, 15),
                       ),
                     ),
@@ -858,6 +888,7 @@ class _HomeScreenState extends State<HomeScreen>
       },
     );
   }
+
   Future<void> _timeDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -874,10 +905,9 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildTimeDialog(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
 
-    var hintTextStyle =
-    textTheme.subtitle.copyWith(color: Colors.grey);
+    var hintTextStyle = textTheme.subtitle.copyWith(color: Colors.grey);
     var textFormFieldTextStyle =
-    textTheme.subtitle.copyWith(color: Colors.grey);
+        textTheme.subtitle.copyWith(color: Colors.grey);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(
@@ -915,20 +945,20 @@ class _HomeScreenState extends State<HomeScreen>
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: StreamBuilder(
-                    stream:
-                    FirebaseFirestore.instance.collection('Timeslots').snapshots(),
+                    stream: FirebaseFirestore.instance
+                        .collection('Timeslots')
+                        .snapshots(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snap) {
                       if (snap.hasData && !snap.hasError && snap.data != null) {
                         timeSlots.clear();
                         for (int i = 0;
-                        i < snap.data.docs[0]['Timeslots'].length;
-                        i++) {
+                            i < snap.data.docs[0]['Timeslots'].length;
+                            i++) {
                           DateTime dt = DateTime.now();
 
                           if (dt.hour > 12) {
-                            String st =
-                            snap.data.docs[0]['Timeslots'][i];
+                            String st = snap.data.docs[0]['Timeslots'][i];
                             String s = '';
                             for (int i = 0; i < st.length; i++) {
                               if (st[i] != ' ')
@@ -941,12 +971,10 @@ class _HomeScreenState extends State<HomeScreen>
                             if (d > (dt.hour - 12) &&
                                 snap.data.docs[0]['Timeslots'][i]
                                     .contains('PM')) {
-                              timeSlots.add(
-                                  snap.data.docs[0]['Timeslots'][i]);
+                              timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
                             }
                           } else {
-                            String st =
-                            snap.data.docs[0]['Timeslots'][i];
+                            String st = snap.data.docs[0]['Timeslots'][i];
                             String s = '';
                             for (int i = 0; i < st.length; i++) {
                               if (st[i] != ' ')
@@ -959,8 +987,7 @@ class _HomeScreenState extends State<HomeScreen>
                             if (d > (dt.hour) &&
                                 snap.data.docs[0]['Timeslots'][i]
                                     .contains('AM')) {
-                              timeSlots.add(
-                                  snap.data.docs[0]['Timeslots'][i]);
+                              timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
                             }
                           }
                         }
@@ -968,12 +995,9 @@ class _HomeScreenState extends State<HomeScreen>
                           selectedDate =
                               selectedDate.add(new Duration(days: 1));
                           for (int i = 0;
-                          i <
-                              snap.data.docs[0]['Timeslots']
-                                  .length;
-                          i++) {
-                            timeSlots.add(
-                                snap.data.docs[0]['Timeslots'][i]);
+                              i < snap.data.docs[0]['Timeslots'].length;
+                              i++) {
+                            timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
                           }
                         }
 
@@ -981,46 +1005,43 @@ class _HomeScreenState extends State<HomeScreen>
                             1) {
                           timeSlots.clear();
                           for (int i = 0;
-                          i <
-                              snap.data.docs[0]['Timeslots']
-                                  .length;
-                          i++) {
-                            timeSlots.add(
-                                snap.data.docs[0]['Timeslots'][i]);
+                              i < snap.data.docs[0]['Timeslots'].length;
+                              i++) {
+                            timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
                           }
                         }
                         return timeSlots.length != 0
                             ? Column(
-                          children: [
-                            Container(
-                              width:
-                              MediaQuery.of(context).size.width * 0.9,
-                              child: DropdownButtonHideUnderline(
-                                child:
-                                new DropdownButtonFormField<String>(
-                                  validator: (value) => value == null
-                                      ? 'field required'
-                                      : null,
-                                  hint: Text('Time Slots'),
-                                  value: timeSlots[0],
-                                  items: timeSlots.map((String value) {
-                                    return new DropdownMenuItem<String>(
-                                      value: value,
-                                      child: new Text(value),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String newValue) {
-                                    setState(() {
-                                      selectedTime = newValue;
+                                children: [
+                                  Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: DropdownButtonHideUnderline(
+                                      child:
+                                          new DropdownButtonFormField<String>(
+                                        validator: (value) => value == null
+                                            ? 'field required'
+                                            : null,
+                                        hint: Text('Time Slots'),
+                                        value: timeSlots[0],
+                                        items: timeSlots.map((String value) {
+                                          return new DropdownMenuItem<String>(
+                                            value: value,
+                                            child: new Text(value),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String newValue) {
+                                          setState(() {
+                                            selectedTime = newValue;
 
 //                      Navigator.pop(context);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
                             : Container();
                       } else {
                         return Container();
@@ -1029,21 +1050,22 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               Spacer(flex: 1),
               FlatButton(
-                  child:Container(
-                    width: 280,
-                    decoration:BoxDecoration( border: Border(
-                      top: BorderSide(
-                        width: 1,
-                        color: Colors.grey.withOpacity(0.2),),
-
+                  child: Container(
+                      width: 280,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            width: 1,
+                            color: Colors.grey.withOpacity(0.2),
+                          ),
+                        ),
                       ),
-                  ),
-                 child:Center(child:  Padding(
-                   padding: const EdgeInsets.only(top:8.0),
-                   child: Text('Change',style:TextStyle(color:MColors.secondaryColor)),
-                 ))
-                  ),
-
+                      child: Center(
+                          child: Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text('Change',
+                            style: TextStyle(color: MColors.secondaryColor)),
+                      ))),
                   onPressed: () {
                     setState(() {});
                     Navigator.of(context).pop(true);
@@ -1054,6 +1076,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+
   final db = FirebaseFirestore.instance;
 
   addDishParams() {

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mrpet/widgets/root_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:splashscreen/splashscreen.dart';
 
 import 'model/notifiers/bannerAd_notifier.dart';
 import 'model/notifiers/brands_notifier.dart';
@@ -21,6 +20,7 @@ import 'widgets/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
@@ -54,18 +54,7 @@ class MyApp extends StatelessWidget {
             ),
           );
         }
-        return MaterialApp(
-          home: Scaffold(
-            body: new SplashScreen(
-                seconds: 3,
-                navigateAfterSeconds: AfterSplash(),
-                image: new Image.asset('assets/images/mrpetsplash.jpg'),
-                backgroundColor: Colors.white,
-                styleTextUnderTheLoader: new TextStyle(),
-                photoSize: 400.0,
-                loaderColor: Colors.transparent),
-          ),
-        );
+        return MaterialApp(home: AfterSplash());
       },
     );
   }
@@ -84,17 +73,7 @@ class _HomeControllerState extends State<HomeController> {
     final AuthService auth = MyProvider.of(context).auth;
 
     return MaterialApp(
-      home: Scaffold(
-        body: SplashScreen(
-          seconds: 3,
-          navigateAfterSeconds: AfterSplash(),
-          image: new Image.asset('assets/images/mrpetsplash.jpg'),
-          backgroundColor: Colors.white,
-          // styleTextUnderTheLoader: new TextStyle(),
-          photoSize: 400.0,
-          useLoader: false,
-        ),
-      ),
+      home: Scaffold(body: AfterSplash()),
     );
   }
 }

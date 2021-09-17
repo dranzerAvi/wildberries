@@ -16,6 +16,7 @@ import 'package:mrpet/widgets/navDrawer.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:string_similarity/string_similarity.dart';
+
 class Search extends StatelessWidget {
   bool showDrawer;
   Search(this.showDrawer);
@@ -150,7 +151,7 @@ class _SearchScreenState extends State<SearchScreen>
       appBar: AppBar(
           brightness: Brightness.light,
           elevation: 0.0,
-          backgroundColor: MColors.primaryWhiteSmoke,
+          backgroundColor: MColors.mainColor,
           leading: widget.showDrawer == true
               ? IconButton(
                   icon: Icon(Icons.menu),
@@ -342,7 +343,7 @@ class _SearchScreenState extends State<SearchScreen>
       docList.clear();
       dogList.clear();
       snapshot.docs.forEach((f) {
-        var name=f['name'].toString().toLowerCase();
+        var name = f['name'].toString().toLowerCase();
         List<String> dogName = List<String>.from(f['nameSearch']);
         List<String> dogBreed = List<String>.from(f['categorySearch']);
         List<String> dogLowerCase = [];
@@ -354,7 +355,10 @@ class _SearchScreenState extends State<SearchScreen>
           breedLowerCase.add(breed.toLowerCase());
         }
         if (dogLowerCase.contains(query.toLowerCase()) ||
-            breedLowerCase.contains(query.toLowerCase())|| name.toLowerCase().toString().contains(query.toLowerCase())||name.toString().toLowerCase().similarityTo(query.toLowerCase())>0.2) {
+            breedLowerCase.contains(query.toLowerCase()) ||
+            name.toLowerCase().toString().contains(query.toLowerCase()) ||
+            name.toString().toLowerCase().similarityTo(query.toLowerCase()) >
+                0.2) {
           print('Match found ${f['name']}');
           docList.add(f);
           ProdProducts dog = ProdProducts.fromMap(f.data());

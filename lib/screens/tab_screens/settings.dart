@@ -37,10 +37,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Future profileFuture;
   Future addressFuture;
-User user;
+  User user;
   @override
   void initState() {
-    user =  FirebaseAuth.instance.currentUser;
+    user = FirebaseAuth.instance.currentUser;
     checkInternetConnectivity().then((value) => {
           value == true
               ? () {
@@ -314,7 +314,7 @@ User user;
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Misterpet.ae',
+          'Budget Mart    ',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,
@@ -372,7 +372,7 @@ User user;
                                             borderRadius:
                                                 BorderRadius.circular(9.0),
                                             child: Image.asset(
-                                              "assets/images/petshop-footprint-logo-whiteBg.png",
+                                              "assets/images/Logo-FINAL.png",
                                               height: 90.0,
                                               width: 90.0,
                                             ),
@@ -386,7 +386,7 @@ User user;
                                               height: 90.0,
                                               width: 90.0,
                                               placeholder:
-                                                  "assets/images/petshop-footprint-logo-whiteBg.png",
+                                                  "assets/images/Logo-FINAL.png",
                                             ),
                                           ),
                                   ),
@@ -434,7 +434,7 @@ User user;
                                           Text(
                                             user.name,
                                             style: boldFont(
-                                                MColors.primaryPurple, 16.0),
+                                                MColors.textDark, 16.0),
                                             textAlign: TextAlign.center,
                                           ),
                                           Text(
@@ -453,7 +453,7 @@ User user;
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(10.0)),
-                                        color: MColors.dashPurple,
+                                        color: MColors.mainColor,
                                       ),
                                       child: Center(
                                         child: Text("EDIT PROFILE",
@@ -489,7 +489,7 @@ User user;
                                     listTileActions[i],
                                     listTileIcons[i],
                                     listTileNames[i],
-                                    i == 9 ? Colors.red : MColors.primaryPurple,
+                                    i == 9 ? Colors.red : MColors.textDark,
                                   ),
                                   Divider(
                                     height: 1.0,
