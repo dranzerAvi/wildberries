@@ -5,28 +5,38 @@ import 'package:geocoder/geocoder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:geolocator/geolocator.dart' as gl;
-import 'package:geolocator/geolocator.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_map_location_picker/google_map_location_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_map_location_picker/google_map_location_picker.dart'
+    as gmlp;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/model/data/userData.dart';
 
-import 'package:mrpet/screens/address/confirm_address.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:place_picker/entities/location_result.dart';
+import 'package:wildberries/screens/address/confirm_address.dart';
+import 'package:wildberries/utils/colors.dart';
+// import 'package:place_picker/entities/location_result.dart';
 import 'package:place_picker/place_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:mrpet/model/data/address.dart';
+import 'package:wildberries/model/data/address.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+
+import '../../main.dart';
+
 class MyAddresses extends StatefulWidget {
-  String id;
-  MyAddresses(this.id);
+  List<UserDataAddress> addresses;
+  MyAddresses(this.addresses);
   @override
   _MyAddressesState createState() => _MyAddressesState();
 }
 
 class _MyAddressesState extends State<MyAddresses> {
+  final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+  Position currentPosition;
+  String _currentAddress;
 
   var id;
   // void showPlacePicker() async {
@@ -45,43 +55,49 @@ class _MyAddressesState extends State<MyAddresses> {
   //   }
   // }
 
-  List<Addresses> alladresses = [];
+  // List<Addresses> alladresses = [];
   List<Widget> addressCards = [];
-  String currentLocationAddress='';
-  void alladdresses() async {
-    setState(() {
-      alladresses.clear();
-      print(alladresses.length);
-    });
-
-    print('--------------');
-    await FirebaseFirestore.instance
-        .collection('userData')
-        .doc(widget.id)
-        .collection('address2')
-        .snapshots()
-        .forEach((element) {
-      element.docs.forEach((element) {
-        setState(() {
-          Addresses add = Addresses(element['address'], element['hno'],
-              element['landmark'], element['Emirate']);
-          alladresses.add(add);
-        });
-        print(id);
-        print(alladresses.length);
-      });
-    });
-  }
+  gmlp.LocationResult currentLocationAddress;
 
   @override
   void initState() {
-    setState(() {
-      alladresses.clear();
-      print(alladresses.length);
-    });
+    setState(() {});
+    _getCurrentLocation();
 
-    alladdresses();
     super.initState();
+  }
+
+  _getCurrentLocation() {
+    print('Fetching');
+    geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      setState(() {
+        currentPosition = position;
+        print('Position $position');
+      });
+
+      _getAddressFromLatLng();
+    }).catchError((e) {
+      print(e);
+    });
+    print(currentPosition);
+  }
+
+  _getAddressFromLatLng() async {
+    try {
+      List<Placemark> p = await geolocator.placemarkFromCoordinates(
+          currentPosition.latitude, currentPosition.longitude);
+
+      Placemark place = p[0];
+
+      setState(() {
+        _currentAddress =
+            "${place.locality}, ${place.postalCode}, ${place.country}";
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   void launchWhatsApp({
@@ -102,186 +118,208 @@ class _MyAddressesState extends State<MyAddresses> {
       throw 'Could not launch ${url()}';
     }
   }
-  void _launchURL(String url) async =>
-      await canLaunch(url) ? await launch(url) : throw Fluttertoast.showToast(
+
+  void _launchURL(String url) async => await canLaunch(url)
+      ? await launch(url)
+      : throw Fluttertoast.showToast(
           msg: 'Could not launch URL', toastLength: Toast.LENGTH_SHORT);
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          size: 20,
-          color: MColors.secondaryColor,
-        ),
-        backgroundColor: MColors.mainColor,
-        actions: [
-          InkWell(
-              onTap: () {
-                launch('tel:+919027553376');
-              },
-              child: Icon(
-                Icons.phone,
-              )),
-          SizedBox(
-            width: 8,
+        key: _scaffoldKey,
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+            size: 20,
+            color: MColors.secondaryColor,
           ),
-          InkWell(
-              onTap: () {
-                launchWhatsApp(
-                    phone: '7060222315',
-                    message: 'Check out this awesome app');
-              },
-              child: Container(
-                  alignment: Alignment.center,
-                  child: FaIcon(FontAwesomeIcons.whatsapp))),
-          SizedBox(
-            width: 8,
-          ),
-          InkWell(
-              onTap: () {
+          backgroundColor: MColors.mainColor,
+          actions: [
+            InkWell(
+                onTap: () {
+                  launch('tel:+919027553376');
+                },
+                child: Icon(
+                  Icons.phone,
+                )),
+            SizedBox(
+              width: 8,
+            ),
+            InkWell(
+                onTap: () {
+                  launchWhatsApp(
+                      phone: '7060222315',
+                      message: 'Check out this awesome app');
+                },
+                child: Container(
+                    alignment: Alignment.center,
+                    child: FaIcon(FontAwesomeIcons.whatsapp))),
+            SizedBox(
+              width: 8,
+            ),
+            InkWell(
+                onTap: () {
 //                print(1);
-                launch(
-                    'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
-              },
-              child: Icon(
-                Icons.mail,
-              )),
-          SizedBox(
-            width: 14,
-          )
-        ],
-        elevation: 0.0,
-        centerTitle: true,
-        title: Text(
-          'Misterpet.ae',
-          style: TextStyle(
-              color: MColors.secondaryColor,
-              fontSize: 22,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold),
+                  launch(
+                      'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+                },
+                child: Icon(
+                  Icons.mail,
+                )),
+            SizedBox(
+              width: 14,
+            )
+          ],
+          elevation: 0.0,
+          centerTitle: true,
+          title: Text(
+            'Wildberries',
+            style: TextStyle(
+                color: MColors.secondaryColor,
+                fontSize: 22,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      body: Container(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection('userData')
-                          .doc(widget.id)
-                          .collection('address2')
-                          .snapshots(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<QuerySnapshot> snap) {
-                        if (snap.hasData &&
-                            !snap.hasError &&
-                            snap.data != null) {
-                          alladresses.clear();
-                          for (int i = 0; i < snap.data.docs.length; i++) {
-                            print(snap.data.docs.length);
-                            Addresses add = Addresses(
-                                snap.data.docs[i]['address'],
-                                snap.data.docs[i]['hno'],
-                                snap.data.docs[i]['landmark'],
-                                snap.data.docs[i]['Emirate'],
-                               );
-                            alladresses.add(add);
-                          }
-                          return alladresses.length != 0
-                              ? Column(
-                            children: [
-                              Text('Saved Addresses'),
-                              ListView.builder(
-                                itemCount: alladresses.length,
-                                shrinkWrap: true,
-                                physics: ClampingScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  var item = alladresses[index];
-                                  return Card(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          mainAxisAlignment:
+        body: PreferenceBuilder<String>(
+            preference: preferences.getString(
+              'addresses',
+              defaultValue: '',
+            ),
+            builder: (BuildContext context, String counter) {
+              print(counter);
+              var cartTotal = 0;
+
+              List<UserDataAddress> addresses = [];
+              if (counter != '') addresses = UserDataAddress.decode(counter);
+
+              return addresses.length == 0
+                  ? emptyScreen(
+                      "assets/images/emptyCart.svg",
+                      "Bag is empty",
+                      "Products you add to your bag will show up here. So lets get shopping and make your pet happy.",
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListView.builder(
+                              itemCount: addresses.length,
+                              shrinkWrap: true,
+                              physics: ClampingScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                var item = addresses[index];
+                                return Card(
+                                    child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      mainAxisAlignment:
                                           MainAxisAlignment.start,
-                                          children: [
-                                            (item.hno != null &&
-                                                item.hno != '')
-                                                ? Align(
-                                              alignment:
-                                              Alignment.bottomLeft,
-                                              child: Text(
-                                                  'Address : H.no. ${item.hno} , ${item.address}'),
-                                            )
-                                                : Align(
-                                              alignment:
-                                              Alignment.bottomLeft,
-                                              child: Text(
-                                                  'Address :  ${item.address}'),
-                                            ),
-                                            (item.landmark != null &&
-                                                item.landmark != '')
-                                                ? Align(
-                                                alignment:
-                                                Alignment.bottomLeft,
+                                      children: [
+                                        (item.address != null &&
+                                                item.address != '')
+                                            ? Align(
+                                                alignment: Alignment.bottomLeft,
                                                 child: Text(
-                                                    'Landmark : ${item.landmark}'))
-                                                : Text(''),
-                                            item.emirate != null
-                                                ? Align(
-                                                alignment:
-                                                Alignment.bottomLeft,
+                                                  'Address : ${item.address}',
+                                                  style: normalFont(
+                                                      MColors.mainColor, 16),
+                                                ),
+                                              )
+                                            : Text(''),
+                                        (item.city != null && item.city != '')
+                                            ? Align(
+                                                alignment: Alignment.bottomLeft,
                                                 child: Text(
-                                                    'Emirate : ${item.emirate}'))
-                                                : Container(),
+                                                  'City : ${item.city}',
+                                                  style: normalFont(
+                                                      MColors.mainColor, 16),
+                                                ))
+                                            : Text(''),
+                                        (item.zip != null && item.zip != '')
+                                            ? Align(
+                                                alignment: Alignment.bottomLeft,
+                                                child: Text(
+                                                  'ZIP Code : ${item.zip}',
+                                                  style: normalFont(
+                                                      MColors.mainColor, 16),
+                                                ))
+                                            : Container(),
+                                      ],
+                                    ),
+                                  ),
+                                ));
+                              },
+                            ),
+                          ),
+                          //
 
-                                          ],
-                                        ),
-                                      ));
-                                },
-                              )
-                            ],
-                          )
-                              : Container();
-                        } else {
-                          return Container();
-                        }
-                      })),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: InkWell(
+                          Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: primaryButtonPurple(
+                                Text(
+                                  '+ Add Address',
+                                  style: boldFont(Colors.white, 16),
+                                ),
+                                () async {
+                                  ServiceStatus serviceStatus =
+                                      await PermissionHandler()
+                                          .checkServiceStatus(
+                                              PermissionGroup.location);
+                                  bool enabled =
+                                      (serviceStatus == ServiceStatus.enabled);
+                                  print(enabled);
+                                  if (enabled == false)
+                                    showSimpleSnack(
+                                      "Please turn on device location",
+                                      Icons.warning_amber_outlined,
+                                      Colors.amber,
+                                      _scaffoldKey,
+                                    );
+                                  else {
+                                    var result;
+                                    String error;
 
-                  onTap: () async {
-                    var result;
-                    String error;
-
-
-                    showLocationPicker(
-                      context,
-                      'AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw',
-                      initialCenter: LatLng(31.1975844, 29.9598339),
-                      automaticallyAnimateToCurrentLocation: true,
+                                    result = await gmlp.showLocationPicker(
+                                      context,
+                                      'AIzaSyBRiKMx-SrPII728TuJ0cAPgVHC5l-e9s8',
+                                      initialCenter: LatLng(
+                                          currentPosition.latitude,
+                                          currentPosition.longitude),
+                                      automaticallyAnimateToCurrentLocation:
+                                          true,
 //                      mapStylePath: 'assets/mapStyle.json',
-                      myLocationButtonEnabled: true,
-                      // requiredGPS: true,
-                      layersButtonEnabled: true,
-                      countries: ['AE'],
+                                      myLocationButtonEnabled: true,
+                                      requiredGPS: true,
+                                      layersButtonEnabled: true,
+                                      // countries: ['AE'],
 
 //                      resultCardAlignment: Alignment.bottomCenter,
 //                       desiredAccuracy: LocationAccuracy.best,
-                    );
-                    print("result = $result");
-                    setState(() {
-                      currentLocationAddress=result;
-                      if (currentLocationAddress != null) {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                ConfirmAddress(currentLocationAddress)));
+                                    );
+                                    print("result = ${result.runtimeType}");
+                                    setState(() {
+                                      currentLocationAddress = result;
+                                      if (currentLocationAddress != null) {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ConfirmAddress(
+                                                        currentLocationAddress,
+                                                        "",
+                                                        "",
+                                                        "")));
 
 //
-                      }});
+                                      }
+                                    });
+
+                                    //TODO: Place Picker
+                                    //-------------
 //                                  _locationDialog(context);
 //                                   showPlacePicker();
 //                                   Navigator.push(context, MaterialPageRoute(
@@ -289,21 +327,18 @@ class _MyAddressesState extends State<MyAddresses> {
 //                                     return LocationScreen();
 //                                   }));
 //
-                  },
-                  child:Center(
-                    child: Container(
-                      height:MediaQuery.of(context).size.height*0.06,
-                      width:MediaQuery.of(context).size.width*0.85,
-                      color:MColors.secondaryColor,
-                      child:Center(child: Text('+ Add Address',style:TextStyle(color:Colors.white)))
-                    ),
-                  )
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
+                                  }
+                                },
+                              ))
+                        ],
+                      ),
+                    );
+            })
+        // Container(
+        //   child: SingleChildScrollView(
+        //     child:
+        //   ),
+        // ),
+        );
   }
 }

@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:mrpet/screens/review.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/ratings_widget.dart';
+import 'package:wildberries/screens/review.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/ratings_widget.dart';
 
 class ReviewRating extends StatefulWidget {
   String reviewRating;
@@ -36,59 +35,60 @@ class _ReviewRatingState extends State<ReviewRating> {
         body: Column(
           children: [
             Container(
-                height: MediaQuery.of(context).size.height * 0.7,
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection('Reviews')
-                        .snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snap) {
-                      print(snap.data);
-                      if (snap.hasData && !snap.hasError && snap.data != null) {
-                        reviews.clear();
-                        for (int i = 0; i < snap.data.docs.length; i++) {
-                          if (snap.data.docs[i]['productName'] ==
-                              widget.reviewRating) {
-                            reviews.add(ListTile(
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(snap.data.docs[i]['username'],
-                                      style: TextStyle(
-                                          color: MColors.secondaryColor,
-                                          fontSize: 22,
-                                          fontFamily: 'Poppins',
-                                          fontWeight: FontWeight.bold)),
-                                  Ratings(snap.data.docs[i]['rating']),
-                                ],
-                              ),
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 0),
-                              subtitle: Text(snap.data.docs[i]['details'],
-                                  style: TextStyle(
-                                    color: MColors.secondaryColor,
-                                    fontSize: 18.0,
-                                    fontFamily: 'Poppins',
-                                  )),
-                            ));
-                          }
-                        }
-                        return reviews.length != 0
-                            ? Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: ListView(
-                                  children: reviews,
-                                ))
-                            : Container();
-                      } else
-                        return Container(
-                          child: Center(
-                              child: Text('No Data',
-                                  style: TextStyle(color: Colors.black))),
-                        );
-                    })),
+              height: MediaQuery.of(context).size.height * 0.7,
+              width: MediaQuery.of(context).size.width * 0.9,
+              // child: StreamBuilder(
+              //     stream: FirebaseFirestore.instance
+              //         .collection('Reviews')
+              //         .snapshots(),
+              //     builder: (BuildContext context,
+              //         AsyncSnapshot<QuerySnapshot> snap) {
+              //       print(snap.data);
+              //       if (snap.hasData && !snap.hasError && snap.data != null) {
+              //         reviews.clear();
+              //         for (int i = 0; i < snap.data.docs.length; i++) {
+              //           if (snap.data.docs[i]['productName'] ==
+              //               widget.reviewRating) {
+              //             reviews.add(ListTile(
+              //               title: Row(
+              //                 mainAxisAlignment:
+              //                     MainAxisAlignment.spaceBetween,
+              //                 children: [
+              //                   Text(snap.data.docs[i]['username'],
+              //                       style: TextStyle(
+              //                           color: MColors.secondaryColor,
+              //                           fontSize: 22,
+              //                           fontFamily: 'Poppins',
+              //                           fontWeight: FontWeight.bold)),
+              //                   Ratings(snap.data.docs[i]['rating']),
+              //                 ],
+              //               ),
+              //               contentPadding:
+              //                   EdgeInsets.symmetric(horizontal: 0),
+              //               subtitle: Text(snap.data.docs[i]['details'],
+              //                   style: TextStyle(
+              //                     color: MColors.secondaryColor,
+              //                     fontSize: 18.0,
+              //                     fontFamily: 'Poppins',
+              //                   )),
+              //             ));
+              //           }
+              //         }
+              //         return reviews.length != 0
+              //             ? Padding(
+              //                 padding: EdgeInsets.all(8.0),
+              //                 child: ListView(
+              //                   children: reviews,
+              //                 ))
+              //             : Container();
+              //       } else
+              //         return Container(
+              //           child: Center(
+              //               child: Text('No Data',
+              //                   style: TextStyle(color: Colors.black))),
+              //         );
+              //     })
+            ),
             InkWell(
               onTap: () {
                 Navigator.push(

@@ -2,23 +2,23 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mrpet/model/data/userData.dart';
-import 'package:mrpet/model/notifiers/userData_notifier.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/utils/cardUtils/cardStrings.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/credentials.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/userData_notifier.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/utils/cardUtils/cardStrings.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/credentials.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:flutter/services.dart';
 
-class Address extends StatelessWidget {
+class AddressScreen extends StatelessWidget {
   final UserDataAddress address;
   final List<UserDataAddress> addressList;
-  Address(this.address, this.addressList);
+  AddressScreen(this.address, this.addressList);
 
   @override
   Widget build(BuildContext context) {
@@ -407,7 +407,7 @@ class _EnterAddressState extends State<EnterAddress> {
                             ),
                             SizedBox(width: 5.0),
                             Expanded(
-                              child: Text(_address.addressLocation),
+                              child: Text(_address.address),
                             ),
                           ],
                         ),
@@ -475,7 +475,7 @@ class _EnterAddressState extends State<EnterAddress> {
             padding: EdgeInsets.only(left: 25.0),
             child: Container(
               child: Text(
-                address.addressNumber + ", " + address.addressLocation,
+                address.address + ", " + address.city,
                 style: normalFont(MColors.textGrey, 14.0),
               ),
             ),

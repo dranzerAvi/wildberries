@@ -1,36 +1,292 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart' as gl;
+
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mrpet/model/data/cart.dart';
-import 'package:mrpet/model/data/emirates.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/userData_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/model/services/auth_service.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/screens/tab_screens/checkout_screens/addPaymentMethod.dart';
+import 'package:geocoder/geocoder.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:lottie/lottie.dart';
+import 'package:random_string/random_string.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/cart.dart';
+import 'package:wildberries/model/data/filter.dart';
+import 'package:wildberries/model/data/offer.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/offers_notifier.dart';
+import 'package:wildberries/model/notifiers/userData_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/model/services/auth_service.dart';
+import 'package:wildberries/model/services/offers_service.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/screens/tab_screens/checkout_screens/addPaymentMethod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:mrpet/utils/colors.dart';
+import 'package:wildberries/utils/colors.dart';
 import 'package:provider/provider.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/screens/tab_screens/checkout_screens/enterAddress.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:wildberries/utils/navbarController.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/screens/tab_screens/checkout_screens/enterAddress.dart';
+import 'package:http/http.dart' as http;
+
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'orderPlaced.dart';
-import 'package:mrpet/screens/address/myaddresses2.dart';
+import 'package:wildberries/screens/address/myaddresses2.dart';
+
+class TutorialOverlay extends ModalRoute<void> {
+  @override
+  Duration get transitionDuration => Duration(milliseconds: 500);
+
+  @override
+  bool get opaque => false;
+
+  @override
+  bool get barrierDismissible => false;
+
+  @override
+  Color get barrierColor => Colors.black.withOpacity(0.5);
+
+  @override
+  String get barrierLabel => null;
+
+  @override
+  bool get maintainState => true;
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    // This makes sure that text and other content follows the material style
+    return Material(
+      type: MaterialType.transparency,
+      // make sure that the overlay content is not cut off
+      child: SafeArea(
+        child: _buildOverlayContent(context),
+      ),
+    );
+  }
+
+  Widget _buildOverlayContent(BuildContext context) {
+    return Center(
+      child: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        color: Colors.black.withOpacity(0.2),
+        child: InkWell(
+          onTap: () {
+            // Controller.controller.
+            // Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(
+            //         builder: (context) => Tabbar(screens: [
+            //               HomeScreen(),
+            //               AllCategories(),
+            //               CartScreen(),
+            //               ProfileScreen()
+            //             ])));
+          },
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.transparent,
+            child: Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0)), //this right here
+              child: Container(
+                height: 400.0,
+                width: 300.0,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(15.0),
+                      child: Text(
+                        'Your order has been paced successfully',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.12),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Text.rich(
+                          //   TextSpan(
+                          //     text: "Ordered ID:  ",
+                          //     style: TextStyle(
+                          //       color: Colors.black,
+                          //       fontSize: 13,
+                          //     ),
+                          //     children: [
+                          //       TextSpan(
+                          //         text: '${o.id}',
+                          //         style: TextStyle(
+                          //           fontWeight: FontWeight.bold,
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          // Text.rich(
+                          //   TextSpan(
+                          //     text: "Ordered on:  ",
+                          //     style: TextStyle(
+                          //       color: Colors.black,
+                          //       fontSize: 13,
+                          //     ),
+                          //     children: [
+                          //       TextSpan(
+                          //         text:
+                          //             '${order.timestamp.toDate().day}-${order.timestamp.toDate().month}-${order.timestamp.toDate().year}',
+                          //         style: TextStyle(
+                          //           fontWeight: FontWeight.bold,
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          Text.rich(
+                            TextSpan(
+                              text: "Status:  ",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 13,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'Order Placed',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                        height: 200,
+                        child: Lottie.asset('assets/images/order_packed.json')),
+                    Spacer(),
+                    // Container(
+                    //   width: double.infinity,
+                    //   padding: EdgeInsets.symmetric(
+                    //     horizontal: 8,
+                    //     vertical: 2,
+                    //   ),
+                    //   decoration: BoxDecoration(
+                    //     color: kPrimaryColor,
+                    //     borderRadius: BorderRadius.only(
+                    //       bottomLeft: Radius.circular(10),
+                    //       bottomRight: Radius.circular(10),
+                    //     ),
+                    //   ),
+                    //   child: FlatButton(
+                    //     color: MColors.mainColor,
+                    //     child: Text(
+                    //       "Order Total - ${or.amount}",
+                    //       style: TextStyle(
+                    //         color: Colors.white,
+                    //         fontWeight: FontWeight.w600,
+                    //         fontSize: 16,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    // You can add your own animations for the overlay content
+    return FadeTransition(
+      opacity: animation,
+      child: ScaleTransition(
+        scale: animation,
+        child: child,
+      ),
+    );
+  }
+}
 
 class AddressContainer extends StatefulWidget {
   final List<Cart> cartList;
-  String address;String savedEmirate;
-  AddressContainer(this.cartList,this.address,this.savedEmirate);
+  String address;
+  String savedEmirate;
+  AddressContainer(this.cartList, this.address, this.savedEmirate);
   @override
-  _AddressContainerState createState() => _AddressContainerState(cartList,address);
+  _AddressContainerState createState() =>
+      _AddressContainerState(cartList, address);
 }
 
-class AddressScreen extends StatelessWidget {
+class AddressScreen extends StatefulWidget {
   final List<Cart> cartList;
   String address;
-  AddressScreen(this.cartList,this.address);
+  AddressScreen(this.cartList, this.address);
+
+  @override
+  _AddressScreenState createState() => _AddressScreenState();
+}
+
+class _AddressScreenState extends State<AddressScreen> {
+  var currentLocationAddress = 'Bareilly, Uttar Pradesh';
+
+  getUserCurrentLocation() async {
+    String error;
+
+    try {
+      Position position = await Geolocator()
+          .getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
+      final coordinates = Coordinates(position.latitude, position.longitude);
+      var addresses =
+          await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      var first = addresses.first;
+      print("${first.featureName} : ${first.addressLine}");
+
+      setState(() {
+        currentLocationAddress = '${first.subLocality}, ${first.locality}';
+      });
+    } on PlatformException catch (e) {
+      if (e.code == 'PERMISSION_DENIED') {
+        Navigator.pop(context);
+        error = 'please grant permission';
+        print(error);
+      }
+      if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
+        Navigator.pop(context);
+
+        error = 'permission denied- please enable it from app settings';
+        print(error);
+      }
+    }
+  }
+
+  getUserAddresses() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +302,11 @@ class AddressScreen extends StatelessWidget {
           ChangeNotifierProvider<UserDataCardNotifier>(
             create: (context) => UserDataCardNotifier(),
           ),
+          ChangeNotifierProvider<OffersNotifier>(
+            create: (context) => OffersNotifier(),
+          ),
         ],
-        child: AddressContainer(cartList,address,''),
+        child: AddressContainer(widget.cartList, widget.address, ''),
       ),
     );
   }
@@ -55,145 +314,41 @@ class AddressScreen extends StatelessWidget {
 
 class _AddressContainerState extends State<AddressContainer> {
   final List<Cart> cartList;
-  Future addressFuture, cardFuture, completeOrderFuture, dateFuture;
+  Future addressFuture,
+      cardFuture,
+      completeOrderFuture,
+      dateFuture,
+      offersFuture;
   bool isDateSelected;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Future<bool> isComplete = Future.value(false);
   DateTime date;
   List<String> timeSlots2 = [];
-  User user;
-  void addAddress() async {
-    user = await FirebaseAuth.instance.currentUser;
-  }
-  void time() {
-    FirebaseFirestore.instance.collection('Timeslots').snapshots().forEach((element) {
-      for (int i = 0; i < element.docs[0]['Timeslots'].length; i++) {
-        DateTime dt = DateTime.now();
+  // User user;
 
-        if (dt.hour > 12) {
-          String st = element.docs[0]['Timeslots'][i];
-          String s = '';
-          for (int i = 0; i < st.length; i++) {
-            if (st[i] != ' ')
-              s = s + st[i];
-            else
-              break;
-          }
-
-          double d = double.parse(s);
-          if (d > (dt.hour - 12) &&
-              element.docs[0]['Timeslots'][i].contains('PM')) {
-            timeSlots2.add(element.docs[0]['Timeslots'][i]);
-          }
-        } else {
-          String st = element.docs[0]['Timeslots'][i];
-          String s = '';
-          for (int i = 0; i < st.length; i++) {
-            if (st[i] != ' ')
-              s = s + st[i];
-            else
-              break;
-          }
-
-          double d = double.parse(s);
-          if (d > (dt.hour) &&
-              element.docs[0]['Timeslots'][i].contains('AM')) {
-            timeSlots2.add(element.docs[0]['Timeslots'][i]);
-          }
-        }
-      }
-      if (timeSlots2.length == 0) {
-        selectedDate = selectedDate.add(new Duration(days: 1));
-        for (int i = 0;
-        i < element.docs[0]['Timeslots'].length;
-        i++) {
-          timeSlots2.add(element.docs[0]['Timeslots'][i]);
-        }
-      }
-      selectedTime = timeSlots2[0];
-    });
-//  if(timeSlots2.length>0){
-//    setState(() {
-//      selectedTime=timeSlots2[0];
-//    });
-//
-//  }
-    select();
-  }
-
-  void select() {
-    if (timeSlots2.length > 0) {
-      setState(() {
-        selectedTime = timeSlots2[0];
-      });
-    }
-  }
   int dateAddition;
-  checkLastSlot() async {
-    await FirebaseFirestore.instance
-        .collection('Timeslots')
-        .snapshots()
-        .listen((event) {
-      String st = event.docs[0]['LastSlot'];
-      String s = '';
-      for (int i = 0; i < st.length; i++) {
-        if (st[i] != ' ')
-          s = s + st[i];
-        else
-          break;
-      }
 
-      double d = double.parse(s);
-      if (st.contains('PM')) d = d + 12;
-      DateTime dt = DateTime.now();
-      if (dt.hour > d) {
-        dateAddition = dateAddition + 1;
-        print('Date:${dateAddition}');
-        //run
-      }
-    });
-  }
   var dd;
-  _AddressContainerState(this.cartList,address);
-//  _pickTime() async {
-//    DateTime t = await showDatePicker(
-//      context: context,
-//      initialDate: date,
-//      lastDate: DateTime(2021, DateTime.now().month, 30),
-//      firstDate: DateTime(2020, DateTime.now().month, DateTime.now().day + 15),
-//      builder: (BuildContext context, Widget child) {
-//        return Theme(
-//          data: ThemeData.dark(),
-//          child: child,
-//        );
-//      },
-//    );
-//    if (t != null)
-//      setState(() {
-//        isDateSelected = true;
-//        date = t;
-//      });
-//
-//    return date;
-//  }
+  _AddressContainerState(this.cartList, address);
   var addresstype = 'House';
   var color1 = false;
   var color2 = true;
   var color3 = false;
+  List<UserDataAddress> addressList = [];
   final addressController = TextEditingController();
   final nameController = TextEditingController();
   final phncontroller = TextEditingController();
-  final buildingController = TextEditingController();
-  final floorcontroller = TextEditingController();
-  final flatcontroller = TextEditingController();
+  // final addressController = TextEditingController();
+  final cityController = TextEditingController();
+  final zipController = TextEditingController();
   final additionalcontroller = TextEditingController();
   final hnoController = TextEditingController();
   final _formkey = GlobalKey<FormState>();
   final _formkey2 = GlobalKey<FormState>();
   double minOrderPrice = 0;
   double deliveryCharge = 0;
-  List<Emirates> savedemirate = [];
-  List<Emirates> allemirates = [];
+  // List<Emirates> savedemirate = [];
+  // List<Emirates> allemirates = [];
   String emirate2;
   List<String> emiratesname = [];
   String emirate;
@@ -201,42 +356,248 @@ class _AddressContainerState extends State<AddressContainer> {
   DateTime selectedDate;
   String selectedTime = '';
 
+  getUserAddresses() async {
+    //Getting Current cart items
+    final Preference<String> musicsString =
+        await preferences.getString('addresses', defaultValue: '');
+    await musicsString.listen((value) {
+      if (value != '') addressList = UserDataAddress.decode(value);
+    });
+    addressController.text =
+        addressList.length == 0 ? '' : addressList[0].address;
+    zipController.text =
+        addressList.length == 0 ? '' : addressList[0].zip.toString();
+    cityController.text = addressList.length == 0 ? '' : addressList[0].city;
+    setState(() {});
+  }
+
+  static const platform = const MethodChannel("razorpay_flutter");
+  Razorpay _razorpay;
+  String random = randomAlpha(10);
+  Future<String> generateOrderId(
+      String key, String secret, double amount) async {
+    var authn = 'Basic ' + base64Encode(utf8.encode('$key:$secret'));
+
+    var headers = {
+      'content-type': 'application/json',
+      'Authorization': authn,
+    };
+
+    var data =
+        '{ "amount": $amount, "currency": "INR", "receipt": "receipt#R1", "payment_capture": 1 }'; // as per my experience the receipt doesn't play any role in helping you generate a certain pattern in your Order ID!!
+
+    var res = await http.post('https://api.razorpay.com/v1/orders',
+        headers: headers, body: data);
+    if (res.statusCode != 200)
+      throw Exception('http.post error: statusCode= ${res.statusCode}');
+    print('ORDER ID response => ${res.body}');
+
+    return json.decode(res.body)['id'].toString();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    String snackbarmMessage = '';
+
+    try {
+      List<Map> cartProducts = [];
+      cartList.forEach((element) {
+        cartProducts.add({
+          'product': element.id,
+          'name': element.name,
+          'price': element.selling_price,
+          'count': element.cartQuantity,
+          'imgURL': element.image,
+          'quantity': element.quantity
+        });
+      });
+      var url = Uri.parse(
+          'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+      String encodedOrderData = json.encode({
+        "order": {
+          "products": cartProducts,
+          "transaction_id": response.paymentId,
+          "amount": total.toInt(),
+          "address": {
+            "address": addressController.text,
+            "city": cityController.text,
+            "zip": zipController.text
+          },
+          "user": currentUser.id.toString(),
+          "orderType": "Pay Online",
+          "deliveryType": deliverySelected,
+          "expectedDelivery": date.toString(),
+          "tax": (total * 0.2).round(),
+          "deliveryCharge": deliverySelected == 'Normal' ? 40 : 0,
+          "offerApplied": offerSelected.title,
+          "offPrice": (total * offerSelected.discount['valued'] / 100)
+        }
+      });
+      var apiResponse = await http.post(url,
+          headers: {
+            'Authorization': 'Bearer ${currentUser.token.toString()}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: encodedOrderData);
+      var data = json.decode(apiResponse.body);
+      if (offerSelected.id != '') {
+        refreshUserProfile(currentUser);
+      }
+
+      List<Cart> emptyCart = [];
+      String encodedData = Cart.encode(emptyCart);
+      preferences.setString('cart', encodedData);
+      // Navigator.pop(context);
+      Navigator.pop(context);
+    } finally {
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text(snackbarmMessage ?? "Something went wrong"),
+        ),
+      );
+    }
+    Scaffold.of(context).showSnackBar(
+        SnackBar(content: Text('SUCCESS: + ${response.paymentId}')));
+  }
+
+  void openCheckout(amount, random) async {
+    var oid = await generateOrderId(
+        'rzp_test_uvifYhgFxSWOdD', '2KKWoxZC9X53SPPNxj4KhL1z', amount * 100);
+    var options = await {
+      'key': 'rzp_test_uvifYhgFxSWOdD',
+      // 'amount': 3500,
+      'amount': (amount * 100),
+      'name': 'Wildberries India',
+      'currency': 'INR',
+      "order_id": oid,
+      'description': 'Order ID: ${random.toString()}',
+      'prefill': {'contact': currentUser.phone, 'email': currentUser.email},
+      'external': {
+        'wallets': ['paytm']
+      }
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    Navigator.of(context).pop();
+    Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text(
+            'ERROR: + ${response.code.toString()} +  -  + ${response.message}')));
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) async {
+    String snackbarmMessage = '';
+
+    try {
+      List<Map> cartProducts = [];
+      cartList.forEach((element) {
+        cartProducts.add({
+          'product': element.id,
+          'name': element.name,
+          'price': element.selling_price,
+          'count': element.cartQuantity,
+          'imgURL': element.image,
+          'quantity': element.quantity
+        });
+      });
+      var url = Uri.parse(
+          'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+      String encodedOrderData = json.encode({
+        "order": {
+          "products": cartProducts,
+          "transaction_id": response.walletName,
+          "amount": total.toInt(),
+          "address": {
+            "address": addressController.text,
+            "city": cityController.text,
+            "zip": zipController.text
+          },
+          "user": currentUser.id.toString(),
+          "orderType": "COD",
+          "deliveryType": deliverySelected,
+          "expectedDelivery": date.toString(),
+          "tax": (total * 0.2).round(),
+          "deliveryCharge": deliverySelected == 'Normal' ? 40 : 0,
+          "offPrice": 0
+        }
+      });
+      var apiResponse = await http.post(url,
+          headers: {
+            'Authorization': 'Bearer ${currentUser.token.toString()}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: encodedOrderData);
+      var data = json.decode(apiResponse.body);
+      if (data['status'] != null) {
+        List<Cart> emptyCart = [];
+        String encodedData = Cart.encode(emptyCart);
+        preferences.setString('cart', encodedData);
+        Navigator.pop(context);
+        Navigator.pop(context);
+      }
+    } finally {
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text(snackbarmMessage ?? "Something went wrong"),
+        ),
+      );
+    }
+    Scaffold.of(context).showSnackBar(
+        SnackBar(content: Text('EXTERNAL_WALLET: + ${response.walletName}')));
+  }
+
   @override
   void initState() {
-    addAddress();
+    preferences.setString('status', '').then((value) => print('Changed'));
+
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    getUserAddresses();
     areas();
-    selectedDate= DateTime(
+    selectedDate = DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day + 15);
-    dateAddition=15;
-    // addDishParams();
-    checkLastSlot();
-    time();
-    totalList = cartList.map((e) => e.totalPrice);
-    total = totalList.isEmpty
-        ? 0.0
-        : (totalList.reduce((sum, element) => double.parse(sum) + double.parse(element))+deliveryCharge).toStringAsFixed(2);
+    dateAddition = 1;
+
+    totalList = cartList.map((e) => e.selling_price);
+    total = totalList.isEmpty ? 0.0 : 0.0;
+    // : (totalList.reduce((sum, element) =>
+    //             double.parse(sum) + double.parse(element)) +
+    //         deliveryCharge)
+    //     .toStringAsFixed(2);
     date = DateTime.now();
     date2 = DateTime(date.year, date.month, date.day + dateAddition);
     UserDataAddressNotifier addressNotifier =
         Provider.of<UserDataAddressNotifier>(context, listen: false);
     addressFuture = getAddress(addressNotifier);
+    OffersNotifier offersNotifier =
+        Provider.of<OffersNotifier>(context, listen: false);
+    getOffers(offersNotifier);
     date = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day + 15);
+        DateTime.now().year, DateTime.now().month, DateTime.now().day + 1);
     UserDataCardNotifier cardNotifier =
         Provider.of<UserDataCardNotifier>(context, listen: false);
     cardFuture = getCard(cardNotifier);
     isDateSelected = false;
     super.initState();
   }
+
   _pickTime() async {
     var today = DateTime.now();
     DateTime t = await showDatePicker(
       context: context,
-      initialDate:
-      DateTime(today.year, today.month, today.day + dateAddition),
+      initialDate: DateTime(today.year, today.month, today.day + dateAddition),
       lastDate: DateTime(today.year, today.month, today.day + 21),
-      firstDate: DateTime(
-          today.year, DateTime.now().month, today.day + dateAddition),
+      firstDate:
+          DateTime(today.year, DateTime.now().month, today.day + dateAddition),
       builder: (BuildContext context, Widget child) {
         return Theme(
           data: ThemeData.dark(),
@@ -250,6 +611,7 @@ class _AddressContainerState extends State<AddressContainer> {
       });
     return date;
   }
+
   Future<void> _timeDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -266,10 +628,9 @@ class _AddressContainerState extends State<AddressContainer> {
   Widget _buildTimeDialog(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
 
-    var hintTextStyle =
-    textTheme.subtitle.copyWith(color: Colors.grey);
+    var hintTextStyle = textTheme.subtitle.copyWith(color: Colors.grey);
     var textFormFieldTextStyle =
-    textTheme.subtitle.copyWith(color: Colors.grey);
+        textTheme.subtitle.copyWith(color: Colors.grey);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(
@@ -306,136 +667,129 @@ class _AddressContainerState extends State<AddressContainer> {
               Spacer(flex: 1),
               Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: StreamBuilder(
-                    stream:
-                    FirebaseFirestore.instance.collection('Timeslots').snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snap) {
-                      if (snap.hasData && !snap.hasError && snap.data != null) {
-                        timeSlots.clear();
-                        for (int i = 0;
-                        i < snap.data.docs[0]['Timeslots'].length;
-                        i++) {
-                          DateTime dt = DateTime.now();
-
-                          if (dt.hour > 12) {
-                            String st =
-                            snap.data.docs[0]['Timeslots'][i];
-                            String s = '';
-                            for (int i = 0; i < st.length; i++) {
-                              if (st[i] != ' ')
-                                s = s + st[i];
-                              else
-                                break;
-                            }
-
-                            double d = double.parse(s);
-                            if (d > (dt.hour - 12) &&
-                                snap.data.docs[0]['Timeslots'][i]
-                                    .contains('PM')) {
-                              timeSlots.add(
-                                  snap.data.docs[0]['Timeslots'][i]);
-                            }
-                          } else {
-                            String st =
-                            snap.data.docs[0]['Timeslots'][i];
-                            String s = '';
-                            for (int i = 0; i < st.length; i++) {
-                              if (st[i] != ' ')
-                                s = s + st[i];
-                              else
-                                break;
-                            }
-
-                            double d = double.parse(s);
-                            if (d > (dt.hour) &&
-                                snap.data.docs[0]['Timeslots'][i]
-                                    .contains('AM')) {
-                              timeSlots.add(
-                                  snap.data.docs[0]['Timeslots'][i]);
-                            }
-                          }
-                        }
-                        if (timeSlots.length == 0) {
-                          selectedDate =
-                              selectedDate.add(new Duration(days: 1));
-                          for (int i = 0;
-                          i <
-                              snap.data.docs[0]['Timeslots']
-                                  .length;
-                          i++) {
-                            timeSlots.add(
-                                snap.data.docs[0]['Timeslots'][i]);
-                          }
-                        }
-
-                        if (selectedDate.difference(DateTime.now()).inDays >=
-                            1) {
-                          timeSlots.clear();
-                          for (int i = 0;
-                          i <
-                              snap.data.docs[0]['Timeslots']
-                                  .length;
-                          i++) {
-                            timeSlots.add(
-                                snap.data.docs[0]['Timeslots'][i]);
-                          }
-                        }
-                        return timeSlots.length != 0
-                            ? Column(
-                          children: [
-                            Container(
-                              width:
-                              MediaQuery.of(context).size.width * 0.9,
-                              child: DropdownButtonHideUnderline(
-                                child:
-                                new DropdownButtonFormField<String>(
-                                  validator: (value) => value == null
-                                      ? 'field required'
-                                      : null,
-                                  hint: Text('Time Slots'),
-                                  value: timeSlots[0],
-                                  items: timeSlots.map((String value) {
-                                    return new DropdownMenuItem<String>(
-                                      value: value,
-                                      child: new Text(value),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String newValue) {
-                                    setState(() {
-                                      selectedTime = newValue;
-
-//                      Navigator.pop(context);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                            : Container();
-                      } else {
-                        return Container();
-                      }
-                    }),
+                //TODO:Check
+//                 child: StreamBuilder(
+//                     stream: FirebaseFirestore.instance
+//                         .collection('Timeslots')
+//                         .snapshots(),
+//                     builder: (BuildContext context,
+//                         AsyncSnapshot<QuerySnapshot> snap) {
+//                       if (snap.hasData && !snap.hasError && snap.data != null) {
+//                         timeSlots.clear();
+//                         for (int i = 0;
+//                             i < snap.data.docs[0]['Timeslots'].length;
+//                             i++) {
+//                           DateTime dt = DateTime.now();
+//
+//                           if (dt.hour > 12) {
+//                             String st = snap.data.docs[0]['Timeslots'][i];
+//                             String s = '';
+//                             for (int i = 0; i < st.length; i++) {
+//                               if (st[i] != ' ')
+//                                 s = s + st[i];
+//                               else
+//                                 break;
+//                             }
+//
+//                             double d = double.parse(s);
+//                             if (d > (dt.hour - 12) &&
+//                                 snap.data.docs[0]['Timeslots'][i]
+//                                     .contains('PM')) {
+//                               timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
+//                             }
+//                           } else {
+//                             String st = snap.data.docs[0]['Timeslots'][i];
+//                             String s = '';
+//                             for (int i = 0; i < st.length; i++) {
+//                               if (st[i] != ' ')
+//                                 s = s + st[i];
+//                               else
+//                                 break;
+//                             }
+//
+//                             double d = double.parse(s);
+//                             if (d > (dt.hour) &&
+//                                 snap.data.docs[0]['Timeslots'][i]
+//                                     .contains('AM')) {
+//                               timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
+//                             }
+//                           }
+//                         }
+//                         if (timeSlots.length == 0) {
+//                           selectedDate =
+//                               selectedDate.add(new Duration(days: 1));
+//                           for (int i = 0;
+//                               i < snap.data.docs[0]['Timeslots'].length;
+//                               i++) {
+//                             timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
+//                           }
+//                         }
+//
+//                         if (selectedDate.difference(DateTime.now()).inDays >=
+//                             1) {
+//                           timeSlots.clear();
+//                           for (int i = 0;
+//                               i < snap.data.docs[0]['Timeslots'].length;
+//                               i++) {
+//                             timeSlots.add(snap.data.docs[0]['Timeslots'][i]);
+//                           }
+//                         }
+//                         return timeSlots.length != 0
+//                             ? Column(
+//                                 children: [
+//                                   Container(
+//                                     width:
+//                                         MediaQuery.of(context).size.width * 0.9,
+//                                     child: DropdownButtonHideUnderline(
+//                                       child:
+//                                           new DropdownButtonFormField<String>(
+//                                         validator: (value) => value == null
+//                                             ? 'field required'
+//                                             : null,
+//                                         hint: Text('Time Slots'),
+//                                         value: timeSlots[0],
+//                                         items: timeSlots.map((String value) {
+//                                           return new DropdownMenuItem<String>(
+//                                             value: value,
+//                                             child: new Text(value),
+//                                           );
+//                                         }).toList(),
+//                                         onChanged: (String newValue) {
+//                                           setState(() {
+//                                             selectedTime = newValue;
+//
+// //                      Navigator.pop(context);
+//                                           });
+//                                         },
+//                                       ),
+//                                     ),
+//                                   ),
+//                                 ],
+//                               )
+//                             : Container();
+//                       } else {
+//                         return Container();
+//                       }
+//                     }),
               ),
               Spacer(flex: 1),
               FlatButton(
-                  child:Container(
+                  child: Container(
                       width: 280,
-                      decoration:BoxDecoration( border: Border(
-                        top: BorderSide(
-                          width: 1,
-                          color: Colors.grey.withOpacity(0.2),),
-
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            width: 1,
+                            color: Colors.grey.withOpacity(0.2),
+                          ),
+                        ),
                       ),
-                      ),
-                      child:Center(child:  Padding(
-                        padding: const EdgeInsets.only(top:8.0),
-                        child: Text('Change',style:TextStyle(color:MColors.secondaryColor)),
-                      ))
-                  ),
-
+                      child: Center(
+                          child: Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text('Change',
+                            style: TextStyle(color: MColors.mainColor)),
+                      ))),
                   onPressed: () {
                     setState(() {});
                     Navigator.of(context).pop(true);
@@ -446,58 +800,31 @@ class _AddressContainerState extends State<AddressContainer> {
       ),
     );
   }
+
+  UserDataProfile currentUser;
+
   void areas() async {
-    savedemirate.clear();
-
-    await Firestore.instance
-        .collection('Emirates')
-        .getDocuments()
-        .then((value) {
-      for (int i = 0; i < value.documents.length; i++) {
-//        print(value.documents.length);
-
-        emiratesname.add(value.documents[i]['name']);
-        Emirates emi = Emirates(value.documents[i]['deliveryCharge'],
-            value.documents[i]['minOrderPrice'], value.documents[i]['name']);
-
-        savedemirate.add(emi);
-      }
+    Preference<String> cUser =
+        await preferences.getString('user', defaultValue: '');
+    await cUser.listen((value) {
+      // print('cUser');
+      // print(value);
+      if (value != '')
+        currentUser = UserDataProfile.fromMap(json.decode(value));
+      print(currentUser.token);
+      print(currentUser.id);
     });
-    emirate = savedemirate[0].name;
+  }
 
-
-
-
-          deliveryCharge = double.parse(savedemirate[0].deliverycharge);
-          minOrderPrice = double.parse(savedemirate[0].minorderprice);
-        }
-
-
-  void delivery() {
-    if (widget.address != '') {
-
-          for (int i = 0; i < savedemirate.length; i++) {
-            if (widget.savedEmirate == savedemirate[i].name) {
-              setState(() {
-                minOrderPrice = double.parse(savedemirate[i].minorderprice);
-                deliveryCharge = double.parse(savedemirate[i].deliverycharge);
-              });
-            }
-
-    }
-  }}
   var totalList;
   var total;
-
+  String deliverySelected = 'Normal';
+  bool redeemWallet = false;
+  Offer offerSelected =
+      Offer('', '', false, '', '', '', '', {'valued': 0}, false, {}, 0);
+  String status = '';
   @override
   Widget build(BuildContext context) {
-    UserDataAddressNotifier addressNotifier =
-        Provider.of<UserDataAddressNotifier>(context);
-    var addressList = addressNotifier.userDataAddressList;
-    UserDataCardNotifier cardNotifier =
-        Provider.of<UserDataCardNotifier>(context);
-    var cardList = cardNotifier.userDataCardList;
-delivery();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: MColors.primaryWhiteSmoke,
@@ -513,7 +840,7 @@ delivery();
         ),
         Text(
           "Check out",
-          style: boldFont(MColors.secondaryColor, 16.0),
+          style: boldFont(MColors.mainColor, 16.0),
         ),
         MColors.primaryWhiteSmoke,
         null,
@@ -522,1394 +849,90 @@ delivery();
       ),
       body: primaryContainer(
         SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          child: Column(
-            children: <Widget>[
-              Container(
-
-                child:Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          child: SvgPicture.asset(
-                            "assets/images/icons/Location.svg",
-                            color: MColors.secondaryColor,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 5.0,
-                        ),
-                        Expanded(
-                          child: Container(
-                            child: Text(
-                              "Shipping address",
-                              style: normalFont(MColors.textGrey, 20.0),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height:5.0),
-                    (widget.address=='')?Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-//                            Container(
-//                              width: MediaQuery.of(context).size.width * 0.31,
-//                              height: MediaQuery.of(context).size.height * 0.08,
-//                              child: OutlineButton(
-//                                highlightedBorderColor: Color(0xFF6b3600),
-//                                borderSide: BorderSide(
-//                                    color: (color1)
-//                                        ? Color(0xFF6b3600)
-//                                        : Colors.grey),
-//                                onPressed: () {
-//                                  setState(() {
-//                                    color1 = !color1;
-//                                    color2 = false;
-//                                    color3 = false;
-//                                    addresstype = 'Apartment';
-//                                  });
-//                                },
-//                                child: Padding(
-//                                  padding: EdgeInsets.only(top: 8.0),
-//                                  child: Column(
-//                                    children: [
-//                                      Image.asset('assets/images/apartment.png',
-//                                          height: 25),
-//                                      Text('Apartment',
-//                                          style: TextStyle(
-//                                              fontSize: MediaQuery.of(context)
-//                                                      .size
-//                                                      .height *
-//                                                  0.016,
-//                                              color: Colors.black,
-//                                              fontWeight: FontWeight.w300))
-//                                    ],
-//                                  ),
-//                                ),
-//                                disabledBorderColor: Colors.grey,
-//                                color: Color(0xFF6b3600),
-//                              ),
-//                            ),
-//                            SizedBox(
-//                                width:
-//                                    MediaQuery.of(context).size.width * 0.04),
-                          OutlineButton(
-                            highlightedBorderColor: MColors.secondaryColor,
-                            borderSide: BorderSide(
-                                color: (color2)
-                                    ? MColors.secondaryColor
-                                    : Colors.grey),
-                            onPressed: () {
-                              setState(() {
-                                color2 = !color2;
-                                color1 = false;
-                                color3 = false;
-                                addresstype = 'House';
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  Image.asset('assets/images/house.png',
-                                      height: 25),
-                                  Text('House/Apartment ',
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w300))
-                                ],
-                              ),
-                            ),
-                            disabledBorderColor: Colors.grey,
-                            color: MColors.secondaryColor,
-                          ),
-                          SizedBox(
-                              width:
-                              MediaQuery.of(context).size.width * 0.04),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.4,
-                            child: OutlineButton(
-                              highlightedBorderColor: MColors.secondaryColor,
-                              borderSide: BorderSide(
-                                  color: (color3)
-                                      ? MColors.secondaryColor
-                                      : Colors.grey),
-                              onPressed: () {
-                                setState(() {
-                                  color3 = !color3;
-                                  color2 = false;
-                                  color1 = false;
-                                  addresstype = 'Office';
-                                });
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    Image.asset('assets/images/office.png',
-                                        height: 25),
-                                    Text('Office',
-                                        style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.w300))
-                                  ],
-                                ),
-                              ),
-                              disabledBorderColor: Colors.grey,
-                              color: MColors.secondaryColor,
-                            ),
-                          )
-                        ],
-                      ),
-                    ):Container(child:Center(child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(widget.address),
-                    )))
-                  ],
-                )
-              ),
-              (addresstype == 'House')
-                  ? (widget.address=='')?Form(
-                key: _formkey,
-                child: Column(
-                  children: [
-                    StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection('Emirates')
-                            .snapshots(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<QuerySnapshot> snap) {
-                          if (snap.hasData &&
-                              !snap.hasError &&
-                              snap.data != null) {
-
-                            allemirates.clear();
-                            emiratesname.clear();
-                            for (int i = 0;
-                            i < snap.data.docs.length;
-                            i++) {
-//                                              print(snap.data.documents.length);
-                              emirate2 = snap.data.docs[0]
-                              ['name'];
-                              emiratesname.add(snap
-                                  .data.docs[i]['name']);
-                              Emirates emi = Emirates(
-                                  snap.data.docs[i]
-                                  ['deliveryCharge'],
-                                  snap.data.docs[i]
-                                  ['minOrderPrice'],
-                                  snap.data.docs[i]
-                                  ['name']);
-
-                              allemirates.add(emi);
-                            }
-
-                            return allemirates.length != 0
-                                ? Column(
-                              children: [
-                                Container(
-                                  width: MediaQuery.of(
-                                      context)
-                                      .size
-                                      .width *
-                                      0.9,
-                                  child:
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: DropdownButtonHideUnderline(
-                                      child:
-                                      new DropdownButtonFormField<
-                                          String>(
-                                        validator: (value) =>
-                                        value == null
-                                            ? 'field required'
-                                            : null,
-                                        hint: Text(
-                                            'Emirates'),
-                                        value:
-                                        emirate,
-                                        items: emiratesname
-                                            .map((String
-                                        value) {
-                                          return new DropdownMenuItem<
-                                              String>(
-                                            value: value,
-                                            child: new Text(
-                                                value),
-                                          );
-                                        }).toList(),
-                                        onChanged: (String
-                                        newValue) {
-                                          setState(() {
-                                            emirate =
-                                                newValue;
-                                            emirate2 =
-                                                newValue;
-                                            // print(emirate);
-                                            for (int i = 0;
-                                            i < allemirates.length;
-                                            i++) {
-                                              if (allemirates[i].name ==
-                                                  newValue) {
-                                                minOrderPrice =
-                                                   double.parse(allemirates[i].minorderprice);
-                                                deliveryCharge=double.parse(allemirates[i].deliverycharge);
-                                                print(allemirates[i]
-                                                    .minorderprice);
-                                                print(allemirates[i].name);
-                                              }
-                                            }
-
-
-//                      Navigator.pop(context);
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                                : Container();
-                          } else {
-                            return Container();
-                          }
-                        }),
-//                                    StreamBuilder(
-//                                        stream: Firestore.instance
-//                                            .collection('EmiratesArea')
-//                                            .where('Emirate',
-//                                                isEqualTo: emirate)
-//                                            .snapshots(),
-//                                        builder: (BuildContext context,
-//                                            AsyncSnapshot<QuerySnapshot> snap) {
-//
-//                                          if (snap.hasData &&
-//                                              !snap.hasError &&
-//                                              snap.data != null) {
-//                                            length2=0;
-////                                            final ProgressDialog pr =  ProgressDialog(context);
-////                                            pr.style(
-////                                                message: 'Please wait ..',
-////                                                backgroundColor: Colors.white,
-////                                                progressWidget: GFLoader(
-////                                                  type: GFLoaderType.ios,
-////                                                ),
-////                                                elevation: 10.0,
-////                                                insetAnimCurve: Curves.easeInOut,
-////                                                progress: 0.0,
-////                                                maxProgress: 100.0,
-////                                                progressTextStyle: TextStyle(
-////                                                    color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
-////                                                messageTextStyle: TextStyle(
-////                                                    color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
-////                                            pr.show();
-////                                            final ProgressDialog pr =  ProgressDialog(context);
-////                                            pr.style(
-////                                                message: 'Please wait ..',
-////                                                backgroundColor: Colors.white,
-////                                                progressWidget: GFLoader(
-////                                                  type: GFLoaderType.ios,
-////                                                ),
-////                                                elevation: 10.0,
-////                                                insetAnimCurve: Curves.easeInOut,
-////                                                progress: 0.0,
-////                                                maxProgress: 100.0,
-////                                                progressTextStyle: TextStyle(
-////                                                    color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
-////                                                messageTextStyle: TextStyle(
-////                                                    color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
-////                                            pr.show();
-//                                            allareas.clear();
-//                                            areaname.clear();
-//                                            index=0;
-////                                            length2=0;
-////                                             print('Streambuilder');
-//                                            for (int i = 0;
-//                                                i < snap.data.documents.length;
-//                                                i++) {
-//                                              length2=snap.data.documents.length;
-//                                              if(i==0){
-//                                                areaname.add('${snap.data.documents[i]['name']}');
-////                                                print('5555555555555${snap.data.documents[i]['name']}');
-//                                                EmiratesArea emi2=EmiratesArea( snap.data.documents[i]
-//                                                ['Emirate'],
-//                                                    snap.data.documents[i]
-//                                                    ['deliveryCharge'],
-//                                                    snap.data.documents[i]
-//                                                    ['minOrderPrice'],
-//                                                    '${snap.data.documents[i]['name']}',
-//                                                    snap.data.documents[i]
-//                                                    ['zone']);
-//                                                allareas.add(emi2);
-//                                              }
-////                                              print(snap.data.documents.length);
-//                                              for(int j=i+1;j<snap.data.documents.length;j++){
-//                                                if(snap.data.documents[i]['name']==snap.data.documents[j]['name']){
-//                                                  areaname.add(' ${snap.data.documents[j]['name']}');
-//                                                  // print('5555555555555${snap.data.documents[j]['name']}');
-//                                                  // print('Minorder${  snap.data.documents[j]
-//                                                  // ['minOrderPrice']}');
-//                                                  EmiratesArea emi2=EmiratesArea( snap.data.documents[j]
-//                                                  ['Emirate'],
-//                                                      snap.data.documents[j]
-//                                                      ['deliveryCharge'],
-//                                                      snap.data.documents[j]
-//                                                      ['minOrderPrice'],
-//                                                      ' ${snap.data.documents[j]['name']}',
-//                                                      snap.data.documents[j]
-//                                                      ['zone']);
-//                                                  allareas.add(emi2);
-//                                                  // print('length:${areaname.length}');
-//                                                  index=j;
-//                                                  // print('Index:${index}');
-//
-//
-//                                                }
-//
-//                                              }
-//
-//                                               if(index!=i){
-//                                                 areaname.add('${snap.data.documents[i]['name']}');
-////                                                print('5555555555555${snap.data.documents[i]['name']}');
-//                                                 EmiratesArea emi2=EmiratesArea( snap.data.documents[i]
-//                                                 ['Emirate'],
-//                                                     snap.data.documents[i]
-//                                                     ['deliveryCharge'],
-//                                                     snap.data.documents[i]
-//                                                     ['minOrderPrice'],
-//                                                     '${snap.data.documents[i]['name']}',
-//                                                     snap.data.documents[i]
-//                                                     ['zone']);
-//                                                 allareas.add(emi2);
-//                                               }
-//                                               }
-////                                            if(allareas.length==length2){
-////                                              pr.hide();
-////                                            }
-//
-//
-//
-//                                            areaname.add('Others');
-
-//                                            return areaname.length != 0
-
-//                                                : Container();
-//                                          } else {
-//                                            return Container();
-//                                          }
-//                                        }),
-//                                  Padding(
-//                                    padding: const EdgeInsets.all(8.0),
-//                                    child: TextFormField(
-//                                      decoration: InputDecoration(
-//                                          border: OutlineInputBorder(
-//                                              borderRadius:
-//                                                  BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          enabledBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                                  BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          focusedBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                                  BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Color(0xFF6b3600))),
-//                                          hintText: 'Name*'),
-//                                      controller: nameController,
-//                                    ),
-//                                  ),
-//                                  Padding(
-//                                    padding: const EdgeInsets.all(8.0),
-//                                    child: TextFormField(
-//                                      decoration: InputDecoration(
-//                                          border: OutlineInputBorder(
-//                                              borderRadius:
-//                                                  BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          enabledBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                                  BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          focusedBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                                  BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Color(0xFF6b3600))),
-//                                          hintText: 'Phone no*'),
-//                                      controller: phncontroller,
-//                                    ),
-//                                  ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value == null || value == '')
-                            return 'Required field';
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: MColors.secondaryColor)),
-                            hintText:
-                            'Building name/no.,floor,apartment or villa no.*'),
-                        controller: buildingController,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value == null || value == '')
-                            return 'Required field';
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: MColors.secondaryColor)),
-                            hintText: 'Street name*'),
-                        controller: flatcontroller,
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-//                                        validator: (value){if(value==null||value=='')return 'Required field';return null;},
-
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: MColors.secondaryColor)),
-                            hintText:
-                            'Additional Directions/Nearest Landmark'),
-                        maxLines: 2,
-                        controller: additionalcontroller,
-                      ),
-                    ),
-                  ],
+            physics: BouncingScrollPhysics(),
+            child: PreferenceBuilder<String>(
+                preference: preferences.getString(
+                  'status',
+                  defaultValue: '',
                 ),
-              ):Container()
-                  : (widget.address=='')?Form(
-                key: _formkey2,
-                child: Column(
-                  children: [
-                    StreamBuilder(
-                        stream: Firestore.instance
-                            .collection('Emirates')
-                            .snapshots(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<QuerySnapshot> snap) {
-                          if (snap.hasData &&
-                              !snap.hasError &&
-                              snap.data != null) {
-                            allemirates.clear();
-                            emiratesname.clear();
-                            for (int i = 0;
-                            i < snap.data.documents.length;
-                            i++) {
-                              // print(snap.data.documents.length);
-                              emirate2 = snap.data.documents[0]
-                              ['name'];
-                              emiratesname.add(snap
-                                  .data.documents[i]['name']);
-                              Emirates emi = Emirates(
-                                  snap.data.documents[i]
-                                  ['deliveryCharge'],
-                                  snap.data.documents[i]
-                                  ['minOrderPrice'],
-                                  snap.data.documents[i]
-                                  ['name']);
-                              allemirates.add(emi);
-                            }
-                            return allemirates.length != 0
-                                ? Column(
-                              children: [
-                                Container(
-                                  width: MediaQuery.of(
-                                      context)
-                                      .size
-                                      .width *
-                                      0.9,
-                                  child:
-                                  DropdownButtonHideUnderline(
-                                    child:
-                                    new DropdownButtonFormField<
-                                        String>(
-                                      validator: (value) =>
-                                      value == null
-                                          ? 'field required'
-                                          : null,
-                                      hint: Text(
-                                          'Emirates'),
-                                      value:
-                                      emirate,
-                                      items: emiratesname
-                                          .map((String
-                                      value) {
-                                        return new DropdownMenuItem<
-                                            String>(
-                                          value: value,
-                                          child: new Text(
-                                              value),
-                                        );
-                                      }).toList(),
-                                      onChanged: (String
-                                      newValue) {
-                                        setState(() {
-                                          emirate =
-                                              newValue;
-                                          emirate2 =
-                                              newValue;
-                                          // print(emirate);
-                                          for (int i = 0;
-                                          i < allemirates.length;
-                                          i++) {
-                                            if (allemirates[i].name ==
-                                                newValue) {
-                                              minOrderPrice =
-                                                  double.parse(allemirates[i].minorderprice);
-                                              deliveryCharge=double.parse(allemirates[i].deliverycharge);
-                                              print(allemirates[i]
-                                                  .minorderprice);
-                                              print(allemirates[i].name);
-                                            }
-                                          }
+                builder: (BuildContext context, String counter) {
+                  print(counter);
 
-
-//                      Navigator.pop(context);
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                                : Container();
-                          } else {
-                            return Container();
-                          }
-                        }),
-//                                    StreamBuilder(
-//                                        stream: Firestore.instance
-//                                            .collection('EmiratesArea')
-//                                            .where('Emirate',
-//                                                isEqualTo: emirate)
-//                                            .snapshots(),
-//                                        builder: (BuildContext context,
-//                                            AsyncSnapshot<QuerySnapshot> snap) {
-//                                          if (snap.hasData &&
-//                                              !snap.hasError &&
-//                                              snap.data != null) {
-//                                            allareas.clear();
-//                                            areaname.clear();
-//                                            index=0;
-//                                            for (int i = 0;
-//                                            i < snap.data.documents.length;
-//                                            i++) {
-//                                              // print(snap.data.documents.length);
-//                                              for(int j=i+1;j<snap.data.documents.length;j++){
-//                                                if(snap.data.documents[i]['name']==snap.data.documents[j]['name']){
-//                                                  areaname.add(' ${snap.data.documents[j]['name']}');
-//                                                  // print('5555555555555${snap.data.documents[j]['name']}');
-//                                                  // print('Minorder${  snap.data.documents[j]
-//                                                  // ['minOrderPrice']}');
-//                                                  EmiratesArea emi2=EmiratesArea( snap.data.documents[j]
-//                                                  ['Emirate'],
-//                                                      snap.data.documents[j]
-//                                                      ['deliveryCharge'],
-//                                                      snap.data.documents[j]
-//                                                      ['minOrderPrice'],
-//                                                      ' ${snap.data.documents[j]['name']}',
-//                                                      snap.data.documents[j]
-//                                                      ['zone']);
-//                                                  allareas.add(emi2);
-//                                                  // print('length:${areaname.length}');
-//                                                  index=j;
-//                                                  // print('Index:${index}');
-//
-//
-//                                                }
-//
-//                                              }
-//                                              if(i!=index){
-//                                                areaname.add('${snap.data.documents[i]['name']}');
-////                                                print('5555555555555${snap.data.documents[i]['name']}');
-//                                                EmiratesArea emi2=EmiratesArea( snap.data.documents[i]
-//                                                ['Emirate'],
-//                                                    snap.data.documents[i]
-//                                                    ['deliveryCharge'],
-//                                                    snap.data.documents[i]
-//                                                    ['minOrderPrice'],
-//                                                    '${snap.data.documents[i]['name']}',
-//                                                    snap.data.documents[i]
-//                                                    ['zone']);
-//                                                allareas.add(emi2);
-//                                              }
-//
-//                                            }
-//                                            areaname.add('Others');
-
-//                                                : Container();
-//                                          } else {
-//                                            return Container();
-//                                          }
-//                                        }),
-//                                  Padding(
-//                                  padding: const EdgeInsets.all(8.0),
-//                                    child: TextFormField(
-//                                      decoration: InputDecoration(
-//                                          border: OutlineInputBorder(
-//                                              borderRadius:
-//                                              BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          enabledBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                              BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          focusedBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                              BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Color(0xFF6b3600))),
-//                                          hintText: 'Name*'),
-//                                      controller: nameController,
-//                                    ),
-//                                  ),
-//                                  Padding(
-//                                    padding: const EdgeInsets.all(8.0),
-//                                    child: TextFormField(
-//                                      decoration: InputDecoration(
-//                                          border: OutlineInputBorder(
-//                                              borderRadius:
-//                                              BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          enabledBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                              BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Colors.grey)),
-//                                          focusedBorder: OutlineInputBorder(
-//                                              borderRadius:
-//                                              BorderRadius.circular(2),
-//                                              borderSide: BorderSide(
-//                                                  color: Color(0xFF6b3600))),
-//                                          hintText: 'Phone no*'),
-//                                      controller: phncontroller,
-//                                    ),
-//                                  ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value == null || value == '')
-                            return 'Required field';
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: MColors.secondaryColor)),
-                            hintText:
-                            'Building name/no.,floor*'),
-                        controller: buildingController,
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-//                                        validator: (value){if(value==null||value=='')return 'Required field';return null;},
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: Colors.grey)),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius:
-                                BorderRadius.circular(2),
-                                borderSide: BorderSide(
-                                    color: MColors.secondaryColor)),
-                            hintText:
-                            'Additional Directions/Nearest Landmark'),
-                        maxLines: 2,
-                        controller: additionalcontroller,
-                      ),
-                    ),
-                  ],
-                ),
-              ):Container(),
-
-              //Address container
-//              Container(
-//                child: FutureBuilder(
-//                  future: addressFuture,
-//                  builder: (c, s) {
-//                    switch (s.connectionState) {
-//                      case ConnectionState.active:
-//                        return Container(
-//                          height: MediaQuery.of(context).size.height / 7,
-//                          child: Center(
-//                              child: progressIndicator(MColors.secondaryColor)),
-//                        );
-//                        break;
-//                      case ConnectionState.done:
-//                        return addressList.isEmpty
-//                            ? noSavedAddress()
-//                            : savedAddressWidget();
-//                        break;
-//                      case ConnectionState.waiting:
-//                        return Container(
-//                          height: MediaQuery.of(context).size.height / 7,
-//                          child: Center(
-//                              child: progressIndicator(MColors.secondaryColor)),
-//                        );
-//                        break;
-//                      default:
-//                        return Container(
-//                          height: MediaQuery.of(context).size.height / 7,
-//                          child: Center(
-//                              child: progressIndicator(MColors.secondaryColor)),
-//                        );
-//                    }
-//                  },
-//                ),
-//              ),
-
-              SizedBox(
-                height: 20.0,
-              ),
-              Center(
-                child: InkWell(
-                onTap:(){
-                  Navigator.push(context,MaterialPageRoute(builder:(context)=>MyAddresses2(user.email)));
-                },
-                  child: Container(
-                   decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),color:MColors.secondaryColor),
-                    height:MediaQuery.of(context).size.height*0.05,
-                    width:MediaQuery.of(context).size.width*0.85,
-                    child:Center(child: Text('Saved Addresses',style:TextStyle(fontFamily: 'Poppins',color:Colors.white,fontSize: 13)))
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              //Cart summary container
-              Container(
-                child: cartSummary(cartList),
-              ),
-
-              SizedBox(
-                height: 20.0,
-              ),
-
-              //Payment Container
-              Container(
-                child: FutureBuilder(
-                  future: cardFuture,
-                  builder: (c, s) {
-                    switch (s.connectionState) {
-                      case ConnectionState.active:
-                        return Container(
-                          height: MediaQuery.of(context).size.height / 7,
+                  return counter == 'Loading'
+                      ? Container(
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
                           child: Center(
-                              child: progressIndicator(MColors.secondaryColor)),
+                              child: progressIndicator(MColors.primaryPurple)),
+                        )
+                      : Column(
+                          children: <Widget>[
+                            // Container(
+                            //     child: Column(
+                            //   children: [
+                            //     Row(
+                            //       children: [
+                            //         Container(
+                            //           child: SvgPicture.asset(
+                            //             "assets/images/icons/Location.svg",
+                            //             color: MColors.mainColor,
+                            //           ),
+                            //         ),
+                            //         SizedBox(
+                            //           width: 5.0,
+                            //         ),
+                            //         Expanded(
+                            //           child: Container(
+                            //             child: Text(
+                            //               "Shipping address",
+                            //               style: normalFont(MColors.textGrey, 20.0),
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ],
+                            // )),
+
+                            SizedBox(
+                              height: 20.0,
+                            ),
+
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            //Cart summary container
+                            Container(
+                              child: cartSummary(cartList),
+                            ),
+
+                            SizedBox(
+                              height: 20.0,
+                            ),
+
+                            Container(child: shippingAddress()),
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            offersAvailable(),
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            deliveryOptions(),
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            deliverySelected == 'Normal'
+                                ? dateSelected()
+                                : Container(),
+                            SizedBox(
+                              height: 20.0,
+                            ),
+                            Container(child: placeOrderButton(cartList))
+                          ],
                         );
-                        break;
-                      case ConnectionState.done:
-                        return cardList.isEmpty
-                            ? noPaymentMethod()
-                            : savedPaymentMethod();
-                        break;
-                      case ConnectionState.waiting:
-                        return Container(
-                          height: MediaQuery.of(context).size.height / 7,
-                          child: Center(
-                              child: progressIndicator(MColors.secondaryColor)),
-                        );
-                        break;
-                      default:
-                        return Container(
-                          height: MediaQuery.of(context).size.height / 7,
-                          child: Center(
-                              child: progressIndicator(MColors.secondaryColor)),
-                        );
-                    }
-                  },
-                ),
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-
-              //Payment Container
-              Container(
-                child:
-                     noDateSelected(),
-              ),
-              SizedBox(
-                height: 20.0,
-              ),
-              (addresstype=='House'&&widget.address=='')?Container(
-                color: MColors.primaryWhite,
-                padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-                child: primaryButtonPurple(
-                  Text(
-                    "Place order",
-                    style: boldFont(MColors.primaryWhite, 16.0),
-                  ),
-                      () async {
-                    final uEmail = await AuthService().getCurrentEmail();
-                    if(uEmail==null){
-                      print('Logged Out');
-                      showSimpleSnack(
-                        "Please login First",
-                        Icons.error_outline,
-                        Colors.red,
-                        _scaffoldKey,);
-                    }
-                    else if (!_formkey.currentState.validate() && cardList.isEmpty) {
-                      showSimpleSnack(
-                        'Please complete shipping and card details',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else if(minOrderPrice>(double.parse(total)+deliveryCharge)){
-                      showSimpleSnack(
-                        'The minimum order price is ${minOrderPrice.toString()}',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else {
-                      completeOrderFuture = _showLoadingDialog();
-                      var tt = selectedTime.split(' ').join().toLowerCase();
-                      String s = '';
-                      for (int i = 0; i < selectedTime.length; i++) {
-                        if (selectedTime[i] != ' ')
-                          s = s + selectedTime[i];
-                        else
-                          break;
-                      }
-
-                      dd = int.parse(s);
-                      if (selectedTime.contains('PM')) dd = dd + 12;
-                      //Adding cartItems to orders
-                      //Generating unique orderID
-                      var uuid = Uuid();
-                      var orderID = uuid.v4();
-                      completeOrderFuture =
-                      addresstype=='House'?addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}',DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),'Online',selectedTime):addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}',DateTime(
-                          selectedDate.year, selectedDate.month, selectedDate.day, dd),'Online',selectedTime);
-
-                      //Clearing the cart and going home
-                      completeOrderFuture.then((value) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        clearCartAfterPurchase();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          CupertinoPageRoute(
-                            builder: (_) => OrderPlaced('Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}'),
-                          ),
-                              (Route<dynamic> route) => false,
-                        );
-                      }).catchError((e) {
-                        print(e);
-                      });
-                    }
-                  },
-                ),
-              ):(widget.address=='')?Container(
-                color: MColors.primaryWhite,
-                padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-                child: primaryButtonPurple(
-                  Text(
-                    "Place order",
-                    style: boldFont(MColors.primaryWhite, 16.0),
-                  ),
-                      () async {
-                    final uEmail = await AuthService().getCurrentEmail();
-                    if(uEmail==null){
-                      print('Logged Out');
-                      showSimpleSnack(
-                        "Please login First",
-                        Icons.error_outline,
-                        Colors.red,
-                        _scaffoldKey,);
-                    }
-                    else if (!_formkey2.currentState.validate() && cardList.isEmpty) {
-                      showSimpleSnack(
-                        'Please complete shipping and card details',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else if(minOrderPrice>(double.parse(total)+deliveryCharge)){
-                      showSimpleSnack(
-                        'The minimum order price is ${minOrderPrice.toString()}',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }else {
-                      completeOrderFuture = _showLoadingDialog();
-                      var tt = selectedTime.split(' ').join().toLowerCase();
-                      String s = '';
-                      for (int i = 0; i < selectedTime.length; i++) {
-                        if (selectedTime[i] != ' ')
-                          s = s + selectedTime[i];
-                        else
-                          break;
-                      }
-
-                      dd = int.parse(s);
-                      if (selectedTime.contains('PM')) dd = dd + 12;
-                      //Adding cartItems to orders
-                      //Generating unique orderID
-                      var uuid = Uuid();
-                      var orderID = uuid.v4();
-                      completeOrderFuture =
-                      addresstype=='House'?addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}',DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),'Online',selectedTime):addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}',DateTime(
-                          selectedDate.year, selectedDate.month, selectedDate.day, dd),'Online',selectedTime);
-
-                      //Clearing the cart and going home
-                      completeOrderFuture.then((value) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        clearCartAfterPurchase();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          CupertinoPageRoute(
-                            builder: (_) => OrderPlaced('Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}'),
-                          ),
-                              (Route<dynamic> route) => false,
-                        );
-                      }).catchError((e) {
-                        print(e);
-                      });
-                    }
-                  },
-                ),
-              ):Container(
-                color: MColors.primaryWhite,
-                padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-                child: primaryButtonPurple(
-                  Text(
-                    "Place order",
-                    style: boldFont(MColors.primaryWhite, 16.0),
-                  ),
-                      () async {
-                    final uEmail = await AuthService().getCurrentEmail();
-                    if(uEmail==null){
-                      print('Logged Out');
-                      showSimpleSnack(
-                        "Please login First",
-                        Icons.error_outline,
-                        Colors.red,
-                        _scaffoldKey,);
-                    }
-                    else if ( cardList.isEmpty) {
-                      showSimpleSnack(
-                        'Please complete  card details',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else if(minOrderPrice>(double.parse(total)+deliveryCharge)){
-                      showSimpleSnack(
-                        'The minimum order price is ${minOrderPrice.toString()}',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }else {
-                      completeOrderFuture = _showLoadingDialog();
-                      var tt = selectedTime.split(' ').join().toLowerCase();
-                      String s = '';
-                      for (int i = 0; i < selectedTime.length; i++) {
-                        if (selectedTime[i] != ' ')
-                          s = s + selectedTime[i];
-                        else
-                          break;
-                      }
-
-                      dd = int.parse(s);
-                      if (selectedTime.contains('PM')) dd = dd + 12;
-                      //Adding cartItems to orders
-                      //Generating unique orderID
-                      var uuid = Uuid();
-                      var orderID = uuid.v4();
-                      completeOrderFuture =
-                      addresstype=='House'?addCartToOrders(cartList,orderID,widget.address,DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),'Online',selectedTime):addCartToOrders(cartList,orderID,widget.address,DateTime(
-                          selectedDate.year, selectedDate.month, selectedDate.day, dd),'Online',selectedTime);
-
-                      //Clearing the cart and going home
-                      completeOrderFuture.then((value) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        clearCartAfterPurchase();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          CupertinoPageRoute(
-                            builder: (_) => OrderPlaced(widget.address),
-                          ),
-                              (Route<dynamic> route) => false,
-                        );
-                      }).catchError((e) {
-                        print(e);
-                      });
-                    }
-                  },
-                ),
-              ),
-              (addresstype=='House'&&widget.address=='')?Container(
-                color: MColors.primaryWhite,
-                padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-                child: primaryButtonPurple(
-                  Text(
-                    "Card on Delivery",
-                    style: boldFont(MColors.primaryWhite, 16.0),
-                  ),
-                      () async {
-                    final uEmail = await AuthService().getCurrentEmail();
-                    if(uEmail==null){
-                      print('Logged Out');
-                      showSimpleSnack(
-                        "Please login First",
-                        Icons.error_outline,
-                        Colors.red,
-                        _scaffoldKey,);
-                    }
-                    else if (!_formkey.currentState.validate() ) {
-                      showSimpleSnack(
-                        'Please complete shipping  details',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else if(minOrderPrice>(double.parse(total)+deliveryCharge)){
-                      showSimpleSnack(
-                        'The minimum order price is ${minOrderPrice.toString()}',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }else {
-                      completeOrderFuture = _showLoadingDialog();
-                      var tt = selectedTime.split(' ').join().toLowerCase();
-                      String s = '';
-                      for (int i = 0; i < selectedTime.length; i++) {
-                        if (selectedTime[i] != ' ')
-                          s = s + selectedTime[i];
-                        else
-                          break;
-                      }
-
-                      dd = int.parse(s);
-                      if (selectedTime.contains('PM')) dd = dd + 12;
-                      //Adding cartItems to orders
-                      //Generating unique orderID
-                      var uuid = Uuid();
-                      var orderID = uuid.v4();
-                      completeOrderFuture =
-                      addresstype=='House'?addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}',DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),'Card on Delivery',selectedTime,):addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}',DateTime(
-                          selectedDate.year, selectedDate.month, selectedDate.day, dd),'Card on Delivery',selectedTime);
-
-                      //Clearing the cart and going home
-                      completeOrderFuture.then((value) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        clearCartAfterPurchase();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          CupertinoPageRoute(
-                            builder: (_) => OrderPlaced(addresstype=='House'?'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}':'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}'),
-                          ),
-                              (Route<dynamic> route) => false,
-                        );
-                      }).catchError((e) {
-                        print(e);
-                      });
-                    }
-                  },
-                ),
-              ):(widget.address=='')?Container(
-                color: MColors.primaryWhite,
-                padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-                child: primaryButtonPurple(
-                  Text(
-                    "Card on Delivery",
-                    style: boldFont(MColors.primaryWhite, 16.0),
-                  ),
-                      () async {
-                    final uEmail = await AuthService().getCurrentEmail();
-                    if(uEmail==null){
-                      print('Logged Out');
-                      showSimpleSnack(
-                        "Please login First",
-                        Icons.error_outline,
-                        Colors.red,
-                        _scaffoldKey,);
-                    }
-                    else if (!_formkey2.currentState.validate() ) {
-                      showSimpleSnack(
-                        'Please complete shipping  details',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else if(minOrderPrice>(double.parse(total)+deliveryCharge)){
-                      showSimpleSnack(
-                        'The minimum order price is ${minOrderPrice.toString()}',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }else {
-                      completeOrderFuture = _showLoadingDialog();
-                      var tt = selectedTime.split(' ').join().toLowerCase();
-                      String s = '';
-                      for (int i = 0; i < selectedTime.length; i++) {
-                        if (selectedTime[i] != ' ')
-                          s = s + selectedTime[i];
-                        else
-                          break;
-                      }
-
-                      dd = int.parse(s);
-                      if (selectedTime.contains('PM')) dd = dd + 12;
-                      //Adding cartItems to orders
-                      //Generating unique orderID
-                      var uuid = Uuid();
-                      var orderID = uuid.v4();
-                      completeOrderFuture =
-                      addresstype=='House'?addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}',DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),'Card on Delivery',selectedTime):addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}',DateTime(
-                          selectedDate.year, selectedDate.month, selectedDate.day, dd),'Card on Delivery',selectedTime);
-
-                      //Clearing the cart and going home
-                      completeOrderFuture.then((value) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        clearCartAfterPurchase();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          CupertinoPageRoute(
-                            builder: (_) => OrderPlaced('Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}'),
-                          ),
-                              (Route<dynamic> route) => false,
-                        );
-                      }).catchError((e) {
-                        print(e);
-                      });
-                    }
-                  },
-                ),
-              ):Container(
-                color: MColors.primaryWhite,
-                padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-                child: primaryButtonPurple(
-                  Text(
-                    "Card on Delivery",
-                    style: boldFont(MColors.primaryWhite, 16.0),
-                  ),
-                      () async {
-                    final uEmail = await AuthService().getCurrentEmail();
-                    if(uEmail==null){
-                      print('Logged Out');
-                      showSimpleSnack(
-                        "Please login First",
-                        Icons.error_outline,
-                        Colors.red,
-                        _scaffoldKey,);
-                    }
-                    else if (minOrderPrice>double.parse(total) ) {
-                      showSimpleSnack(
-                        'Please complete shipping  details',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }
-                    else if(minOrderPrice>(double.parse(total)+deliveryCharge)){
-                      showSimpleSnack(
-                        'The minimum order price is ${minOrderPrice.toString()}',
-                        Icons.error_outline,
-                        Colors.amber,
-                        _scaffoldKey,
-                      );
-                    }else {
-                      completeOrderFuture = _showLoadingDialog();
-                      var tt = selectedTime.split(' ').join().toLowerCase();
-                      String s = '';
-                      for (int i = 0; i < selectedTime.length; i++) {
-                        if (selectedTime[i] != ' ')
-                          s = s + selectedTime[i];
-                        else
-                          break;
-                      }
-
-                      dd = int.parse(s);
-                      if (selectedTime.contains('PM')) dd = dd + 12;
-                      //Adding cartItems to orders
-                      //Generating unique orderID
-                      var uuid = Uuid();
-                      var orderID = uuid.v4();
-                      completeOrderFuture =
-                      addresstype=='House'?addCartToOrders(cartList,orderID,widget.address,DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),'Card on Delivery',selectedTime):addCartToOrders(cartList,orderID,widget.address,DateTime(
-                          selectedDate.year, selectedDate.month, selectedDate.day, dd),'Card on Delivery',selectedTime);
-
-                      //Clearing the cart and going home
-                      completeOrderFuture.then((value) {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        clearCartAfterPurchase();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          CupertinoPageRoute(
-                            builder: (_) => OrderPlaced(widget.address),
-                          ),
-                              (Route<dynamic> route) => false,
-                        );
-                      }).catchError((e) {
-                        print(e);
-                      });
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+                })),
       ),
-//      bottomNavigationBar: Container(
-//        color: MColors.primaryWhite,
-//        padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 15.0),
-//        child: primaryButtonPurple(
-//          Text(
-//            "Place order",
-//            style: boldFont(MColors.primaryWhite, 16.0),
-//          ),
-//          () async {
-//            final uEmail = await AuthService().getCurrentEmail();
-//            if(uEmail==null){
-//              print('Logged Out');
-//    showSimpleSnack(
-//      "Please login First",
-//      Icons.error_outline,
-//      Colors.red,
-//      _scaffoldKey,);
-//            }
-//            else if (_formkey.currentState.validate() && cardList.isEmpty) {
-//              showSimpleSnack(
-//                'Please complete shipping and card details',
-//                Icons.error_outline,
-//                Colors.amber,
-//                _scaffoldKey,
-//              );
-//            } else {
-//              completeOrderFuture = _showLoadingDialog();
-//              var tt = selectedTime.split(' ').join().toLowerCase();
-//              String s = '';
-//              for (int i = 0; i < selectedTime.length; i++) {
-//                if (selectedTime[i] != ' ')
-//                  s = s + selectedTime[i];
-//                else
-//                  break;
-//              }
-//
-//              dd = int.parse(s);
-//              if (selectedTime.contains('PM')) dd = dd + 12;
-//              //Adding cartItems to orders
-//              //Generating unique orderID
-//              var uuid = Uuid();
-//              var orderID = uuid.v4();
-//              completeOrderFuture =
-//              addresstype=='House'?addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}',DateTime(selectedDate.year, selectedDate.month, selectedDate.day, dd),selectedTime,'Online'):addCartToOrders(cartList,orderID,'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}',DateTime(
-//                  selectedDate.year, selectedDate.month, selectedDate.day, dd),selectedTime,'Online');
-//
-//              //Clearing the cart and going home
-//              completeOrderFuture.then((value) {
-//                Navigator.of(context, rootNavigator: true).pop();
-//                clearCartAfterPurchase();
-//                Navigator.of(context).pushAndRemoveUntil(
-//                  CupertinoPageRoute(
-//                    builder: (_) => OrderPlaced(addresstype=='House'?'Emirate:${emirate},${buildingController.text},Street:${flatcontroller.text},Additional Directions :${additionalcontroller.text}':'Emirate:${emirate},${buildingController.text},Additional Directions:${additionalcontroller.text}'),
-//                  ),
-//                  (Route<dynamic> route) => false,
-//                );
-//              }).catchError((e) {
-//                print(e);
-//              });
-//            }
-//          },
-//        ),
-//      ),
     );
   }
 
@@ -1937,7 +960,7 @@ delivery();
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Location.svg",
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(
@@ -1959,26 +982,26 @@ delivery();
                     UserDataAddressNotifier addressNotifier =
                         Provider.of<UserDataAddressNotifier>(context,
                             listen: false);
-                    var navigationResult = await Navigator.of(context).push(
-                      CupertinoPageRoute(
-                        builder: (_) => Address(address, addressList),
-                      ),
-                    );
-                    if (navigationResult == true) {
-                      setState(() {
-                        getAddress(addressNotifier);
-                      });
-                      showSimpleSnack(
-                        "Address has been updated",
-                        Icons.check_circle_outline,
-                        Colors.green,
-                        _scaffoldKey,
-                      );
-                    }
+                    // var navigationResult = await Navigator.of(context).push(
+                    //   CupertinoPageRoute(
+                    //     builder: (_) => AddressScreen(address, addressList),
+                    //   ),
+                    // );
+                    // if (navigationResult == true) {
+                    //   setState(() {
+                    //     getAddress(addressNotifier);
+                    //   });
+                    //   showSimpleSnack(
+                    //     "Address has been updated",
+                    //     Icons.check_circle_outline,
+                    //     Colors.green,
+                    //     _scaffoldKey,
+                    //   );
+                    // }
                   },
                   child: Text(
                     "Change",
-                    style: boldFont(MColors.secondaryColor, 14.0),
+                    style: boldFont(MColors.mainColor, 14.0),
                   ),
                 ),
               ),
@@ -1991,14 +1014,14 @@ delivery();
               children: <Widget>[
                 Container(
                   child: Text(
-                    address.fullLegalName,
+                    address.address,
                     style: boldFont(MColors.textDark, 16.0),
                   ),
                 ),
                 SizedBox(height: 5.0),
                 Container(
                   child: Text(
-                    address.addressNumber + ", " + address.addressLocation,
+                    address.address + ", " + address.city,
                     style: normalFont(MColors.textGrey, 14.0),
                   ),
                 ),
@@ -2029,7 +1052,7 @@ delivery();
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Location.svg",
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(width: 5.0),
@@ -2056,13 +1079,13 @@ delivery();
           SizedBox(height: 10.0),
           primaryButtonWhiteSmoke(
             Text("Add a shipping address",
-                style: boldFont(MColors.secondaryColor, 16.0)),
+                style: boldFont(MColors.mainColor, 16.0)),
             () async {
               UserDataAddressNotifier addressNotifier =
                   Provider.of<UserDataAddressNotifier>(context, listen: false);
               var navigationResult = await Navigator.of(context).push(
                 CupertinoPageRoute(
-                  builder: (_) => Address(null, null),
+                  builder: (_) => AddressScreen(null, null),
                 ),
               );
               if (navigationResult == true) {
@@ -2083,11 +1106,12 @@ delivery();
     );
   }
 
-  Widget cartSummary(cartList) {
-    var totalList = cartList.map((e) => e.totalPrice);
+  Widget cartSummary(List<Cart> cartList) {
+    var totalList = cartList.map((e) => e.selling_price * e.cartQuantity);
     var total = totalList.isEmpty
         ? 0.0
-        : (totalList.reduce((sum, element) => sum + element)+deliveryCharge).toStringAsFixed(2);
+        : (totalList.reduce((sum, element) => sum + element) + deliveryCharge)
+            .toStringAsFixed(2);
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -2106,7 +1130,7 @@ delivery();
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Bag.svg",
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(
@@ -2129,7 +1153,7 @@ delivery();
                   },
                   child: Text(
                     "See all",
-                    style: boldFont(MColors.secondaryColor, 14.0),
+                    style: boldFont(MColors.mainColor, 14.0),
                   ),
                 ),
               ),
@@ -2137,13 +1161,13 @@ delivery();
           ),
           SizedBox(height: 5.0),
           Container(
-            padding: EdgeInsets.only(left: 25.0),
+            // padding: EdgeInsets.only(left: 25.0),
             child: ListView.builder(
               physics: BouncingScrollPhysics(),
               itemCount: cartList.length < 7 ? cartList.length : 7,
               shrinkWrap: true,
               itemBuilder: (context, i) {
-                var cartItem = cartList[i];
+                Cart cartItem = cartList[i];
 
                 return Container(
                   padding: EdgeInsets.symmetric(vertical: 4.0),
@@ -2159,13 +1183,13 @@ delivery();
                       ),
                       Spacer(),
                       Container(
-                      width: MediaQuery.of(context).size.width / 5.5,
-
+                        width: MediaQuery.of(context).size.width / 4.5,
                         child: Text(
-
-                            "AED " + cartItem.totalPrice.toStringAsFixed(2),
-                            maxLines:1,
-                            overflow:TextOverflow.ellipsis,
+                            "Rs. " +
+                                (cartItem.selling_price * cartItem.cartQuantity)
+                                    .toStringAsFixed(2),
+                            maxLines: 1,
+                            // overflow: TextOverflow.ellipsis,
                             style: boldFont(MColors.textDark, 12.0)),
                       ),
                     ],
@@ -2176,38 +1200,130 @@ delivery();
           ),
           SizedBox(height: 5.0),
           Container(
-            padding: EdgeInsets.only(left: 25),
+            // padding: EdgeInsets.only(left: 25),
             child: Row(
               children: <Widget>[
-                Text("Delivery Charge", style: boldFont(MColors.secondaryColor, 16.0)),
+                Text("Delivery Charge",
+                    style: boldFont(MColors.mainColor, 14.0)),
                 Spacer(),
                 Container(
-    width: MediaQuery.of(context).size.width / 4,
-                  child: Text("AED " + deliveryCharge.toString(),
+                  width: MediaQuery.of(context).size.width / 4.5,
+                  child: Text("Rs. " + deliveryCharge.toString(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: boldFont(MColors.secondaryColor, 14.0)),
+                      style: boldFont(MColors.mainColor, 14.0)),
                 ),
               ],
             ),
           ),
           SizedBox(height: 5.0),
+          (offerSelected.id != '')
+              ? Container(
+                  // padding: EdgeInsets.only(left: 25),
+                  child: Row(
+                    children: <Widget>[
+                      Text("Offer Applied",
+                          style: boldFont(MColors.mainColor, 16.0)),
+                      Spacer(),
+                      Container(
+                        width: MediaQuery.of(context).size.width / 4.5,
+                        child: Text(offerSelected.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: boldFont(MColors.mainColor, 14.0)),
+                      ),
+                    ],
+                  ),
+                )
+              : Container(),
+          (offerSelected.id != '') ? SizedBox(height: 5.0) : Container(),
+          (offerSelected.id != '')
+              ? Container(
+                  // padding: EdgeInsets.only(left: 25),
+                  child: Row(
+                    children: <Widget>[
+                      Text("Discount Applied",
+                          style: boldFont(MColors.mainColor, 16.0)),
+                      Spacer(),
+                      Container(
+                        width: MediaQuery.of(context).size.width / 4.5,
+                        child: Text(
+                            // (
+                            // (offerSelected.discount['valued'] * total) /
+                            //     total *
+                            //     100)
+                            'Rs. ${(double.parse(total) * (offerSelected.discount["valued"]) / 100)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: boldFont(MColors.mainColor, 14.0)),
+                      ),
+                    ],
+                  ),
+                )
+              : Container(),
+          (offerSelected.id != '') ? SizedBox(height: 5.0) : Container(),
           Container(
-            padding: EdgeInsets.only(left: 25),
+            // padding: EdgeInsets.only(left: 25),
             child: Row(
               children: <Widget>[
-                Text("Total", style: boldFont(MColors.secondaryColor, 14.0)),
+                Text("Total", style: boldFont(MColors.mainColor, 16.0)),
                 Spacer(),
                 Container(
-                    width: MediaQuery.of(context).size.width / 4,
-                  child: Text("AED " + total,
+                  width: MediaQuery.of(context).size.width / 4.5,
+                  child: Text(
+                      "Rs. " +
+                          (double.parse(total) -
+                                  (double.parse(total) *
+                                      (offerSelected.discount["valued"]) /
+                                      100))
+                              .toString(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: boldFont(MColors.secondaryColor, 14.0)),
+                      style: boldFont(MColors.mainColor, 14.0)),
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget placeOrderButton(List<Cart> cartList) {
+    var totalList = cartList.map((e) => e.selling_price * e.cartQuantity);
+    var total = totalList.isEmpty
+        ? 0.0
+        : (totalList.reduce((sum, element) => sum + element) + deliveryCharge)
+            .toStringAsFixed(2);
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: MColors.primaryWhite,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          primaryButtonPurple(
+              Text(
+                'Place Order',
+                style: boldFont(Colors.white, 16),
+              ), () async {
+            if (currentUser != null)
+              _showConfirmModalSheet(
+                  cartList, double.parse(total.toString()), offerSelected);
+            else
+              showSimpleSnack(
+                "Login to place an order",
+                Icons.warning_amber_outlined,
+                Colors.amber,
+                _scaffoldKey,
+              );
+          }),
         ],
       ),
     );
@@ -2237,7 +1353,7 @@ delivery();
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Wallet.svg",
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(
@@ -2277,8 +1393,8 @@ delivery();
                       );
                     }
                   },
-                  child: Text("Change",
-                      style: boldFont(MColors.secondaryColor, 14.0)),
+                  child:
+                      Text("Change", style: boldFont(MColors.mainColor, 14.0)),
                 ),
               ),
             ],
@@ -2344,7 +1460,7 @@ delivery();
               Container(
                 child: SvgPicture.asset(
                   "assets/images/icons/Wallet.svg",
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(
@@ -2371,7 +1487,7 @@ delivery();
           SizedBox(height: 10.0),
           primaryButtonWhiteSmoke(
             Text("Add a payment card",
-                style: boldFont(MColors.secondaryColor, 16.0)),
+                style: boldFont(MColors.mainColor, 16.0)),
             () async {
               var navigationResult = await Navigator.of(context).push(
                 CupertinoPageRoute(
@@ -2419,7 +1535,7 @@ delivery();
               Container(
                 child: Icon(
                   Icons.date_range_rounded,
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(
@@ -2437,22 +1553,22 @@ delivery();
           ),
           SizedBox(height: 10.0),
           Container(
-            padding: const EdgeInsets.only(left: 25.0),
+            // padding: const EdgeInsets.only(left: 25.0),
             child: Text(
-              "Your product will be delivered on",
-              style: normalFont(MColors.textGrey, 16.0),
+              "Select a delivery date",
+              style: boldFont(MColors.textDark, 16.0),
             ),
           ),
           SizedBox(height: 10.0),
           primaryButtonWhiteSmoke(
               Text(
                   '${date.day.toString()}-${date.month.toString()}-${date.year.toString()}',
-                  style: boldFont(MColors.secondaryColor, 16.0)),
+                  style: boldFont(MColors.mainColor, 16.0)),
               _pickTime),
           SizedBox(height: 10.0),
           Text(
-            'Selected products can only be delivered after 15 days',
-            style: boldFont(MColors.textDark, 16.0),
+            'You can cancel your order before 12:00 AM ${date.day.toString()}-${date.month.toString()}-${date.year.toString()}',
+            style: normalFont(MColors.textGrey, 14.0),
           ),
         ],
       ),
@@ -2482,7 +1598,7 @@ delivery();
               Container(
                 child: Icon(
                   Icons.date_range_rounded,
-                  color: MColors.secondaryColor,
+                  color: MColors.mainColor,
                 ),
               ),
               SizedBox(
@@ -2508,22 +1624,18 @@ delivery();
           ),
           SizedBox(height: 10.0),
           Card(
-
             elevation: 5,
             child: Container(
-              height:
-              MediaQuery.of(context).size.height * 0.05,
+              height: MediaQuery.of(context).size.height * 0.05,
               decoration: BoxDecoration(
-                  border: Border.all(
-                      color: MColors.secondaryColor),
-                  borderRadius:
-                  BorderRadius.all(Radius.zero)),
+                  border: Border.all(color: MColors.mainColor),
+                  borderRadius: BorderRadius.all(Radius.zero)),
               child: Row(
                 children: [
                   Text('    Next Delivery: '),
                   Icon(
                     Icons.delivery_dining,
-                    color: MColors.secondaryColor,
+                    color: MColors.mainColor,
                   ),
                   SizedBox(width: 5),
                   InkWell(
@@ -2536,20 +1648,18 @@ delivery();
                       },
                       child: selectedDate != null
                           ? Text(
-                        '${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()} ',
-                        style: TextStyle(
-                            color: Color(0xFF6b3600)),
-                      )
+                              '${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()} ',
+                              style: TextStyle(color: Color(0xFF6b3600)),
+                            )
                           : Text(
-                        '${date.day.toString()}/${date.month.toString()}/${selectedDate.year.toString()} ',
-                        style: TextStyle(
-                            color: Color(0xFF6b3600)),
-                      )),
+                              '${date.day.toString()}/${date.month.toString()}/${selectedDate.year.toString()} ',
+                              style: TextStyle(color: Color(0xFF6b3600)),
+                            )),
                   Text(' at '),
                   Icon(
                     Icons.timer,
                     size: 19,
-                    color: MColors.secondaryColor,
+                    color: MColors.mainColor,
                   ),
                   SizedBox(width: 5),
                   InkWell(
@@ -2558,8 +1668,7 @@ delivery();
                       },
                       child: Text(
                         '$selectedTime ',
-                        style: TextStyle(
-                            color: Color(0xFF6b3600)),
+                        style: TextStyle(color: Color(0xFF6b3600)),
                       )),
 //                        InkWell(
 //                            onTap: () {
@@ -2572,7 +1681,7 @@ delivery();
           ),
 //          primaryButtonWhiteSmoke(
 //              Text("Delivery Date",
-//                  style: boldFont(MColors.secondaryColor, 16.0)),
+//                  style: boldFont(MColors.mainColor, 16.0)),
 //              _pickTime),
           SizedBox(height: 10.0),
           Text(
@@ -2584,8 +1693,619 @@ delivery();
     );
   }
 
+  Widget shippingAddress() {
+    UserDataCardNotifier cardNotifier =
+        Provider.of<UserDataCardNotifier>(context);
+    var cardList = cardNotifier.userDataCardList;
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: MColors.primaryWhite,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(
+            children: [
+              Container(
+                child: SvgPicture.asset(
+                  "assets/images/icons/Location.svg",
+                  color: MColors.mainColor,
+                ),
+              ),
+              SizedBox(
+                width: 5.0,
+              ),
+              Expanded(
+                child: Container(
+                  child: Text(
+                    "Shipping address",
+                    style: normalFont(MColors.textGrey, 14.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          Container(
+            // padding: const EdgeInsets.only(left: 25.0),
+            child: Text(
+              "Enter a new address",
+              style: boldFont(MColors.textDark, 16.0),
+            ),
+          ),
+          SizedBox(height: 10.0),
+          Form(
+            key: _formkey,
+            child: Column(
+              children: [
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value == '') return 'Required field';
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: MColors.mainColor)),
+                    hintText: 'Full Address*',
+                  ),
+                  controller: addressController,
+                  style: normalFont(MColors.mainColor, 14),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value == '') return 'Required field';
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(15.0),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: MColors.mainColor)),
+                      hintText: 'City*'),
+                  style: normalFont(MColors.mainColor, 14),
+                  controller: cityController,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value == '') return 'Required field';
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(15.0),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: MColors.mainColor)),
+                      hintText: 'Zip Code*'),
+                  keyboardType: TextInputType.phone,
+                  // maxLines: 2,
+                  controller: zipController,
+                  style: normalFont(MColors.mainColor, 14),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.0),
+          Container(
+            width: MediaQuery.of(context).size.width - 40,
+            child: primaryButtonPurple(
+              Text(
+                "View Saved Addresses",
+                style: boldFont(MColors.primaryWhite, 14.0),
+              ),
+              () async {
+                List<Map> cartProducts = [];
+                cartList.forEach((element) {
+                  cartProducts.add({
+                    'product': element.id,
+                    'name': element.name,
+                    'price': element.selling_price,
+                    'count': element.cartQuantity,
+                    'imgURL': element.image,
+                    'quantity': element.quantity
+                  });
+                });
+                var url = Uri.parse(
+                    'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+                String encodedOrderData = json.encode({
+                  "order": {
+                    "products": cartProducts,
+                    "transaction_id": "ABC789",
+                    "amount": total.toInt(),
+                    "address": {
+                      "address": addressController.text,
+                      "city": cityController.text,
+                      "zip": zipController.text
+                    },
+                    "user": currentUser.id.toString(),
+                    "orderType": "COD",
+                    "deliveryType": deliverySelected,
+                    "expectedDelivery": date.toString(),
+                    "tax": (total * 0.2).round(),
+                    "deliveryCharge": deliverySelected == 'Normal' ? 40 : 0,
+                    "offPrice": 0
+                  }
+                });
+                var response = await http.post(url,
+                    headers: {
+                      'Authorization': 'Bearer ${currentUser.token.toString()}',
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json'
+                    },
+                    body: encodedOrderData);
+                var data = json.decode(response.body);
+                if (data['status'] != null) {
+                  List<Cart> emptyCart = [];
+                  String encodedData = Cart.encode(emptyCart);
+                  preferences.setString('cart', encodedData);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool showOffers = false;
+  Widget offersAvailable() {
+    var totalList = cartList.map((e) => e.selling_price * e.cartQuantity);
+    var total = totalList.isEmpty
+        ? 0.0
+        : (totalList.reduce((sum, element) => sum + element) + deliveryCharge);
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: MColors.primaryWhite,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: MediaQuery.of(context).size.width - 50,
+            child: Row(
+              children: <Widget>[
+                Container(
+                  child: Icon(
+                    Icons.local_offer_outlined,
+                    color: MColors.mainColor,
+                  ),
+                ),
+                SizedBox(
+                  width: 5.0,
+                ),
+                Container(
+                  child: Text(
+                    "Offers Available",
+                    style: normalFont(MColors.textGrey, 14.0),
+                  ),
+                ),
+                Spacer(),
+                // InkWell(
+                //   onTap: () {
+                //     if (showOffers == false)
+                //       setState(() {
+                //         showOffers = true;
+                //       });
+                //     else
+                //       setState(() {
+                //         showOffers = false;
+                //       });
+                //   },
+                //   child: Container(
+                //     child: Text(
+                //       "See More",
+                //       style: normalFont(MColors.textGrey, 14.0),
+                //     ),
+                //   ),
+                // ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.0),
+          Container(
+              height:
+                  // showOffers == true ?
+                  offersListIUniv.length * 80.0
+              // : 240.0
+              ,
+              child:
+                  // showOffers == true
+                  //     ?
+                  ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: offersListIUniv.length,
+                      itemBuilder: (context, i) {
+                        return InkWell(
+                          onTap: () {
+                            int count = 0;
+                            currentUser.copounsused.forEach((element) {
+                              if (element == offersListIUniv[i].title)
+                                count += 1;
+                            });
+                            if (count < offersListIUniv[i].perUserLimit) {
+                              if (total <=
+                                  offersListIUniv[i].discount['minOrder'])
+                                showSimpleSnack(
+                                    'The order total is less than the minimum order value',
+                                    Icons.warning_amber_outlined,
+                                    Colors.amber,
+                                    _scaffoldKey);
+                              else if (offerSelected == offersListIUniv[i])
+                                setState(() {
+                                  offerSelected = Offer('', '', false, '', '',
+                                      '', '', {'valued': 0}, false, {}, 0);
+                                });
+                              else
+                                setState(() {
+                                  offerSelected = offersListIUniv[i];
+                                });
+                            } else
+                              showSimpleSnack(
+                                  'You have crossed the maximum user limit for this order',
+                                  Icons.warning_amber_outlined,
+                                  Colors.amber,
+                                  _scaffoldKey);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: Container(
+                              height: 70,
+                              decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10)),
+                                color: offerSelected == offersListIUniv[i]
+                                    ? MColors.dashPurple
+                                    : Colors.transparent,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          offersListIUniv[i].title,
+                                          style:
+                                              boldFont(MColors.mainColor, 15),
+                                        ),
+                                        Text(
+                                          'Minimum Order Value - Rs.${offersListIUniv[i].discount['minOrder']}',
+                                          style:
+                                              normalFont(MColors.mainColor, 13),
+                                        ),
+                                        Text(
+                                          '${offersListIUniv[i].discount['valued']}% OFF',
+                                          style:
+                                              boldFont(MColors.mainColor, 15),
+                                        ),
+                                      ],
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      width: 80,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        child: FadeInImage.assetNetwork(
+                                          image:
+                                              'https://wild-grocery.herokuapp.com/${offersListIUniv[i].banner}'
+                                                  .replaceAll('\\', '/'),
+                                          fit: BoxFit.fill,
+                                          height: 80,
+                                          width: 80,
+                                          placeholder:
+                                              "assets/images/placeholder.jpg",
+                                          placeholderScale:
+                                              MediaQuery.of(context)
+                                                      .size
+                                                      .height /
+                                                  2,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      })
+              // : InkWell(
+              //     onTap: () {
+              //       if (total <= offersListIUniv[0].discount['minOrder'])
+              //         setState(() {
+              //           offerSelected = offersListIUniv[0];
+              //         });
+              //       else
+              //         showSimpleSnack(
+              //             'The order total is less than the minimum order value',
+              //             Icons.warning_amber_outlined,
+              //             Colors.amber,
+              //             _scaffoldKey);
+              //     },
+              //     child: Padding(
+              //       padding: const EdgeInsets.only(bottom: 10.0),
+              //       child: Container(
+              //         height: 230,
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.all(Radius.circular(10)),
+              //           color: offerSelected == offersListIUniv[0]
+              //               ? MColors.dashPurple
+              //               : Colors.transparent,
+              //         ),
+              //         child: Row(
+              //           children: [
+              //             Column(
+              //               children: [
+              //                 Padding(
+              //                   padding:
+              //                       const EdgeInsets.symmetric(horizontal: 5),
+              //                   child: Text(
+              //                     offersListIUniv[0].title,
+              //                     style: boldFont(MColors.mainColor, 15),
+              //                   ),
+              //                 ),
+              //                 Padding(
+              //                   padding:
+              //                       const EdgeInsets.fromLTRB(5, 0, 5, 5),
+              //                   child: Text(
+              //                     'Minimum Order Value - Rs.${offersListIUniv[0].discount['minOrder']}',
+              //                     style: normalFont(MColors.mainColor, 13),
+              //                   ),
+              //                 ),
+              //                 Text(
+              //                   '${offersListIUniv[0].discount['valued']}% OFF',
+              //                   style: boldFont(MColors.mainColor, 15),
+              //                 ),
+              //               ],
+              //             ),
+              //             Padding(
+              //               padding: const EdgeInsets.all(5.0),
+              //               child: Container(
+              //                 width: 80,
+              //                 child: ClipRRect(
+              //                   borderRadius: BorderRadius.circular(10.0),
+              //                   child: FadeInImage.assetNetwork(
+              //                     image:
+              //                         'https://wild-grocery.herokuapp.com/${offersListIUniv[0].banner}'
+              //                             .replaceAll('\\', '/'),
+              //                     fit: BoxFit.fill,
+              //                     height: 80                                                                                                                                                                                                                       ,
+              //                     width:
+              //                         MediaQuery.of(context).size.width - 80,
+              //                     placeholder:
+              //                         "assets/images/placeholder.jpg",
+              //                     placeholderScale:
+              //                         MediaQuery.of(context).size.height / 2,
+              //                   ),
+              //                 ),
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              ),
+        ],
+      ),
+    );
+  }
+
+  void _showOverlay(BuildContext context) {
+    Navigator.of(context).push(TutorialOverlay());
+  }
+
+  Widget deliveryOptions() {
+    UserDataCardNotifier cardNotifier =
+        Provider.of<UserDataCardNotifier>(context);
+    var cardList = cardNotifier.userDataCardList;
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: MColors.primaryWhite,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                child: Icon(
+                  Icons.list,
+                  color: MColors.mainColor,
+                ),
+              ),
+              SizedBox(
+                width: 5.0,
+              ),
+              Expanded(
+                child: Container(
+                  child: Text(
+                    "Delivery Options",
+                    style: normalFont(MColors.textGrey, 14.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          Container(
+            // padding: const EdgeInsets.only(left: 25.0),
+            child: Text(
+              "Select a delivery type",
+              style: boldFont(MColors.textDark, 16.0),
+            ),
+          ),
+          SizedBox(height: 10.0),
+          InkWell(
+            onTap: () {
+              setState(() {
+                deliverySelected = 'Normal';
+                deliveryCharge = 0;
+              });
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      height: 15,
+                      width: 15,
+                      decoration: BoxDecoration(
+                          color: deliverySelected == 'Normal'
+                              ? MColors.mainColor
+                              : Colors.transparent,
+                          border:
+                              Border.all(width: 2, color: MColors.mainColor)),
+                    ),
+                    SizedBox(
+                      width: 5.0,
+                    ),
+                    Text(
+                      "Normal delivery",
+                      style: boldFont(MColors.textDark, 16.0),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Text(
+                      'Free Delivery',
+                      style: normalFont(MColors.textGrey, 14.0),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Container(
+                    child: Text(
+                      'Your order will be delivered on the delivery date selected.',
+                      maxLines: 2,
+                      overflow: TextOverflow.clip,
+                      style: normalFont(MColors.textGrey, 14.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.0),
+          InkWell(
+            onTap: () {
+              setState(() {
+                deliverySelected = 'Express';
+                deliveryCharge = 40;
+              });
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      height: 15,
+                      width: 15,
+                      decoration: BoxDecoration(
+                          color: deliverySelected == 'Express'
+                              ? MColors.mainColor
+                              : Colors.transparent,
+                          border:
+                              Border.all(width: 2, color: MColors.mainColor)),
+                    ),
+                    SizedBox(
+                      width: 5.0,
+                    ),
+                    Text(
+                      "Express delivery",
+                      style: boldFont(MColors.textDark, 16.0),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Container(
+                    child: Text(
+                      'Delivery Charge - Rs. 40',
+                      style: normalFont(MColors.textGrey, 14.0),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Container(
+                    child: Text(
+                      'Your order will be delivered in 3 hours.\nYou can cancel your order within 5 minutes of placing the order.',
+                      maxLines: 2,
+                      overflow: TextOverflow.clip,
+                      style: normalFont(MColors.textGrey, 14.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.0),
+        ],
+      ),
+    );
+  }
+
   //Bag summary
-  void _showModalSheet(cartList, total) {
+  void _showModalSheet(List<Cart> cartList, total) {
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -2629,14 +2349,15 @@ delivery();
                     Container(
                       child: SvgPicture.asset(
                         "assets/images/icons/Bag.svg",
-                        color: MColors.secondaryColor,
+                        color: MColors.mainColor,
                       ),
                     ),
                     Spacer(),
                     Text(
-
-                      "AED " + (double.parse(total)+deliveryCharge).toStringAsFixed(2),
-                      style: boldFont(MColors.secondaryColor, 14.0),
+                      "Rs. " +
+                          (double.parse(total) + deliveryCharge)
+                              .toStringAsFixed(2),
+                      style: boldFont(MColors.mainColor, 14.0),
                     ),
                   ],
                 ),
@@ -2664,7 +2385,8 @@ delivery();
                               width: 30.0,
                               height: 40.0,
                               child: FadeInImage.assetNetwork(
-                                image: cartItem.productImage,
+                                image:
+                                    'https://wild-grocery.herokuapp.com/${cartItem.image}',
                                 fit: BoxFit.fill,
                                 height: MediaQuery.of(context).size.height,
                                 placeholder: "assets/images/placeholder.jpg",
@@ -2688,22 +2410,26 @@ delivery();
                             SizedBox(
                               width: 5.0,
                             ),
-                            Container(
-                              padding: const EdgeInsets.all(3.0),
-                              decoration: BoxDecoration(
-                                color: MColors.dashPurple,
-                                borderRadius: new BorderRadius.circular(10.0),
-                              ),
-                              child: Text(
-                                "X${cartItem.quantity}",
-                                style: normalFont(MColors.textGrey, 12.0),
-                                textAlign: TextAlign.left,
-                              ),
-                            ),
+                            Text(
+                              "X${cartItem.cartQuantity}", // Container(
+                              style: normalFont(MColors.textGrey,
+                                  12.0), //   padding: const EdgeInsets.all(3.0),
+                              textAlign: TextAlign
+                                  .left, //   decoration: BoxDecoration(
+                            ), //     color: MColors.dashPurple,
+                            //     borderRadius: new BorderRadius.circular(10.0),
+                            //   ),
+                            //   child: Text(
+                            //     "X${cartItem.cartQuantity}",
+                            //     style: normalFont(MColors.textGrey, 12.0),
+                            //     textAlign: TextAlign.left,
+                            //   ),
+                            // ),
                             Spacer(),
                             Container(
                               child: Text(
-                                "AED " + cartItem.totalPrice.toStringAsFixed(2),
+                                "Rs. " +
+                                    cartItem.selling_price.toStringAsFixed(2),
                                 style: boldFont(MColors.textDark, 12.0),
                               ),
                             ),
@@ -2713,15 +2439,15 @@ delivery();
                     },
                   ),
                 ),
-                SizedBox(height:5.0),
+                SizedBox(height: 5.0),
                 Container(
-
                   child: Row(
                     children: <Widget>[
-                      Text("Delivery Charge", style: boldFont(MColors.secondaryColor, 16.0)),
+                      Text("Delivery Charge",
+                          style: boldFont(MColors.mainColor, 16.0)),
                       Spacer(),
-                      Text("AED " + deliveryCharge.toString(),
-                          style: boldFont(MColors.secondaryColor, 16.0)),
+                      Text("Rs. " + deliveryCharge.toString(),
+                          style: boldFont(MColors.mainColor, 16.0)),
                     ],
                   ),
                 ),
@@ -2729,6 +2455,910 @@ delivery();
             ),
           ),
         );
+      },
+    );
+  }
+
+  void _showConfirmModalSheet(
+      List<Cart> cartList, double total, Offer offerApplied) {
+    showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      context: context,
+      builder: (builder) {
+        return StatefulBuilder(builder: (BuildContext context,
+            StateSetter setState /*You can rename this!*/) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            margin: EdgeInsets.only(
+              bottom: 10.0,
+              left: 10.0,
+              right: 10.0,
+              top: 5.0,
+            ),
+            padding: EdgeInsets.only(
+              bottom: 15.0,
+              left: 15.0,
+              right: 15.0,
+              top: 10.0,
+            ),
+            decoration: BoxDecoration(
+              color: MColors.primaryWhiteSmoke,
+              borderRadius: BorderRadius.all(
+                Radius.circular(15.0),
+              ),
+            ),
+            child: Column(
+              children: <Widget>[
+                modalBarWidget(),
+                SizedBox(height: 10.0),
+                Row(
+                  children: <Widget>[
+                    Container(
+                      child: Text(
+                        "Bag summary",
+                        style: boldFont(MColors.textGrey, 16.0),
+                      ),
+                    ),
+                    SizedBox(width: 5.0),
+                    Container(
+                      child: SvgPicture.asset(
+                        "assets/images/icons/Bag.svg",
+                        color: MColors.mainColor,
+                      ),
+                    ),
+                    Spacer(),
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Container(
+                  height: offerSelected.id != ''
+                      ? MediaQuery.of(context).size.height * 0.8 - 365
+                      : MediaQuery.of(context).size.height * 0.8 - 315,
+                  child: ListView.builder(
+                    itemCount: cartList.length,
+                    // physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, i) {
+                      var cartItem = cartList[i];
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: MColors.primaryWhite,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10.0),
+                          ),
+                        ),
+                        margin: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: EdgeInsets.all(7.0),
+                        child: Row(
+                          children: <Widget>[
+                            Container(
+                              width: 30.0,
+                              height: 40.0,
+                              child: FadeInImage.assetNetwork(
+                                image:
+                                    'https://wild-grocery.herokuapp.com/${cartItem.image}',
+                                fit: BoxFit.fill,
+                                height: MediaQuery.of(context).size.height,
+                                placeholder: "assets/images/placeholder.jpg",
+                                placeholderScale:
+                                    MediaQuery.of(context).size.height / 2,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5.0,
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 2,
+                              child: Text(
+                                cartItem.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                style: normalFont(MColors.textGrey, 12.0),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5.0,
+                            ),
+                            Text(
+                              "X${cartItem.cartQuantity}",
+                              style: normalFont(MColors.textGrey, 12.0),
+                              textAlign: TextAlign.left,
+                            ),
+                            // Container(
+                            //   padding: const EdgeInsets.all(3.0),
+                            //   decoration: BoxDecoration(
+                            //     color: MColors.dashPurple,
+                            //     borderRadius: new BorderRadius.circular(10.0),
+                            //   ),
+                            //   child: Text(
+                            //     "X${cartItem.cartQuantity}",
+                            //     style: normalFont(MColors.textGrey, 12.0),
+                            //     textAlign: TextAlign.left,
+                            //   ),
+                            // ),
+                            Spacer(),
+                            Container(
+                              child: Text(
+                                "Rs. " +
+                                    cartItem.selling_price.toStringAsFixed(2),
+                                style: boldFont(MColors.textDark, 12.0),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 5.0),
+                Spacer(),
+                Container(
+                  child: Row(
+                    children: <Widget>[
+                      Text("Cart Amount",
+                          style: boldFont(MColors.mainColor, 16.0)),
+                      Spacer(),
+                      Container(
+                        width: MediaQuery.of(context).size.width / 3,
+                        child: Text(
+                            (total -
+                                        (total *
+                                            (offerSelected.discount["valued"]) /
+                                            100)) >
+                                    0
+                                ? "Rs. " +
+                                    (double.parse(total.toString()) -
+                                            deliveryCharge)
+                                        .toStringAsFixed(2)
+                                : "Rs. 0",
+                            style: boldFont(MColors.mainColor, 16.0)),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 5.0),
+                (currentUser.subscription == 'member')
+                    ? Container(
+                        child: Row(
+                          children: <Widget>[
+                            Text("Delivery Charge",
+                                style: boldFont(MColors.mainColor, 16.0)),
+                            Spacer(),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: Text(
+                                  (total -
+                                              (total *
+                                                  (offerSelected
+                                                      .discount["valued"]) /
+                                                  100)) >
+                                          0
+                                      ? "Rs. " + deliveryCharge.toString()
+                                      : "Rs. 0",
+                                  style: boldFont(MColors.mainColor, 16.0)),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(
+                        child: Row(
+                          children: <Widget>[
+                            Text("Subscription Discount",
+                                style: boldFont(MColors.mainColor, 16.0)),
+                            Spacer(),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: Text(
+                                  (total -
+                                              (total *
+                                                  (offerSelected
+                                                      .discount["valued"]) /
+                                                  100)) >
+                                          0
+                                      ? "Rs. " +
+                                          (((total - deliveryCharge) -
+                                                      ((total -
+                                                              deliveryCharge) *
+                                                          (offerSelected
+                                                                  .discount[
+                                                              "valued"]) /
+                                                          100)) *
+                                                  int.parse(currentUser
+                                                      .subscriptionDiscount) /
+                                                  100)
+                                              .toStringAsFixed(1)
+                                      : "Rs. 0",
+                                  style: boldFont(MColors.mainColor, 16.0)),
+                            ),
+                          ],
+                        ),
+                      ),
+                SizedBox(height: 5.0),
+                (offerSelected.id != '')
+                    ? Container(
+                        // padding: EdgeInsets.only(left: 25),
+                        child: Row(
+                          children: <Widget>[
+                            Text("Offer Applied",
+                                style: boldFont(MColors.mainColor, 16.0)),
+                            Spacer(),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: Text(offerSelected.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: boldFont(MColors.mainColor, 16.0)),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(),
+                (offerSelected.id != '') ? SizedBox(height: 5.0) : Container(),
+                (offerSelected.id != '')
+                    ? Container(
+                        // padding: EdgeInsets.only(left: 25),
+                        child: Row(
+                          children: <Widget>[
+                            Text("Discount Applied",
+                                style: boldFont(MColors.mainColor, 16.0)),
+                            Spacer(),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: Text(
+                                  // (
+                                  // (offerSelected.discount['valued'] * total) /
+                                  //     total *
+                                  //     100)
+                                  'Rs. ${(total * (offerSelected.discount["valued"]) / 100)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: boldFont(MColors.mainColor, 16.0)),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(),
+                (offerSelected.id != '') ? SizedBox(height: 5.0) : Container(),
+                // SizedBox(height: 5.0),
+                Container(
+                  child: Row(
+                    children: <Widget>[
+                      Text("Total Amount",
+                          style: boldFont(MColors.mainColor, 16.0)),
+                      Spacer(),
+                      Container(
+                        width: MediaQuery.of(context).size.width / 3,
+                        child: Text(
+                            (total -
+                                        (total *
+                                            (offerSelected.discount["valued"]) /
+                                            100) -
+                                        (((total - deliveryCharge) -
+                                                ((total - deliveryCharge) *
+                                                    (offerSelected
+                                                        .discount["valued"]) /
+                                                    100)) *
+                                            int.parse(currentUser
+                                                .subscriptionDiscount) /
+                                            100)) >
+                                    0
+                                ? currentUser.subscription == 'member'
+                                    ? "Rs. " +
+                                        (total -
+                                                (total *
+                                                    (offerSelected
+                                                        .discount["valued"]) /
+                                                    100))
+                                            .toStringAsFixed(1)
+                                    : "Rs. " +
+                                        (total -
+                                                (total *
+                                                    (offerSelected
+                                                        .discount["valued"]) /
+                                                    100) -
+                                                (((total - deliveryCharge) -
+                                                        ((total -
+                                                                deliveryCharge) *
+                                                            (offerSelected
+                                                                    .discount[
+                                                                "valued"]) /
+                                                            100)) *
+                                                    int.parse(currentUser
+                                                        .subscriptionDiscount) /
+                                                    100) -
+                                                deliveryCharge)
+                                            .toStringAsFixed(1)
+                                : "Rs. 0",
+                            style: boldFont(MColors.mainColor, 16.0)),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 5.0),
+                currentUser.coins != 0
+                    ? Container(
+                        child: Row(
+                          children: <Widget>[
+                            Text("Wallet Balance",
+                                style: boldFont(MColors.mainColor, 16.0)),
+                            Spacer(),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: Text("Rs. " + currentUser.coins.toString(),
+                                  style: boldFont(MColors.mainColor, 16.0)),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(),
+                currentUser.coins != 0
+                    ? InkWell(
+                        onTap: () {
+                          if (redeemWallet == false)
+                            setState(() {
+                              redeemWallet = true;
+                              total -= currentUser.coins;
+                            });
+                          else
+                            setState(() {
+                              redeemWallet = false;
+                              total += currentUser.coins;
+                            });
+                        },
+                        child: Container(
+                          child: Row(
+                            children: [
+                              // Container(
+                              //   height: 15,
+                              //   width: 15,
+                              //   decoration: BoxDecoration(
+                              //       color: redeemWallet == true
+                              //           ? MColors.mainColor
+                              //           : Colors.transparent,
+                              //       border: Border.all(
+                              //           width: 2, color: MColors.mainColor)),
+                              // ),
+                              // SizedBox(
+                              //   width: 5.0,
+                              // ),
+                              Text(
+                                redeemWallet != true
+                                    ? "Redeem Wallet Balance"
+                                    : "Keep Wallet Balance",
+                                style: normalFont(MColors.textDark, 16.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : Container(),
+                SizedBox(height: 5.0),
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Container(
+                        width: MediaQuery.of(context).size.width / 2 - 28,
+                        child: primaryButtonPurple(
+                          Text(
+                            "Cash On Delivery",
+                            style: boldFont(MColors.primaryWhite, 14.0),
+                          ),
+                          () async {
+                            List<Map> cartProducts = [];
+                            cartList.forEach((element) {
+                              cartProducts.add({
+                                'product': element.id,
+                                'name': element.name,
+                                'price': element.selling_price,
+                                'count': element.cartQuantity,
+                                'imgURL': element.image,
+                                'quantity': element.quantity
+                              });
+                            });
+                            if (redeemWallet == true) {
+                              var walletUrl = Uri.parse(
+                                  'https://wild-grocery.herokuapp.com/api/subs/create');
+                              var walletResponse = await http.post(walletUrl,
+                                  // headers: {
+                                  //   'Authorization':
+                                  //   'Bearer ${currentUser.token.toString()}',
+                                  //   'Accept': 'application/json',
+                                  //   'Content-Type': 'application/json'
+                                  // },
+                                  body: {
+                                    "title": "walletdel",
+                                    "userId": currentUser.id,
+                                    "transactionId": "check",
+                                    "orderId": currentUser.id,
+                                    "amount": (total -
+                                                (total *
+                                                    (offerSelected
+                                                        .discount["valued"]) /
+                                                    100)) <
+                                            currentUser.coins
+                                        ? (total -
+                                                (total *
+                                                    (offerSelected
+                                                        .discount["valued"]) /
+                                                    100))
+                                            .toString()
+                                        : currentUser.coins.toString()
+                                  });
+                              refreshUserProfile(currentUser);
+                            }
+                            var url = Uri.parse(
+                                'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+                            String encodedOrderData = json.encode({
+                              "order": {
+                                "products": cartProducts,
+                                "transaction_id": "ABC789",
+                                "amount": total.toInt(),
+                                "offerApplied": offerSelected.title,
+                                "address": {
+                                  "address": addressController.text,
+                                  "city": cityController.text,
+                                  "zip": zipController.text
+                                },
+                                "user": currentUser.id.toString(),
+                                "orderType": "COD",
+                                "deliveryType": deliverySelected,
+                                "expectedDelivery": date.toString(),
+                                "tax": (total * 0.2).round(),
+                                "deliveryCharge":
+                                    deliverySelected == 'Normal' ? 40 : 0,
+                                "offPrice": (total *
+                                    offerSelected.discount['valued'] /
+                                    100)
+                              }
+                            });
+
+                            var response = await http.post(url,
+                                headers: {
+                                  'Authorization':
+                                      'Bearer ${currentUser.token.toString()}',
+                                  'Accept': 'application/json',
+                                  'Content-Type': 'application/json'
+                                },
+                                body: encodedOrderData);
+
+                            if (offerSelected.id != '') {
+                              refreshUserProfile(currentUser);
+                            }
+                            var data = json.decode(response.body);
+
+                            List<Cart> emptyCart = [];
+                            String encodedData = Cart.encode(emptyCart);
+                            preferences.setString('cart', encodedData);
+                            Navigator.pop(context);
+                            _showOverlay(context);
+
+                            // Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width / 2 - 28,
+                        child: primaryButtonPurple(
+                          Text(
+                            "Pay Online",
+                            style: boldFont(MColors.primaryWhite, 14.0),
+                          ),
+                          () async {
+                            Navigator.pop(context);
+                            preferences.setString('status', 'Loading');
+                            status = 'Checkout';
+                            _scaffoldKey.currentState.setState(() {});
+                            openCheckout(total, random);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10.0),
+                Container(
+                  width: MediaQuery.of(context).size.width - 40,
+                  child: primaryButtonPurple(
+                    Text(
+                      "Pay Online At Delivery",
+                      style: boldFont(MColors.primaryWhite, 14.0),
+                    ),
+                    () async {
+                      List<Map> cartProducts = [];
+                      cartList.forEach((element) {
+                        cartProducts.add({
+                          'product': element.id,
+                          'name': element.name,
+                          'price': element.selling_price,
+                          'count': element.cartQuantity,
+                          'imgURL': element.image,
+                          'quantity': element.quantity
+                        });
+                      });
+                      var url = Uri.parse(
+                          'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+                      String encodedOrderData = json.encode({
+                        "order": {
+                          "products": cartProducts,
+                          "transaction_id": "ABC789",
+                          "amount": total.toInt(),
+                          "address": {
+                            "address": addressController.text,
+                            "city": cityController.text,
+                            "zip": zipController.text
+                          },
+                          "user": currentUser.id.toString(),
+                          "orderType": "COD",
+                          "deliveryType": deliverySelected,
+                          "expectedDelivery": date.toString(),
+                          "tax": (total * 0.2).round(),
+                          "deliveryCharge":
+                              deliverySelected == 'Normal' ? 40 : 0,
+                          "offerApplied": offerSelected.title,
+                          "offPrice":
+                              (total * offerSelected.discount['valued'] / 100)
+                        }
+                      });
+                      var response = await http.post(url,
+                          headers: {
+                            'Authorization':
+                                'Bearer ${currentUser.token.toString()}',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                          },
+                          body: encodedOrderData);
+                      var data = json.decode(response.body);
+                      if (offerSelected.id != '') {
+                        refreshUserProfile(currentUser);
+                      }
+                      List<Cart> emptyCart = [];
+                      String encodedData = Cart.encode(emptyCart);
+                      preferences.setString('cart', encodedData);
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            // child: SingleChildScrollView(
+            //
+            //
+            //   physics: BouncingScrollPhysics(),
+            //   child: Column(
+            //     children: <Widget>[
+            //       modalBarWidget(),
+            //       SizedBox(height: 10.0),
+            //       Row(
+            //         children: <Widget>[
+            //           Container(
+            //             child: Text(
+            //               "Bag summary",
+            //               style: boldFont(MColors.textGrey, 16.0),
+            //             ),
+            //           ),
+            //           SizedBox(width: 5.0),
+            //           Container(
+            //             child: SvgPicture.asset(
+            //               "assets/images/icons/Bag.svg",
+            //               color: MColors.mainColor,
+            //             ),
+            //           ),
+            //           Spacer(),
+            //           Text(
+            //             "Rs. " +
+            //                 (double.parse(total.toString()) - deliveryCharge)
+            //                     .toStringAsFixed(2),
+            //             style: boldFont(MColors.mainColor, 14.0),
+            //           ),
+            //         ],
+            //       ),
+            //       SizedBox(height: 10.0),
+            //       Container(
+            //         child: ListView.builder(
+            //           itemCount: cartList.length,
+            //           physics: NeverScrollableScrollPhysics(),
+            //           shrinkWrap: true,
+            //           itemBuilder: (context, i) {
+            //             var cartItem = cartList[i];
+            //
+            //             return Container(
+            //               decoration: BoxDecoration(
+            //                 color: MColors.primaryWhite,
+            //                 borderRadius: BorderRadius.all(
+            //                   Radius.circular(10.0),
+            //                 ),
+            //               ),
+            //               margin: EdgeInsets.symmetric(vertical: 4.0),
+            //               padding: EdgeInsets.all(7.0),
+            //               child: Row(
+            //                 children: <Widget>[
+            //                   Container(
+            //                     width: 30.0,
+            //                     height: 40.0,
+            //                     child: FadeInImage.assetNetwork(
+            //                       image:
+            //                           'https://wild-grocery.herokuapp.com/${cartItem.image}',
+            //                       fit: BoxFit.fill,
+            //                       height: MediaQuery.of(context).size.height,
+            //                       placeholder: "assets/images/placeholder.jpg",
+            //                       placeholderScale:
+            //                           MediaQuery.of(context).size.height / 2,
+            //                     ),
+            //                   ),
+            //                   SizedBox(
+            //                     width: 5.0,
+            //                   ),
+            //                   Container(
+            //                     width: MediaQuery.of(context).size.width / 2,
+            //                     child: Text(
+            //                       cartItem.name,
+            //                       maxLines: 2,
+            //                       overflow: TextOverflow.ellipsis,
+            //                       softWrap: true,
+            //                       style: normalFont(MColors.textGrey, 12.0),
+            //                     ),
+            //                   ),
+            //                   SizedBox(
+            //                     width: 5.0,
+            //                   ),
+            //                   Container(
+            //                     padding: const EdgeInsets.all(3.0),
+            //                     decoration: BoxDecoration(
+            //                       color: MColors.dashPurple,
+            //                       borderRadius: new BorderRadius.circular(10.0),
+            //                     ),
+            //                     child: Text(
+            //                       "X${cartItem.cartQuantity}",
+            //                       style: normalFont(MColors.textGrey, 12.0),
+            //                       textAlign: TextAlign.left,
+            //                     ),
+            //                   ),
+            //                   Spacer(),
+            //                   Container(
+            //                     child: Text(
+            //                       "Rs. " +
+            //                           cartItem.selling_price.toStringAsFixed(2),
+            //                       style: boldFont(MColors.textDark, 12.0),
+            //                     ),
+            //                   ),
+            //                 ],
+            //               ),
+            //             );
+            //           },
+            //         ),
+            //       ),
+            //       SizedBox(height: 5.0),
+            //       Container(
+            //         child: Row(
+            //           children: <Widget>[
+            //             Text("Cart Amount",
+            //                 style: boldFont(MColors.mainColor, 16.0)),
+            //             Spacer(),
+            //             Text(
+            //                 "Rs. " +
+            //                     (double.parse(total.toString()) - deliveryCharge)
+            //                         .toStringAsFixed(2),
+            //                 style: boldFont(MColors.mainColor, 16.0)),
+            //           ],
+            //         ),
+            //       ),
+            //       SizedBox(height: 5.0),
+            //       Container(
+            //         child: Row(
+            //           children: <Widget>[
+            //             Text("Delivery Charge",
+            //                 style: boldFont(MColors.mainColor, 16.0)),
+            //             Spacer(),
+            //             Text("Rs. " + deliveryCharge.toString(),
+            //                 style: boldFont(MColors.mainColor, 16.0)),
+            //           ],
+            //         ),
+            //       ),
+            //       SizedBox(height: 5.0),
+            //       Container(
+            //         child: Row(
+            //           children: <Widget>[
+            //             Text("Total Amount",
+            //                 style: boldFont(MColors.mainColor, 16.0)),
+            //             Spacer(),
+            //             Text("Rs. " + total.toString(),
+            //                 style: boldFont(MColors.mainColor, 16.0)),
+            //           ],
+            //         ),
+            //       ),
+            //       SizedBox(height: 10.0),
+            //       Container(
+            //         child: Row(
+            //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //           children: <Widget>[
+            //             Container(
+            //               width: MediaQuery.of(context).size.width / 2 - 26,
+            //               child: primaryButtonPurple(
+            //                 Text(
+            //                   "Cash On Delivery",
+            //                   style: boldFont(MColors.primaryWhite, 14.0),
+            //                 ),
+            //                 () async {
+            //                   List<Map> cartProducts = [];
+            //                   cartList.forEach((element) {
+            //                     cartProducts.add({
+            //                       'product': element.id,
+            //                       'name': element.name,
+            //                       'price': element.selling_price,
+            //                       'count': element.cartQuantity,
+            //                       'imgURL': element.image,
+            //                       'quantity': element.quantity
+            //                     });
+            //                   });
+            //                   var url = Uri.parse(
+            //                       'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+            //                   String encodedOrderData = json.encode({
+            //                     "order": {
+            //                       "products": cartProducts,
+            //                       "transaction_id": "ABC789",
+            //                       "amount": total.toInt(),
+            //                       "address": {
+            //                         "address": addressController.text,
+            //                         "city": cityController.text,
+            //                         "zip": zipController.text
+            //                       },
+            //                       "user": currentUser.id.toString(),
+            //                       "orderType": "COD",
+            //                       "deliveryType": deliverySelected,
+            //                       "expectedDelivery": date.toString(),
+            //                       "tax": (total * 0.2).round(),
+            //                       "deliveryCharge":
+            //                           deliverySelected == 'Normal' ? 40 : 0,
+            //                       "offPrice": 0
+            //                     }
+            //                   });
+            //                   var response = await http.post(url,
+            //                       headers: {
+            //                         'Authorization':
+            //                             'Bearer ${currentUser.token.toString()}',
+            //                         'Accept': 'application/json',
+            //                         'Content-Type': 'application/json'
+            //                       },
+            //                       body: encodedOrderData);
+            //                   var data = json.decode(response.body);
+            //                   if (data['status'] != null) {
+            //                     List<Cart> emptyCart = [];
+            //                     String encodedData = Cart.encode(emptyCart);
+            //                     preferences.setString('cart', encodedData);
+            //                     Navigator.pop(context);
+            //                     Navigator.pop(context);
+            //                   }
+            //                 },
+            //               ),
+            //             ),
+            //             Container(
+            //               width: MediaQuery.of(context).size.width / 2 - 26,
+            //               child: primaryButtonPurple(
+            //                 Text(
+            //                   "Pay Online",
+            //                   style: boldFont(MColors.primaryWhite, 14.0),
+            //                 ),
+            //                 () async {
+            //                   List<Map> cartProducts = [];
+            //                   cartList.forEach((element) {
+            //                     cartProducts.add({
+            //                       'product': element.id,
+            //                       'name': element.name,
+            //                       'price': element.selling_price,
+            //                       'count': element.cartQuantity,
+            //                       'imgURL': element.image,
+            //                       'quantity': element.quantity
+            //                     });
+            //                   });
+            //                   var url = Uri.parse(
+            //                       'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+            //                   String encodedOrderData = json.encode({
+            //                     "order": {
+            //                       "products": cartProducts,
+            //                       "transaction_id": "ABC789",
+            //                       "amount": total.toInt(),
+            //                       "address": {
+            //                         "address": addressController.text,
+            //                         "city": cityController.text,
+            //                         "zip": zipController.text
+            //                       },
+            //                       "user": currentUser.id.toString(),
+            //                       "orderType": "COD",
+            //                       "deliveryType": deliverySelected,
+            //                       "expectedDelivery": date.toString(),
+            //                       "tax": total * 0.2,
+            //                       "deliveryCharge":
+            //                           deliverySelected == 'Normal' ? 40 : 0,
+            //                       "offPrice": 0
+            //                     }
+            //                   });
+            //                   var response = await http.post(url,
+            //                       headers: {
+            //                         'Authorization':
+            //                             'Bearer ${currentUser.token.toString()}',
+            //                         'Accept': 'application/json',
+            //                         'Content-Type': 'application/json'
+            //                       },
+            //                       body: encodedOrderData);
+            //                   var data = json.decode(response.body);
+            //                   if (data['status'] != null) print(data['status']);
+            //                 },
+            //               ),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //       SizedBox(height: 10.0),
+            //       Container(
+            //         width: MediaQuery.of(context).size.width - 40,
+            //         child: primaryButtonPurple(
+            //           Text(
+            //             "Cash Online At Delivery",
+            //             style: boldFont(MColors.primaryWhite, 14.0),
+            //           ),
+            //           () async {
+            //             List<Map> cartProducts = [];
+            //             cartList.forEach((element) {
+            //               cartProducts.add({
+            //                 'product': element.id,
+            //                 'name': element.name,
+            //                 'price': element.selling_price,
+            //                 'count': element.cartQuantity,
+            //                 'imgURL': element.image,
+            //                 'quantity': element.quantity
+            //               });
+            //             });
+            //             var url = Uri.parse(
+            //                 'https://wild-grocery.herokuapp.com/api/order/create/${currentUser.id.toString()}');
+            //             String encodedOrderData = json.encode({
+            //               "order": {
+            //                 "products": cartProducts,
+            //                 "transaction_id": "ABC789",
+            //                 "amount": total.toInt(),
+            //                 "address": {
+            //                   "address": addressController.text,
+            //                   "city": cityController.text,
+            //                   "zip": zipController.text
+            //                 },
+            //                 "user": currentUser.id.toString(),
+            //                 "orderType": "COD",
+            //                 "deliveryType": deliverySelected,
+            //                 "expectedDelivery": date.toString(),
+            //                 "tax": (total * 0.2).round(),
+            //                 "deliveryCharge":
+            //                     deliverySelected == 'Normal' ? 40 : 0,
+            //                 "offPrice": 0
+            //               }
+            //             });
+            //             var response = await http.post(url,
+            //                 headers: {
+            //                   'Authorization':
+            //                       'Bearer ${currentUser.token.toString()}',
+            //                   'Accept': 'application/json',
+            //                   'Content-Type': 'application/json'
+            //                 },
+            //                 body: encodedOrderData);
+            //             var data = json.decode(response.body);
+            //             if (data['status'] != null) {
+            //               List<Cart> emptyCart = [];
+            //               String encodedData = Cart.encode(emptyCart);
+            //               preferences.setString('cart', encodedData);
+            //               Navigator.pop(context);
+            //               Navigator.pop(context);
+            //             }
+            //           },
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+          );
+        });
       },
     );
   }
@@ -2746,7 +3376,7 @@ delivery();
             backgroundColor: MColors.primaryWhiteSmoke,
             title: Text(
               "Please wait..",
-              style: boldFont(MColors.secondaryColor, 14.0),
+              style: boldFont(MColors.mainColor, 14.0),
             ),
             content: Container(
               height: 20.0,
@@ -2757,7 +3387,7 @@ delivery();
                     style: normalFont(MColors.textGrey, 14.0),
                   ),
                   Spacer(),
-                  progressIndicator(MColors.secondaryColor),
+                  progressIndicator(MColors.mainColor),
                 ],
               ),
             ),

@@ -1,20 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:mrpet/model/data/wishlist.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/data/wishlist.dart';
 
 class WishlistNotifier with ChangeNotifier {
-  List<Wishlist> _wishlistList = [];
-  Wishlist _wishlist;
+  List<ProdProducts> _wishList = [];
 
-  List<Wishlist> get wishlistList => _wishlistList;
-  Wishlist get wishlist => _wishlist;
+  List<ProdProducts> get wishList => _wishList;
 
-  set wishlistList(List<Wishlist> wishlistList) {
-    _wishlistList = wishlistList;
-    notifyListeners();
-  }
-
-  set wishlist(Wishlist wishlist) {
-    _wishlist = wishlist;
+  set wishList(List<ProdProducts> wishList) {
+    _wishList = wishList;
     notifyListeners();
   }
 }

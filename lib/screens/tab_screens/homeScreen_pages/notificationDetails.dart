@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 
 class NotificationsDetails extends StatelessWidget {
   final not;

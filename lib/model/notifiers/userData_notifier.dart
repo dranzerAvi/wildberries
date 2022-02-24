@@ -1,18 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:mrpet/model/data/userData.dart';
+import 'package:wildberries/model/data/userData.dart';
 
 //For Users profile
 class UserDataProfileNotifier with ChangeNotifier {
-  List<UserDataProfile> _userDataProfileList = [];
   UserDataProfile _userDataProfile;
 
-  List<UserDataProfile> get userDataProfileList => _userDataProfileList;
   UserDataProfile get userDataProfile => _userDataProfile;
-
-  set userDataProfileList(List<UserDataProfile> userDataProfileList) {
-    _userDataProfileList = userDataProfileList;
-    notifyListeners();
-  }
 
   set userDataProfile(UserDataProfile userDataProfile) {
     _userDataProfile = userDataProfile;

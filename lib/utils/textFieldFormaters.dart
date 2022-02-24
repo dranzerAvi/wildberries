@@ -9,7 +9,7 @@ var maskTextInputFormatter = MaskTextInputFormatter(
 
 class NameValiditor {
   static String validate(String val) {
-    print(val);
+    // print(val);
     if (val.isEmpty) {
       return "Enter your name";
     } else if (val.length < 2) {
@@ -24,7 +24,7 @@ class NameValiditor {
 
 class EmailValiditor {
   static String validate(String val) {
-    print(val);
+    // print(val);
     if (!val.contains("@") || !val.contains(".")) {
       return "Enter a valid Email address";
     } else if (val.isEmpty) {
@@ -39,7 +39,7 @@ class PasswordValiditor {
   static String validate(String val) {
     Pattern pattern = r'(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])';
     RegExp regex = RegExp(pattern);
-    print(val);
+    // print(val);
     if (val.isEmpty) {
       return "Enter a password";
     } else if (val.length < 6) {
@@ -52,7 +52,7 @@ class PasswordValiditor {
 
 class PhoneNumberValiditor {
   static String validate(String val) {
-    print(val);
+    // print(val);
     if (val.length < 1) {
       return "Enter a valid phone number";
     } else {

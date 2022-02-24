@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mrpet/model/data/userData.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/cardUtils/payment_card.dart';
-import 'package:mrpet/utils/cardUtils/input_formatter.dart';
-import 'package:mrpet/utils/cardUtils/cardStrings.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/cardUtils/payment_card.dart';
+import 'package:wildberries/utils/cardUtils/input_formatter.dart';
+import 'package:wildberries/utils/cardUtils/cardStrings.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 
 class AddNewCard extends StatefulWidget {
   final UserDataCard card;

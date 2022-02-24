@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mrpet/screens/register_screens/login_screen.dart';
-import 'package:mrpet/screens/register_screens/registration_screen.dart';
-import 'package:mrpet/screens/tab_screens/home.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/strings.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/screens/register_screens/login_screen.dart';
+import 'package:wildberries/screens/register_screens/registration_screen.dart';
+import 'package:wildberries/screens/tab_screens/home.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/strings.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 
 import '../../main.dart';
 
@@ -16,6 +16,7 @@ class IntroScreen extends StatefulWidget {
   _IntroScreenState createState() => _IntroScreenState();
 }
 
+//Push
 class _IntroScreenState extends State<IntroScreen> {
   @override
   Widget build(BuildContext context) {
@@ -36,29 +37,17 @@ class _IntroScreenState extends State<IntroScreen> {
                 SizedBox(
                   height: 10,
                 ),
-                Row(
-                  children: [
-                    InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Skip',
-                          style: boldFont(MColors.secondaryColor, 16.0),
-                        ))
-                  ],
-                ),
                 Container(
                   padding: const EdgeInsets.all(20.0),
                   child: Image.asset(
-                    "assets/images/misterpetIcon.png",
+                    "assets/images/wb.png",
                     height: 200,
                   ),
                 ),
                 SizedBox(height: 30.0),
                 Container(
                   child: Text(
-                    "Welcome to Mister Pet",
+                    "Welcome to WildBerries",
                     style: boldFont(MColors.textDark, 30.0),
                     textAlign: TextAlign.center,
                   ),
@@ -66,7 +55,7 @@ class _IntroScreenState extends State<IntroScreen> {
                 SizedBox(height: 10.0),
                 Container(
                   child: Text(
-                    'Here you will find everything for your fur friend. Shop pet house, pet supplies, accessories and more!',
+                    'Here you will find fresh meat and dairy products at the best price. We maintain the quality of the product while keeping it nice and fresh.',
                     style: normalFont(MColors.textGrey, 18.0),
                     textAlign: TextAlign.center,
                   ),

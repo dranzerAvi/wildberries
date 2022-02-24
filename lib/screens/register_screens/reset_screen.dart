@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mrpet/screens/register_screens/login_screen.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/textFieldFormaters.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/provider.dart';
+import 'package:wildberries/screens/register_screens/login_screen.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/textFieldFormaters.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/provider.dart';
 
 class ResetScreen extends StatefulWidget {
   ResetScreen({Key key}) : super(key: key);

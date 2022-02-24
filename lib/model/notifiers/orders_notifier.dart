@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
-import 'package:mrpet/model/data/orders.dart';
+import 'package:wildberries/model/data/orders.dart';
 
 class OrderListNotifier with ChangeNotifier {
-  List<OrdersList> _ordersListList = [];
+  List<Order> _ordersListList = [];
 
-  List<OrdersList> get orderListList => _ordersListList;
+  List<Order> get orderListList => _ordersListList;
 
-  set orderListList(List<OrdersList> ordersListList) {
+  set orderListList(List<Order> ordersListList) {
     _ordersListList = ordersListList;
     notifyListeners();
   }

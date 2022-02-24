@@ -1,4 +1,4 @@
-import 'package:mrpet/utils/cardUtils/cardStrings.dart';
+import 'package:wildberries/utils/cardUtils/cardStrings.dart';
 import 'package:flutter/material.dart';
 
 class PaymentCard {

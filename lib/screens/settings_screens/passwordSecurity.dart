@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mrpet/screens/settings_screens/changePassword.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/permission_handler.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/screens/settings_screens/changePassword.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/permission_handler.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SecurityScreen extends StatelessWidget {

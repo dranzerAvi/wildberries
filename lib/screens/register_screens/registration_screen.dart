@@ -1,20 +1,25 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info/device_info.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mrpet/main.dart';
-import 'package:mrpet/model/data/cart.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/userData_notifier.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/screens/register_screens/login_screen.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/textFieldFormaters.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/cart.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/userData_notifier.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/screens/register_screens/login_screen.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/textFieldFormaters.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -27,18 +32,38 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final formKey = GlobalKey<FormState>();
-var id='';
-CartNotifier cartNotifier;
-final db=FirebaseFirestore.instance;
-  String _name;
-  String _phone;
-  String _email;
-  String _password;
+  var id = '';
+  CartNotifier cartNotifier;
+  // final db = FirebaseFirestore.instance;
+
+  String _firstName;
+  String _lastName;
+  String phone;
+  TextEditingController firstNameController = new TextEditingController();
+  TextEditingController lastNameController = new TextEditingController();
+  TextEditingController phoneController = new TextEditingController();
+  TextEditingController otpController = new TextEditingController();
+  TextEditingController cityController = new TextEditingController();
+  TextEditingController addresssController = new TextEditingController();
+  TextEditingController zipController = new TextEditingController();
+  String _otp;
+  String _city;
+  String _addresss;
+  String _zip;
+  bool _isOTPSent = false;
   String _error;
   bool _autoValidate = false;
   bool _isButtonDisabled = false;
+  String token = '';
   bool _obscureText = true;
   bool _isEnabled = true;
+  File _image;
+  Future _getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _image = image;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +82,8 @@ final db=FirebaseFirestore.instance;
                     Container(
                       padding: const EdgeInsets.only(top: 100.0),
                       child: Text(
-                        "Create your free account",
-                        style: boldFont(MColors.textDark, 38.0),
+                        "Create your account",
+                        style: boldFont(MColors.textGrey, 38.0),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -78,7 +103,7 @@ final db=FirebaseFirestore.instance;
                           child: GestureDetector(
                             child: Text(
                               "Sign in!",
-                              style: normalFont(MColors.secondaryColor, 16.0),
+                              style: normalFont(MColors.textGrey, 16.0),
                               textAlign: TextAlign.start,
                             ),
                             onTap: () {
@@ -107,20 +132,46 @@ final db=FirebaseFirestore.instance;
                       child: Column(
                         children: <Widget>[
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                    color: MColors.mainColor,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                child: _image == null
+                                    ? FlatButton(
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          color: Colors.white,
+                                          size: 50,
+                                        ),
+                                        onPressed: this._getImage,
+                                        color: MColors.mainColor,
+                                      )
+                                    : Image.file(_image),
+                                margin: EdgeInsets.only(top: 20.0),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 20.0),
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Container(
                                 padding: const EdgeInsets.only(bottom: 5.0),
                                 child: Text(
-                                  "Name",
+                                  "First Name",
                                   style: normalFont(MColors.textGrey, null),
                                 ),
                               ),
                               primaryTextField(
+                                firstNameController,
                                 null,
-                                null,
-                                "Remiola",
-                                (val) => _name = val,
+                                "e.g. Shubham",
+                                (val) => _firstName = val,
                                 _isEnabled,
                                 NameValiditor.validate,
                                 false,
@@ -131,85 +182,165 @@ final db=FirebaseFirestore.instance;
                                 null,
                                 0.50,
                               ),
-                            ],
-                          ),
-                          SizedBox(height: 20.0),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
+                              SizedBox(height: 10.0),
                               Container(
                                 padding: const EdgeInsets.only(bottom: 5.0),
                                 child: Text(
-                                  "Email",
+                                  "Last Name",
                                   style: normalFont(MColors.textGrey, null),
                                 ),
                               ),
                               primaryTextField(
+                                lastNameController,
                                 null,
-                                null,
-                                "e.g Remiola2034@gmail.com",
-                                (val) => _email = val,
+                                "e.g. Shukla",
+                                (val) => _lastName = val,
                                 _isEnabled,
                                 EmailValiditor.validate,
                                 false,
                                 _autoValidate,
                                 true,
-                                TextInputType.emailAddress,
+                                TextInputType.text,
                                 null,
                                 null,
                                 0.50,
                               ),
                             ],
                           ),
-                          SizedBox(height: 20.0),
+                          SizedBox(height: 10.0),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Container(
                                 padding: const EdgeInsets.only(bottom: 5.0),
                                 child: Text(
-                                  "Password",
+                                  "Address",
                                   style: normalFont(MColors.textGrey, null),
                                 ),
                               ),
                               primaryTextField(
+                                addresssController,
                                 null,
                                 null,
-                                null,
-                                (val) => _password = val,
+                                (val) => _addresss = val,
                                 _isEnabled,
                                 PasswordValiditor.validate,
-                                _obscureText,
+                                false,
                                 _autoValidate,
                                 false,
                                 TextInputType.text,
                                 null,
-                                SizedBox(
-                                  height: 20.0,
-                                  width: 40.0,
-                                  child: RawMaterialButton(
-                                    onPressed: _toggle,
-                                    child: Text(
-                                      _obscureText ? "Show" : "Hide",
-                                      style: TextStyle(
-                                        color: MColors.secondaryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                null,
+                                // SizedBox(
+                                //   height: 20.0,
+                                //   width: 40.0,
+                                //   child: RawMaterialButton(
+                                //     onPressed: _toggle,
+                                //     child: Text(
+                                //       _obscureText ? "Show" : "Hide",
+                                //       style: TextStyle(
+                                //         color: MColors.textGrey,
+                                //         fontWeight: FontWeight.bold,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
                                 0.50,
                               ),
                             ],
                           ),
                           SizedBox(height: 10.0),
-                          Container(
-                            child: Text(
-                              "Your password must have 6 or more characters.",
-                              style: normalFont(MColors.secondaryColor, null),
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(
+                                padding: const EdgeInsets.only(bottom: 5.0),
+                                child: Text(
+                                  "City",
+                                  style: normalFont(MColors.textGrey, null),
+                                ),
+                              ),
+                              primaryTextField(
+                                cityController,
+                                null,
+                                null,
+                                (val) => _city = val,
+                                _isEnabled,
+                                PasswordValiditor.validate,
+                                false,
+                                _autoValidate,
+                                false,
+                                TextInputType.text,
+                                null,
+                                null,
+                                // SizedBox(
+                                //   height: 20.0,
+                                //   width: 40.0,
+                                //   child: RawMaterialButton(
+                                //     onPressed: _toggle,
+                                //     child: Text(
+                                //       _obscureText ? "Show" : "Hide",
+                                //       style: TextStyle(
+                                //         color: MColors.textGrey,
+                                //         fontWeight: FontWeight.bold,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
+                                0.50,
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 20.0),
+                          SizedBox(height: 10.0),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(
+                                padding: const EdgeInsets.only(bottom: 5.0),
+                                child: Text(
+                                  "ZIP Code",
+                                  style: normalFont(MColors.textGrey, null),
+                                ),
+                              ),
+                              primaryTextField(
+                                zipController,
+                                null,
+                                null,
+                                (val) => _zip = val,
+                                _isEnabled,
+                                PasswordValiditor.validate,
+                                false,
+                                _autoValidate,
+                                false,
+                                TextInputType.text,
+                                null,
+                                null,
+                                // SizedBox(
+                                //   height: 20.0,
+                                //   width: 40.0,
+                                //   child: RawMaterialButton(
+                                //     onPressed: _toggle,
+                                //     child: Text(
+                                //       _obscureText ? "Show" : "Hide",
+                                //       style: TextStyle(
+                                //         color: MColors.textGrey,
+                                //         fontWeight: FontWeight.bold,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
+                                0.50,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10.0),
+                          // Container(
+                          //   child: Text(
+                          //     "Your password must have 6 or more characters.",
+                          //     style: normalFont(MColors.textGrey, null),
+                          //   ),
+                          // ),
+                          // SizedBox(height: 20.0),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
@@ -221,10 +352,10 @@ final db=FirebaseFirestore.instance;
                                 ),
                               ),
                               primaryTextField(
-                                null,
+                                phoneController,
                                 null,
                                 "",
-                                (val) => _phone = val,
+                                (val) => phone = val,
                                 _isEnabled,
                                 PhoneNumberValiditor.validate,
                                 false,
@@ -237,18 +368,33 @@ final db=FirebaseFirestore.instance;
                               ),
                               SizedBox(height: 10.0),
                               Container(
+                                padding: const EdgeInsets.only(bottom: 5.0),
                                 child: Text(
-                                  "Your number should contain your country code and state code.",
-                                  style:
-                                      normalFont(MColors.secondaryColor, null),
+                                  "OTP",
+                                  style: normalFont(MColors.textGrey, null),
                                 ),
                               ),
-                              SizedBox(height: 20.0),
+                              primaryTextField(
+                                otpController,
+                                null,
+                                "",
+                                (val) => _otp = val,
+                                _isEnabled,
+                                PhoneNumberValiditor.validate,
+                                false,
+                                _autoValidate,
+                                true,
+                                TextInputType.numberWithOptions(),
+                                [],
+                                null,
+                                0.50,
+                              ),
+                              SizedBox(height: 10.0),
                               Row(
                                 children: <Widget>[
                                   Icon(
                                     Icons.verified_user,
-                                    color: MColors.secondaryColor,
+                                    color: MColors.textGrey,
                                   ),
                                   SizedBox(
                                     width: 5.0,
@@ -265,21 +411,29 @@ final db=FirebaseFirestore.instance;
                                 ],
                               ),
                               SizedBox(height: 20.0),
-                              _isButtonDisabled == true
+                              _isOTPSent == true
                                   ? primaryButtonPurple(
-                                      //if button is loading
-                                      progressIndicator(Colors.white),
-                                      null,
-                                    )
-                                  : primaryButtonPurple(
                                       Text(
-                                        "Next step",
+                                        "Sign In",
                                         style: boldFont(
                                           MColors.primaryWhite,
                                           16.0,
                                         ),
                                       ),
-                                      _isButtonDisabled ? null : _submit,
+                                      _verifyOTP,
+                                    )
+                                  : primaryButtonPurple(
+                                      Text(
+                                        "Get OTP",
+                                        style: boldFont(
+                                          MColors.primaryWhite,
+                                          16.0,
+                                        ),
+                                      ),
+                                      //   () {
+                                      //   print(phoneController.text);
+                                      // }
+                                      _submit,
                                     ),
                               SizedBox(height: 20.0),
                             ],
@@ -295,6 +449,135 @@ final db=FirebaseFirestore.instance;
         },
       ),
     );
+  }
+
+  void _submit() async {
+    try {
+      var url = Uri.parse('https://wild-grocery.herokuapp.com/api/sendOTP');
+      var response =
+          await http.post(url, body: {"phone": "+91${phoneController.text}"});
+      var data = json.decode(response.body);
+      // print(response.body);
+      if (data['messages']['errorMessage'] == null)
+        setState(() {
+          // print(data['messages']['errorMessage']);
+          _isOTPSent = true;
+          token = data['token'];
+          // id = data['_id'];
+        });
+      print('Token 1');
+      print(token);
+      // print(data);
+
+      // Navigator.of(context).pushReplacement(
+      //   CupertinoPageRoute(
+      //     builder: (_) => MyApp(),
+      //   ),
+      // );
+
+      // final auth = MyProvider.of(context).auth;
+      // if (form.validate()) {
+      //   form.save();
+      //
+      //   if (mounted) {
+      //     setState(() {
+      //       _isButtonDisabled = true;
+      //       _isEnabled = false;
+      //     });
+      //   }
+      //   String uid = await auth.signInWithEmailAndPassword(_email, _password);
+      //
+      //   Cartdetails(_cartNotifier);
+      //
+      //   print("Signed in with $uid");
+      //
+
+      // } else {
+      //   setState(() {
+      //     _autoValidate = true;
+      //     _isEnabled = true;
+      //   });
+      // }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isOTPSent = false;
+          _isEnabled = true;
+        });
+      }
+
+      print("ERRORR ==>");
+      print(e);
+    }
+  }
+
+  List<UserDataAddress> addresses = [];
+
+  void _verifyOTP() async {
+    try {
+      var url = Uri.parse('https://wild-grocery.herokuapp.com/api/verifyOTP');
+      // print(otpController.text);
+      var response = await http.post(url, body: {
+        "phone": "+91${phoneController.text}",
+        "token": token,
+        "otp": otpController.text
+      });
+      var data = json.decode(response.body);
+      // print(data['token 2']);
+      print(data['token']);
+      String newToken = await data['token'];
+      if (data['token'] != null) {
+        id = await data['userdata']['_id'];
+        Dio dio = new Dio();
+        String fileName = await _image.path.split('/').last;
+        var formData = FormData.fromMap({
+          "photo": MultipartFile.fromFile(_image.path, filename: fileName),
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
+          'city': cityController.text,
+          'address': addresssController.text,
+          'zip': zipController.text,
+        });
+        // print('https://wild-grocery.herokuapp.com/api/user/$id');
+        dio
+            .put('https://wild-grocery.herokuapp.com/api/user/$id',
+                data: formData,
+                options: Options(
+                  headers: {
+                    HttpHeaders.authorizationHeader: 'Bearer $newToken',
+                    // HttpHeaders.contentTypeHeader: 'application/json',
+                  },
+                  method: 'PUT',
+                  followRedirects: false,
+                  // validateStatus: (status) {
+                  //   return status <= 500;
+                  // }
+                  // responseType: ResponseType.json // or ResponseType.JSON
+                ))
+            .then((response) {
+          // Navigator.of(context).pushReplacement(
+          //   CupertinoPageRoute(
+          //     builder: (_) => MyApp(),
+          //   ),
+          // );
+          // print(response.data);
+        }).catchError((error) => print(error));
+      } else
+        Scaffold.of(context)
+            .showSnackBar(SnackBar(content: Text('OTP is incorrect')));
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isOTPSent = false;
+          _isEnabled = true;
+        });
+      }
+
+      print("ERRORR ==>");
+      print(e);
+    }
   }
 
   Widget showAlert() {
@@ -340,99 +623,41 @@ final db=FirebaseFirestore.instance;
       _obscureText = !_obscureText;
     });
   }
-Future<dynamic>Cartdetails(CartNotifier cartNotifier)async{
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  if (Platform.isAndroid) {
 
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    print('Running on ${androidInfo.id}');
+  Future<dynamic> Cartdetails(CartNotifier cartNotifier) async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      // print('Running on ${androidInfo.id}');
 
-    id=androidInfo.id;
-  } else if (Platform.isIOS) {
-    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-    print('Running on ${iosInfo.model}');
-    id=iosInfo.model;
-  }
-  QuerySnapshot snapshot = await FirebaseFirestore.instance
-      .collection("tempUserCart")
-      .doc(id)
-      .collection("cartItems")
-      .get();
-
-
-  List<Cart> cartList = [];
-  snapshot.docs.forEach((document) async{
-    Cart cart = Cart.fromMap(document.data());
-    cartList.add(cart);
-    await db
-        .collection("userCart")
-        .doc(_email)
-        .collection("cartItems")
-        .doc(cart.productID)
-        .set(cart.toMap())
-        .catchError((e) {
-      print(e);
-    });
-
-  });
-
-  cartNotifier.cartList = cartList;
-
-
-
-
-
-
-}
-  void _submit() async {
-    final form = formKey.currentState;
-
-    try {
-      final auth = MyProvider.of(context).auth;
-
-      if (form.validate()) {
-        form.save();
-
-        if (mounted) {
-          setState(() {
-            _isButtonDisabled = true;
-            _isEnabled = false;
-          });
-        }
-
-        String uid = await auth.createUserWithEmailAndPassword(
-          _email,
-          _password,
-         '+971${_phone}',
-        );
-
-        storeNewUser(_name, '+971${_phone}' , _email);
-
-Cartdetails(cartNotifier);
-        print("Signed Up with new $uid");
-
-        Navigator.of(context).pushReplacement(
-          CupertinoPageRoute(
-            builder: (_) => MyApp(),
-          ),
-        );
-      } else {
-        setState(() {
-          _autoValidate = true;
-          _isEnabled = true;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.message;
-          _isButtonDisabled = false;
-          _isEnabled = true;
-        });
-      }
-
-      print("ERRORR ==>");
-      print(e);
+      // id = androidInfo.id;
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      // print('Running on ${iosInfo.model}');
+      // id = iosInfo.model;
     }
+    //TODO:Check
+    // QuerySnapshot snapshot = await FirebaseFirestore.instance
+    //     .collection("tempUserCart")
+    //     .doc(id)
+    //     .collection("cartItems")
+    //     .get();
+
+    List<Cart> cartList = [];
+    // snapshot.docs.forEach((document) async {
+    //   Cart cart = Cart.fromMap(document.data());
+    //   cartList.add(cart);
+    //   await db
+    //       .collection("userCart")
+    //       .doc(_email)
+    //       .collection("cartItems")
+    //       .doc(cart.productID)
+    //       .set(cart.toMap())
+    //       .catchError((e) {
+    //     print(e);
+    //   });
+    // });
+
+    cartNotifier.cartList = cartList;
   }
 }

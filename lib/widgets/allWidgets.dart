@@ -2,16 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/data/userData.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/home.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
-import 'package:mrpet/utils/colors.dart';
+
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/data/cart.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/dynamic_link_controller.dart';
+import 'package:wildberries/screens/tab_screens/home.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
+import 'package:wildberries/utils/colors.dart';
 import 'package:wc_flutter_share/wc_flutter_share.dart';
 
 //SCAFFOLDS-----------------------------------
@@ -126,7 +131,7 @@ Widget primaryButtonPurple(
       hoverElevation: 0.0,
       focusElevation: 0.0,
       highlightElevation: 0.0,
-      fillColor: MColors.secondaryColor,
+      fillColor: MColors.mainColor,
       child: buttonChild,
       onPressed: onPressed,
       shape: RoundedRectangleBorder(
@@ -148,7 +153,7 @@ Widget primaryButtonWhiteSmoke(
       hoverElevation: 0.0,
       focusElevation: 0.0,
       highlightElevation: 0.0,
-      fillColor: MColors.primaryWhiteSmoke,
+      fillColor: MColors.secondaryWhiteSmoke,
       child: buttonChild,
       onPressed: onPressed,
       shape: RoundedRectangleBorder(
@@ -592,26 +597,24 @@ modalBarWidget() {
 orderTrackerWidget(String status) {
   bool processing = false,
       confirmed = false,
-      enRoute = false,
+      shipped = false,
       delivered = false;
 
-  if (status == "processing") {
-    processing = true;
-  } else if (status == "confirmed") {
+  if (status == "Confirmed") {
+    confirmed = true;
+  } else if (status == "Processing") {
     processing = true;
     confirmed = true;
-  } else if (status == "enRoute") {
+  } else if (status == "Shipped") {
     processing = true;
     confirmed = true;
-    enRoute = true;
-  } else if (status == "delivered") {
+    shipped = true;
+  } else if (status == "Delivered") {
     processing = true;
     confirmed = true;
-    enRoute = true;
+    shipped = true;
     delivered = true;
-  } else {
-    processing = true;
-  }
+  } else {}
 
   Widget checkMark() {
     return Icon(
@@ -668,21 +671,21 @@ orderTrackerWidget(String status) {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
+              "Confirmed",
+              style:
+                  normalFont(confirmed ? Colors.green : Colors.grey[400], 12.0),
+            ),
+            SizedBox(width: 35.0),
+            Text(
               "Processing",
               style: normalFont(
                   processing ? Colors.green : Colors.grey[400], 12.0),
             ),
             SizedBox(width: 35.0),
             Text(
-              "confirmed",
+              "Shipped",
               style:
-                  normalFont(confirmed ? Colors.green : Colors.grey[400], 12.0),
-            ),
-            SizedBox(width: 35.0),
-            Text(
-              "En Route",
-              style:
-                  normalFont(enRoute ? Colors.green : Colors.grey[400], 12.0),
+                  normalFont(shipped ? Colors.green : Colors.grey[400], 12.0),
             ),
             SizedBox(width: 35.0),
             Text(
@@ -699,37 +702,37 @@ orderTrackerWidget(String status) {
           children: <Widget>[
             //PROCESSING
             checkPoint(
-              processing ? Colors.green : Colors.grey[400],
+              confirmed ? Colors.green : Colors.grey[400],
               Center(
-                child: processing && confirmed ? checkMark() : smallDonut(),
+                child: confirmed ? checkMark() : smallDonut(),
               ),
             ),
 
             SizedBox(width: 5.0),
 
-            bar(confirmed ? Colors.green : Colors.grey[400]),
+            bar(processing && confirmed ? Colors.green : Colors.grey[400]),
 
             SizedBox(width: 5.0),
 
             //CONFIRMED
             checkPoint(
-              confirmed ? Colors.green : Colors.grey[400],
+              processing ? Colors.green : Colors.grey[400],
               Center(
-                child: confirmed && enRoute ? checkMark() : smallDonut(),
+                child: processing && shipped ? checkMark() : smallDonut(),
               ),
             ),
 
             SizedBox(width: 5.0),
 
-            bar(enRoute ? Colors.green : Colors.grey[400]),
+            bar(shipped ? Colors.green : Colors.grey[400]),
 
             SizedBox(width: 5.0),
 
             //EN ROUTE
             checkPoint(
-              enRoute ? Colors.green : Colors.grey[400],
+              shipped ? Colors.green : Colors.grey[400],
               Center(
-                child: enRoute && delivered ? checkMark() : smallDonut(),
+                child: shipped && delivered ? checkMark() : smallDonut(),
               ),
             ),
 
@@ -753,6 +756,8 @@ orderTrackerWidget(String status) {
   );
 }
 
+final DynamicLinkController _dynamicLinkController = DynamicLinkController();
+
 //-------------------------------------------
 Widget blockWigdet(
     String blockTitle,
@@ -766,9 +771,11 @@ Widget blockWigdet(
     BuildContext context,
     allProds,
     void Function() seeMore,
-    UserDataProfile profile) {
+    UserDataProfile profile,
+    IconData icon,
+    {String iconPath}) {
   void addToBagshowDialog(
-      _product, cartNotifier, cartProdID, scaffoldKey) async {
+      ProdProducts _product, cartNotifier, cartProdID, scaffoldKey) async {
     await showCupertinoDialog(
         context: context,
         builder: (context) {
@@ -797,20 +804,60 @@ Widget blockWigdet(
                 ),
                 onPressed: () {
                   getCart(cartNotifier);
+                  addProductToCart(
+                      Cart(
+                          id: _product.id,
+                          name: _product.name,
+                          selling_price: _product.selling_price,
+                          category: _product.category,
+                          specs: _product.specs,
+                          productQuantity: _product.productQuantity,
+                          original_price: _product.original_price,
+                          quantity: _product.quantity,
+                          image: _product.image,
+                          imgcollection: _product.imgcollection,
+                          filterValue: _product.filterValue,
+                          description: _product.description,
+                          prices: _product.prices,
+                          cartQuantity: 1,
+                          sold: _product.sold,
+                          tablespecs: _product.tablespecs,
+                          varientID: _product.varientID),
+                      _scaffoldKey);
+                  // addAndApdateData(
+                  //     Cart(
+                  //         id: _product.id,
+                  //         name: _product.name,
+                  //         selling_price: _product.selling_price,
+                  //         category: _product.category,
+                  //         specs: _product.specs,
+                  //         productQuantity: _product.productQuantity,
+                  //         original_price: _product.original_price,
+                  //         quantity: _product.quantity,
+                  //         image: _product.image,
+                  //         imgcollection: _product.imgcollection,
+                  //         filterValue: _product.filterValue,
+                  //         description: _product.description,
+                  //         prices: _product.prices,
+                  //         cartQuantity: 1,
+                  //         sold: _product.sold,
+                  //         tablespecs: _product.tablespecs,
+                  //         varientID: _product.varientID),
+                  //     _scaffoldKey);
+                  getCart(cartNotifier);
+                  Navigator.of(context).pop();
 
-                  if (cartProdID.contains(_product.productID)) {
-                    showSimpleSnack(
-                      "Product already in bag",
-                      Icons.error_outline,
-                      Colors.amber,
-                      scaffoldKey,
-                    );
-                    Navigator.of(context).pop();
-                  } else {
-                    addProductToCart(_product, _scaffoldKey);
+                  // if (cartProdID.contains(_product.id)) {
+                  //   showSimpleSnack(
+                  //     "Product already in bag",
+                  //     Icons.error_outline,
+                  //     Colors.amber,
+                  //     scaffoldKey,
+                  //   );
+                  // } else {
 
-                    getCart(cartNotifier);
-                  }
+                  //
+                  // }
                 },
               ),
             ],
@@ -826,17 +873,28 @@ Widget blockWigdet(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Container(width: 30, child: Image.asset(iconPath)
+            //     // FaIcon(FontAwesomeIcons.fish, color: Colors.grey)
+            //     ),
+            FaIcon(
+              icon,
+              color: MColors.mainColor,
+            ),
+            SizedBox(
+              width: 10,
+            ),
             Text(
               blockTitle,
-              style: boldFont(MColors.textDark, 16.0),
+              style: boldFont(MColors.mainColor, 16.0),
             ),
+            Spacer(),
             Container(
               height: 17.0,
-              child: RawMaterialButton(
-                onPressed: seeMore,
+              child: InkWell(
+                onTap: seeMore,
                 child: Text(
                   "See more",
-                  style: boldFont(MColors.secondaryColor, 14.0),
+                  style: boldFont(MColors.mainColor, 14.0),
                 ),
               ),
             ),
@@ -845,21 +903,22 @@ Widget blockWigdet(
       ),
       SizedBox(height: 5.0),
       Container(
-        height: 280,
-        padding: EdgeInsets.symmetric(horizontal: 10.0),
+        height: 307,
+        padding: EdgeInsets.symmetric(horizontal: 15.0),
         child: ListView.builder(
             physics: BouncingScrollPhysics(),
             scrollDirection: Axis.horizontal,
             itemCount: prods.length,
             itemBuilder: (context, i) {
               var product = prods[i];
+              // print('https://wild-grocery.herokuapp.com/${product.image}');
 
               return GestureDetector(
                 onTap: () async {
                   var navigationResult = await Navigator.of(context).push(
                     CupertinoPageRoute(
-                      builder: (context) =>
-                          ProductDetailsProv(product, allProds),
+                      builder: (context) => ProductDetailsProv(
+                          product, allProds, _dynamicLinkController),
                     ),
                   );
                   if (navigationResult == true) {
@@ -886,19 +945,37 @@ Widget blockWigdet(
                   child: Column(
                     children: <Widget>[
                       Container(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10.0),
-                          child: Hero(
-                            child: FadeInImage.assetNetwork(
-                              image: product.productImage,
-                              fit: BoxFit.fill,
-                              height: 150,
-                              placeholder: "assets/images/placeholder.jpg",
-                              placeholderScale:
-                                  MediaQuery.of(context).size.height / 2,
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: FadeInImage.assetNetwork(
+                                image:
+                                    ('https://wild-grocery.herokuapp.com/${product.image}'),
+                                fit: BoxFit.fill,
+                                height: 150,
+                                placeholder: "assets/images/placeholder.jpg",
+                                placeholderScale:
+                                    MediaQuery.of(context).size.height / 2,
+                              ),
                             ),
-                            tag: product.productID,
-                          ),
+                            Padding(
+                              padding: const EdgeInsets.all(2.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: MColors.dashPurple,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: Text(
+                                    '${((product.original_price - product.selling_price) / product.original_price * 100).toInt()}% OFF',
+                                    style: boldFont(MColors.mainColor, 13),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
                         ),
                       ),
                       SizedBox(height: 10.0),
@@ -913,6 +990,27 @@ Widget blockWigdet(
                           ),
                         ),
                       ),
+                      SizedBox(height: 3.0),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Container(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 3.0, horizontal: 7),
+                            child: Text(
+                              product.productQuantity.toString(),
+                              maxLines: 1,
+                              overflow: TextOverflow.clip,
+                              style: normalFont(MColors.textGrey, 15.0),
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                              color: MColors.dashPurple,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                        ),
+                      ),
+                      SizedBox(height: 3.0),
                       Spacer(),
                       Container(
                         child: Row(
@@ -922,13 +1020,13 @@ Widget blockWigdet(
                               children: [
                                 Container(
                                   child: Text(
-                                    "₹ ${product.price}",
+                                    "₹ ${product.selling_price}",
                                     style: boldFont(MColors.textDark, 18.0),
                                   ),
                                 ),
                                 Container(
                                   child: Text(
-                                    "₹ ${product.price}",
+                                    "₹ ${product.selling_price}",
                                     style:
                                         boldFontStriked(MColors.textGrey, 15.0),
                                   ),
@@ -937,22 +1035,94 @@ Widget blockWigdet(
                             ),
                             Spacer(),
                             GestureDetector(
-                              onTap: () => addToBagshowDialog(product,
-                                  cartNotifier, cartProdID, _scaffoldKey),
+                              onTap: () {
+                                getCart(cartNotifier);
+                                addProductToCart(
+                                    Cart(
+                                        id: product.id,
+                                        name: product.name,
+                                        selling_price: product.selling_price,
+                                        category: product.category,
+                                        specs: product.specs,
+                                        productQuantity:
+                                            product.productQuantity,
+                                        original_price: product.original_price,
+                                        quantity: product.quantity,
+                                        image: product.image,
+                                        imgcollection: product.imgcollection,
+                                        filterValue: product.filterValue,
+                                        description: product.description,
+                                        prices: product.prices,
+                                        cartQuantity: 1,
+                                        sold: product.sold,
+                                        tablespecs: product.tablespecs,
+                                        varientID: product.varientID),
+                                    _scaffoldKey);
+                                // addAndApdateData(
+                                //     Cart(
+                                //         id: _product.id,
+                                //         name: _product.name,
+                                //         selling_price: _product.selling_price,
+                                //         category: _product.category,
+                                //         specs: _product.specs,
+                                //         productQuantity: _product.productQuantity,
+                                //         original_price: _product.original_price,
+                                //         quantity: _product.quantity,
+                                //         image: _product.image,
+                                //         imgcollection: _product.imgcollection,
+                                //         filterValue: _product.filterValue,
+                                //         description: _product.description,
+                                //         prices: _product.prices,
+                                //         cartQuantity: 1,
+                                //         sold: _product.sold,
+                                //         tablespecs: _product.tablespecs,
+                                //         varientID: _product.varientID),
+                                //     _scaffoldKey);
+                                getCart(cartNotifier);
+                                // Navigator.of(context).pop();
+
+                                // if (cartProdID.contains(_product.id)) {
+                                //   showSimpleSnack(
+                                //     "Product already in bag",
+                                //     Icons.error_outline,
+                                //     Colors.amber,
+                                //     scaffoldKey,
+                                //   );
+                                // } else {
+
+                                //
+                                // }
+                                // addToBagshowDialog(product,
+                                //   cartNotifier, cartProdID, _scaffoldKey);
+                              },
                               child: Container(
-                                width: 45.0,
-                                height: 45.0,
+                                width: 40.0,
+                                height: 40.0,
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
-                                  color: MColors.mainColor,
-                                  borderRadius: BorderRadius.circular(18.0),
+                                  color: MColors.dashPurple,
+                                  borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: SvgPicture.asset(
                                   "assets/images/icons/basket.svg",
-                                  height: 20.0,
-                                  color: MColors.primaryWhite,
+                                  height: 22.0,
+                                  color: MColors.textGrey,
                                 ),
                               ),
+                              // child: Container(
+                              //   width: 45.0,
+                              //   height: 45.0,
+                              //   padding: const EdgeInsets.all(8.0),
+                              //   decoration: BoxDecoration(
+                              //     color: MColors.mainColor,
+                              //     borderRadius: BorderRadius.circular(18.0),
+                              //   ),
+                              //   child: SvgPicture.asset(
+                              //     "assets/images/icons/basket.svg",
+                              //     height: 20.0,
+                              //     color: MColors.primaryWhite,
+                              //   ),
+                              // ),
                             ),
                           ],
                         ),
@@ -968,68 +1138,80 @@ Widget blockWigdet(
 }
 
 Widget blockWigdet2(
-  String blockTitle,
-  String blockSubTitle,
-  double _picHeight,
-  double _itemHeight,
-  List<Cat> prods,
-  CartNotifier cartNotifier,
-  ProductsNotifier productsNotifier,
-  CategoryNotifier catNotifier,
-  Iterable<String> cartProdID,
-  GlobalKey _scaffoldKey,
-  BuildContext context,
-  allProds,
-  void Function() seeMore,
-) {
+    String blockTitle,
+    String blockSubTitle,
+    double _picHeight,
+    double _itemHeight,
+    List<Cat> prods,
+    CartNotifier cartNotifier,
+    ProductsNotifier productsNotifier,
+    CategoryNotifier catNotifier,
+    Iterable<String> cartProdID,
+    GlobalKey _scaffoldKey,
+    BuildContext context,
+    allProds,
+    void Function() seeMore,
+    IconData icon) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            FaIcon(
+              icon,
+              color: MColors.mainColor,
+            ),
+            SizedBox(
+              width: 10,
+            ),
             Text(
               blockTitle,
-              style: boldFont(MColors.textDark, 16.0),
+              style: boldFont(MColors.mainColor, 16.0),
             ),
-            Container(
-              height: 17.0,
-              child: RawMaterialButton(
-                onPressed: seeMore,
-                child: Text(
-                  "See more",
-                  style: boldFont(MColors.mainColor, 14.0),
-                ),
-              ),
-            ),
+            // Container(
+            //   height: 17.0,
+            //   child: RawMaterialButton(
+            //     onPressed: seeMore,
+            //     child: Text(
+            //       "See more",
+            //       style: boldFont(MColors.mainColor, 14.0),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
       SizedBox(height: 5.0),
       Container(
-        height: 480,
+        height: 410,
         padding: EdgeInsets.only(left: 18.0),
         child: GridView.builder(
           physics: BouncingScrollPhysics(),
-          scrollDirection: Axis.horizontal,
+          scrollDirection: Axis.vertical,
           itemCount: prods.length,
           itemBuilder: (context, i) {
             var product = prods[i];
-
+            // print('https://wild-grocery.herokuapp.com/${product.banner}');
+            // print(product.name);
             return Row(
               children: [
                 GestureDetector(
                   onTap: () async {
                     var navigationResult = await Navigator.of(context).push(
                       CupertinoPageRoute(
-                        builder: (context) => SeeSubCategories(
-                          title: product.name.toUpperCase(),
-                          category: product,
+                        builder: (context) => SeeMoreScreen(
+                          title: product.name,
+                          products: productsNotifier.productsList
+                              .where((element) =>
+                                  element.category['name'] == product.name)
+                              .toList(),
                           productsNotifier: productsNotifier,
                           cartNotifier: cartNotifier,
                           cartProdID: cartProdID,
+                          categoryId: product.id,
                         ),
                       ),
                     );
@@ -1039,6 +1221,7 @@ Widget blockWigdet2(
                   },
                   child: Container(
 //                      padding: EdgeInsets.all(10),
+                    width: (MediaQuery.of(context).size.width / 2) - 20,
                     decoration: BoxDecoration(
                       color: MColors.primaryWhite,
                       borderRadius: BorderRadius.all(
@@ -1054,17 +1237,29 @@ Widget blockWigdet2(
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10.0),
-                      child: Hero(
-                        child: FadeInImage.assetNetwork(
-                          image: product.productImage,
-                          fit: BoxFit.fill,
-                          height: _picHeight,
-                          width: 150,
-                          placeholder: "assets/images/placeholder.jpg",
-                          placeholderScale:
-                              MediaQuery.of(context).size.height / 2,
-                        ),
-                        tag: HomeScreen(),
+                      //TODO: Removed Hero from Column
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: FadeInImage.assetNetwork(
+                              image:
+                                  'https://wild-grocery.herokuapp.com/${product.banner}',
+                              fit: BoxFit.fill,
+                              // height: _picHeight - 40,
+                              // width: 150,
+                              placeholder: "assets/images/placeholder.jpg",
+                              placeholderScale:
+                                  MediaQuery.of(context).size.height / 2,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 5.0),
+                            child: Text(
+                              product.name,
+                              style: boldFont(MColors.mainColor, 16),
+                            ),
+                          )
+                        ],
                       ),
                     ),
                   ),
@@ -1074,7 +1269,7 @@ Widget blockWigdet2(
             );
           },
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              childAspectRatio: 1, crossAxisCount: 3, crossAxisSpacing: 0),
+              childAspectRatio: 1, crossAxisCount: 2, mainAxisSpacing: 10),
         ),
       ),
     ],

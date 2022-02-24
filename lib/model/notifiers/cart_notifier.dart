@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:mrpet/model/data/cart.dart';
+import 'package:wildberries/model/data/cart.dart';
 
 class CartNotifier with ChangeNotifier {
   List<Cart> _cartList = [];

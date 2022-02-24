@@ -1,17 +1,15 @@
-
-
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/main.dart';
-import 'package:mrpet/model/data/userData.dart';
-import 'package:mrpet/screens/tab_screens/home.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/root_screen.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/screens/tab_screens/home.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/root_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderPlaced extends StatefulWidget {
@@ -67,8 +65,7 @@ class _OrderPlacedState extends State<OrderPlaced> {
           InkWell(
               onTap: () {
                 launchWhatsApp(
-                    phone: '7060222315',
-                    message: 'Check out this awesome app');
+                    phone: '7060222315', message: 'Check out this awesome app');
               },
               child: Container(
                   alignment: Alignment.center,
@@ -92,7 +89,7 @@ class _OrderPlacedState extends State<OrderPlaced> {
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Misterpet.ae',
+          'Wildberries',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,

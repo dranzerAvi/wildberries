@@ -7,25 +7,27 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:geolocator/geolocator.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_map_location_picker/google_map_location_picker.dart';
+import 'package:google_map_location_picker/google_map_location_picker.dart'
+    as gmlp;
 
-import 'package:mrpet/screens/address/confirm_address.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:place_picker/entities/location_result.dart';
+import 'package:wildberries/screens/address/confirm_address.dart';
+import 'package:wildberries/utils/colors.dart';
+// import 'package:place_picker/entities/location_result.dart' ;
 import 'package:place_picker/place_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:mrpet/model/data/address.dart';
-import'package:mrpet/screens/tab_screens/checkout_screens/completeOrder.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/checkout_screens/completeOrder.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/model/data/address.dart';
+import 'package:wildberries/screens/tab_screens/checkout_screens/completeOrder.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/checkout_screens/completeOrder.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 import 'package:provider/provider.dart';
+
 class MyAddresses2 extends StatefulWidget {
   String id;
   MyAddresses2(this.id);
@@ -34,7 +36,6 @@ class MyAddresses2 extends StatefulWidget {
 }
 
 class _MyAddresses2State extends State<MyAddresses2> {
-
   var id;
   // void showPlacePicker() async {
   //   print('called');
@@ -54,7 +55,7 @@ class _MyAddresses2State extends State<MyAddresses2> {
 
   List<Addresses> alladresses = [];
   List<Widget> addressCards = [];
-  String currentLocationAddress='';
+  gmlp.LocationResult currentLocationAddress;
   void alladdresses() async {
     setState(() {
       alladresses.clear();
@@ -62,22 +63,23 @@ class _MyAddresses2State extends State<MyAddresses2> {
     });
 
     print('--------------');
-    await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(widget.id)
-        .collection('address2')
-        .snapshots()
-        .forEach((element) {
-      element.docs.forEach((element) {
-        setState(() {
-          Addresses add = Addresses(element['address'], element['hno'],
-              element['landmark'], element['Emirate']);
-          alladresses.add(add);
-        });
-        print(id);
-        print(alladresses.length);
-      });
-    });
+    //TODO:Check
+    // await FirebaseFirestore.instance
+    //     .collection('Users')
+    //     .doc(widget.id)
+    //     .collection('address2')
+    //     .snapshots()
+    //     .forEach((element) {
+    //   element.docs.forEach((element) {
+    //     setState(() {
+    //       Addresses add = Addresses(element['address'], element['hno'],
+    //           element['landmark'], element['Emirate']);
+    //       alladresses.add(add);
+    //     });
+    //     print(id);
+    //     print(alladresses.length);
+    //   });
+    // });
   }
 
   @override
@@ -89,7 +91,7 @@ class _MyAddresses2State extends State<MyAddresses2> {
 
     alladdresses();
     CartNotifier cartNotifier =
-    Provider.of<CartNotifier>(context, listen: false);
+        Provider.of<CartNotifier>(context, listen: false);
 
     getCart(cartNotifier);
     super.initState();
@@ -113,8 +115,10 @@ class _MyAddresses2State extends State<MyAddresses2> {
       throw 'Could not launch ${url()}';
     }
   }
-  void _launchURL(String url) async =>
-      await canLaunch(url) ? await launch(url) : throw Fluttertoast.showToast(
+
+  void _launchURL(String url) async => await canLaunch(url)
+      ? await launch(url)
+      : throw Fluttertoast.showToast(
           msg: 'Could not launch URL', toastLength: Toast.LENGTH_SHORT);
 
   @override
@@ -140,8 +144,7 @@ class _MyAddresses2State extends State<MyAddresses2> {
           InkWell(
               onTap: () {
                 launchWhatsApp(
-                    phone: '7060222315',
-                    message: 'Check out this awesome app');
+                    phone: '7060222315', message: 'Check out this awesome app');
               },
               child: Container(
                   alignment: Alignment.center,
@@ -165,7 +168,7 @@ class _MyAddresses2State extends State<MyAddresses2> {
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Misterpet.ae',
+          'Wildberries',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,
@@ -178,132 +181,136 @@ class _MyAddresses2State extends State<MyAddresses2> {
           child: Column(
             children: [
               Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection('userData')
-                          .doc(widget.id)
-                          .collection('address2')
-                          .snapshots(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<QuerySnapshot> snap) {
-                        if (snap.hasData &&
-                            !snap.hasError &&
-                            snap.data != null) {
-                          alladresses.clear();
-                          for (int i = 0; i < snap.data.docs.length; i++) {
-                            print(snap.data.docs.length);
-                            Addresses add = Addresses(
-                              snap.data.docs[i]['address'],
-                              snap.data.docs[i]['hno'],
-                              snap.data.docs[i]['landmark'],
-                              snap.data.docs[i]['Emirate'],
-                            );
-                            alladresses.add(add);
-                          }
-                          return alladresses.length != 0
-                              ? Column(
-                            children: [
-                              Text('Saved Addresses'),
-                              ListView.builder(
-                                itemCount: alladresses.length,
-                                shrinkWrap: true,
-                                physics: ClampingScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  var item = alladresses[index];
-                                  return InkWell(
-                                    onTap:(){
-                                      CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
-                                      var cartList = cartNotifier.cartList;
-                                      (item.hno != null &&
-                                          item.hno != '' &&
-                                          item.landmark != null &&
-                                          item.landmark != '')
-                                          ? Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  AddressContainer(cartList,
-                                                      'H.no. ${item.hno} , ${item.address} , near ${item.landmark},Emirate: ${item.emirate}',item.emirate
-                                                     )))
-                                          : (item.hno != null &&
-                                          item.hno != '')
-                                          ? Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  AddressContainer(cartList,
-                                                      'H.no. ${item.hno} , ${item.address}, Emirate: ${item.emirate}',item.emirate
-                                                    )))
-                                          : Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  AddressContainer(
-                                                    cartList,
-                                                      '${item.address} , Emirate: ${item.emirate} ',item.emirate
-                                                      )));
-                                    },
-                                    child: Card(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                            children: [
-                                              (item.hno != null &&
-                                                  item.hno != '')
-                                                  ? Align(
-                                                alignment:
-                                                Alignment.bottomLeft,
-                                                child: Text(
-                                                    'Address : H.no. ${item.hno} , ${item.address}'),
-                                              )
-                                                  : Align(
-                                                alignment:
-                                                Alignment.bottomLeft,
-                                                child: Text(
-                                                    'Address :  ${item.address}'),
-                                              ),
-                                              (item.landmark != null &&
-                                                  item.landmark != '')
-                                                  ? Align(
-                                                  alignment:
-                                                  Alignment.bottomLeft,
-                                                  child: Text(
-                                                      'Landmark : ${item.landmark}'))
-                                                  : Text(''),
-                                              item.emirate != null
-                                                  ? Align(
-                                                  alignment:
-                                                  Alignment.bottomLeft,
-                                                  child: Text(
-                                                      'Emirate : ${item.emirate}'))
-                                                  : Container(),
-
-                                            ],
-                                          ),
-                                        )),
-                                  );
-                                },
-                              )
-                            ],
-                          )
-                              : Container();
-                        } else {
-                          return Container();
-                        }
-                      })),
+                padding: const EdgeInsets.all(8.0),
+                //TODO:Check
+                // child: StreamBuilder(
+                //     stream: FirebaseFirestore.instance
+                //         .collection('userData')
+                //         .doc(widget.id)
+                //         .collection('address2')
+                //         .snapshots(),
+                //     builder: (BuildContext context,
+                //         AsyncSnapshot<QuerySnapshot> snap) {
+                //       if (snap.hasData &&
+                //           !snap.hasError &&
+                //           snap.data != null) {
+                //         alladresses.clear();
+                //         for (int i = 0; i < snap.data.docs.length; i++) {
+                //           print(snap.data.docs.length);
+                //           Addresses add = Addresses(
+                //             snap.data.docs[i]['address'],
+                //             snap.data.docs[i]['hno'],
+                //             snap.data.docs[i]['landmark'],
+                //             snap.data.docs[i]['Emirate'],
+                //           );
+                //           alladresses.add(add);
+                //         }
+                //         return alladresses.length != 0
+                //             ? Column(
+                //                 children: [
+                //                   Text('Saved Addresses'),
+                //                   ListView.builder(
+                //                     itemCount: alladresses.length,
+                //                     shrinkWrap: true,
+                //                     physics: ClampingScrollPhysics(),
+                //                     itemBuilder: (context, index) {
+                //                       var item = alladresses[index];
+                //                       return InkWell(
+                //                         onTap: () {
+                //                           CartNotifier cartNotifier =
+                //                               Provider.of<CartNotifier>(
+                //                                   context);
+                //                           var cartList =
+                //                               cartNotifier.cartList;
+                //                           (item.hno != null &&
+                //                                   item.hno != '' &&
+                //                                   item.landmark != null &&
+                //                                   item.landmark != '')
+                //                               ? Navigator.pushReplacement(
+                //                                   context,
+                //                                   MaterialPageRoute(
+                //                                       builder: (context) =>
+                //                                           AddressContainer(
+                //                                               cartList,
+                //                                               'H.no. ${item.hno} , ${item.address} , near ${item.landmark},Emirate: ${item.emirate}',
+                //                                               item.emirate)))
+                //                               : (item.hno != null &&
+                //                                       item.hno != '')
+                //                                   ? Navigator.pushReplacement(
+                //                                       context,
+                //                                       MaterialPageRoute(
+                //                                           builder: (context) => AddressContainer(
+                //                                               cartList,
+                //                                               'H.no. ${item.hno} , ${item.address}, Emirate: ${item.emirate}',
+                //                                               item.emirate)))
+                //                                   : Navigator.pushReplacement(
+                //                                       context,
+                //                                       MaterialPageRoute(
+                //                                           builder: (context) =>
+                //                                               AddressContainer(
+                //                                                   cartList,
+                //                                                   '${item.address} , Emirate: ${item.emirate} ',
+                //                                                   item.emirate)));
+                //                         },
+                //                         child: Card(
+                //                             child: Padding(
+                //                           padding: const EdgeInsets.all(8.0),
+                //                           child: Column(
+                //                             mainAxisAlignment:
+                //                                 MainAxisAlignment.start,
+                //                             children: [
+                //                               (item.hno != null &&
+                //                                       item.hno != '')
+                //                                   ? Align(
+                //                                       alignment: Alignment
+                //                                           .bottomLeft,
+                //                                       child: Text(
+                //                                           'Address : H.no. ${item.hno} , ${item.address}'),
+                //                                     )
+                //                                   : Align(
+                //                                       alignment: Alignment
+                //                                           .bottomLeft,
+                //                                       child: Text(
+                //                                           'Address :  ${item.address}'),
+                //                                     ),
+                //                               (item.landmark != null &&
+                //                                       item.landmark != '')
+                //                                   ? Align(
+                //                                       alignment: Alignment
+                //                                           .bottomLeft,
+                //                                       child: Text(
+                //                                           'Landmark : ${item.landmark}'))
+                //                                   : Text(''),
+                //                               item.emirate != null
+                //                                   ? Align(
+                //                                       alignment: Alignment
+                //                                           .bottomLeft,
+                //                                       child: Text(
+                //                                           'Emirate : ${item.emirate}'))
+                //                                   : Container(),
+                //                             ],
+                //                           ),
+                //                         )),
+                //                       );
+                //                     },
+                //                   )
+                //                 ],
+                //               )
+                //             : Container();
+                //       } else {
+                //         return Container();
+                //       }
+                //     })
+              ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: InkWell(
-
                     onTap: () async {
+                      //TODO: Place Picker
                       var result;
                       String error;
 
-
-                      showLocationPicker(
+                      gmlp.showLocationPicker(
                         context,
                         'AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw',
                         initialCenter: LatLng(31.1975844, 29.9598339),
@@ -319,14 +326,16 @@ class _MyAddresses2State extends State<MyAddresses2> {
                       );
                       print("result = $result");
                       setState(() {
-                        currentLocationAddress=result;
+                        currentLocationAddress = result;
                         if (currentLocationAddress != null) {
                           Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  ConfirmAddress(currentLocationAddress)));
+                              builder: (context) => ConfirmAddress(
+                                  currentLocationAddress, "", "", "")));
 
 //
-                        }});
+                        }
+                      });
+                      //TODO: Place Picker
 //                                  _locationDialog(context);
 //                                   showPlacePicker();
 //                                   Navigator.push(context, MaterialPageRoute(
@@ -335,15 +344,15 @@ class _MyAddresses2State extends State<MyAddresses2> {
 //                                   }));
 //
                     },
-                    child:Center(
+                    child: Center(
                       child: Container(
-                          height:MediaQuery.of(context).size.height*0.06,
-                          width:MediaQuery.of(context).size.width*0.85,
-                          color:MColors.secondaryColor,
-                          child:Center(child: Text('+ Add Address',style:TextStyle(color:Colors.white)))
-                      ),
-                    )
-                ),
+                          height: MediaQuery.of(context).size.height * 0.06,
+                          width: MediaQuery.of(context).size.width * 0.85,
+                          color: MColors.secondaryColor,
+                          child: Center(
+                              child: Text('+ Add Address',
+                                  style: TextStyle(color: Colors.white)))),
+                    )),
               )
             ],
           ),

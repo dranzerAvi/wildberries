@@ -1,28 +1,33 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/userData.dart';
 
 class AuthService {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  // final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   //Checking if user is signed in
-  Stream<String> get onAuthStateChanged => _firebaseAuth.authStateChanges().map(
-        (User user) => user?.uid,
-      );
+  // Stream<String> get onAuthStateChanged => _firebaseAuth.authStateChanges().map(
+  //       (User user) => user?.uid,
+  //     );
 
   //Get UID
   Future<String> getCurrentUID() async {
-    return (_firebaseAuth.currentUser).uid;
+    // return (_firebaseAuth.currentUser).uid;
   }
 
   //Get Email
   Future<String> getCurrentEmail() async {
-    if (_firebaseAuth.currentUser == null) return null;
-    return (_firebaseAuth.currentUser).email;
+    // if (_firebaseAuth.currentUser == null) return null;
+    // return (_firebaseAuth.currentUser).email;
   }
 
   //Get Current user
-  Future getCurrentUser() async {
-    return _firebaseAuth.currentUser;
-  }
+  Future<UserDataProfile> getCurrentUser() async {}
 
   //Email and Pasword Sign Up
   Future<String> createUserWithEmailAndPassword(
@@ -30,37 +35,39 @@ class AuthService {
     password,
     name,
   ) async {
-    final User currentUser =
-        (await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    ))
-            .user;
+    // final User currentUser =
+    //     (await _firebaseAuth.createUserWithEmailAndPassword(
+    //   email: email,
+    //   password: password,
+    // ))
+    //         .user;
 
-    await currentUser.reload();
-    return currentUser.uid;
+    // await currentUser.reload();
+    // return currentUser.uid;
   }
 
-  //Email and Password Sign in
-  Future<String> signInWithEmailAndPassword(
-    String email,
-    String password,
+  //Phone Number Sign in
+  Future<String> signInWithPhoneNumber(
+    String phone,
+    String otp,
   ) async {
-    return ((await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    ))
-            .user)
-        .uid;
+    // return ((await _firebaseAuth.signInWithEmailAndPassword(
+    //   email: email,
+    //   password: password,
+    // ))
+    //         .user)
+    //     .uid;
   }
 
   //Sign Out
-  signOut() {
-    return FirebaseAuth.instance.signOut();
+  signOut() async {
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    preferences.remove('user');
+    // return FirebaseAuth.instance.signOut();
   }
 
   //Reset password
   Future sendPasswordResetEmail(String email) async {
-    return _firebaseAuth.sendPasswordResetEmail(email: email);
+    // return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 }

@@ -1,16 +1,13 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/home.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/bag.dart';
-import 'package:mrpet/utils/colors.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/home.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/bag.dart';
+import 'package:wildberries/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Review extends StatefulWidget {
@@ -26,29 +23,30 @@ class _ReviewState extends State<Review> {
   var ratingGlobal = '1';
   String name, number;
   getUserDetails() async {
-    User user = FirebaseAuth.instance.currentUser;
-    var ref = FirebaseFirestore.instance.collection('userData');
-    ref
-        .doc(user.email)
-        .collection('profile')
-        .doc(user.email)
-        .get()
-        .then((value) {
-      Map<String, dynamic> map = value.data();
-      name = map['name'];
-      number = map['phone'];
-      FirebaseFirestore.instance.collection('Reviews').add({
-        "username": name,
-        "useremail": user.email,
-        "user_phn_no": number,
-        "rating": ratingGlobal,
-        "details": contrl.text,
-        "productName": widget.productname,
-      });
-      Fluttertoast.showToast(
-          msg: 'Review Added', toastLength: Toast.LENGTH_SHORT);
-      Navigator.pop(context);
-    });
+    // User user = FirebaseAuth.instance.currentUser;
+    //TODO:Check
+    // var ref = FirebaseFirestore.instance.collection('userData');
+    // ref
+    //     .doc(user.email)
+    //     .collection('profile')
+    //     .doc(user.email)
+    //     .get()
+    //     .then((value) {
+    //   Map<String, dynamic> map = value.data();
+    //   name = map['name'];
+    //   number = map['phone'];
+    //   FirebaseFirestore.instance.collection('Reviews').add({
+    //     "username": name,
+    //     "useremail": user.email,
+    //     "user_phn_no": number,
+    //     "rating": ratingGlobal,
+    //     "details": contrl.text,
+    //     "productName": widget.productname,
+    //   });
+    //   Fluttertoast.showToast(
+    //       msg: 'Review Added', toastLength: Toast.LENGTH_SHORT);
+    //   Navigator.pop(context);
+    // });
   }
 
   TextEditingController controller = TextEditingController();
@@ -261,7 +259,7 @@ class _ReviewState extends State<Review> {
                       setState(() {
                         ratingGlobal = rating.toString();
                       });
-                      print(rating);
+                      // print(rating);
                     },
                   ),
                 ),

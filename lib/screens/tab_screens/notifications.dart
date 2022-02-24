@@ -1,19 +1,24 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/notifiers/notifications_notifier.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/notifications_notifier.dart';
 
-import 'package:mrpet/model/services/pushNotification_service.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/notificationDetails.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/internetConnectivity.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/custom_floating_button.dart';
-import 'package:mrpet/widgets/navDrawer.dart';
+import 'package:wildberries/model/services/pushNotification_service.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/notificationDetails.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/internetConnectivity.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/custom_floating_button.dart';
+import 'package:wildberries/widgets/navDrawer.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../main.dart';
 
 class InboxScreen extends StatefulWidget {
   InboxScreen({Key key}) : super(key: key);
@@ -27,15 +32,32 @@ class _InboxScreenState extends State<InboxScreen> {
 
   Future notificationsFuture;
 
+  UserDataProfile user;
+
+  getUser() async {
+    final Preference<String> userData =
+        await preferences.getString('user', defaultValue: '');
+    // userData.listen((value) {
+    //   print('User $value');
+    // });
+    userData.listen((value) async {
+      if (value == null) {
+        user = UserDataProfile.fromMap(json.decode(value));
+      }
+    });
+  }
+
   @override
   void initState() {
+    getUser();
     checkInternetConnectivity().then((value) => {
           value == true
               ? () {
                   NotificationsNotifier notificationsNotifier =
                       Provider.of<NotificationsNotifier>(context,
                           listen: false);
-                  notificationsFuture = getNotifications(notificationsNotifier);
+                  //TODO:Check
+                  // notificationsFuture = getNotifications(notificationsNotifier);
                 }()
               : showNoInternetSnack(_scaffoldKey)
         });
@@ -116,7 +138,7 @@ class _InboxScreenState extends State<InboxScreen> {
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Misterpet.ae',
+          'Wildberries',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,
@@ -124,9 +146,9 @@ class _InboxScreenState extends State<InboxScreen> {
               fontWeight: FontWeight.bold),
         ),
       ),
-      drawer: CustomDrawer(),
+      drawer: CustomDrawer(user, null, {}),
       body: RefreshIndicator(
-        onRefresh: () => getNotifications(notificationsNotifier),
+        // onRefresh: () => getNotifications(notificationsNotifier),
         child: primaryContainer(
           FutureBuilder(
             future: notificationsFuture,
@@ -170,11 +192,11 @@ class _InboxScreenState extends State<InboxScreen> {
               ),
             );
             if (navigationResult == true) {
-              updateNotificationStatusToTrue(not.notID);
-
-              setState(() {
-                getNotifications(notificationsNotifier);
-              });
+              // updateNotificationStatusToTrue(not.notID);
+              //
+              // setState(() {
+              //   getNotifications(notificationsNotifier);
+              // });
             }
           },
           child: Container(

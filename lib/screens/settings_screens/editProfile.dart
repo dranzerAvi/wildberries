@@ -4,13 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mrpet/model/data/userData.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/utils/cardUtils/cardStrings.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/internetConnectivity.dart';
-import 'package:mrpet/utils/textFieldFormaters.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/utils/cardUtils/cardStrings.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/internetConnectivity.dart';
+import 'package:wildberries/utils/textFieldFormaters.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 
 import '../../main.dart';
 
@@ -87,27 +87,26 @@ class _EditProfileState extends State<EditProfile> {
                     child: GestureDetector(
                       onTap: () => imageCapture(),
                       child: Container(
-                        child:
-                            user.profilePhoto == null || user.profilePhoto == ""
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(9.0),
-                                    child: Image.asset(
+                        child: user.imgURL == null || user.imgURL == ""
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(9.0),
+                                child: Image.asset(
+                                  "assets/images/petshop-footprint-logo-whiteBg.png",
+                                  height: 90.0,
+                                  width: 90.0,
+                                ),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(9.0),
+                                child: FadeInImage.assetNetwork(
+                                  image: user.imgURL,
+                                  fit: BoxFit.fill,
+                                  height: 90.0,
+                                  width: 90.0,
+                                  placeholder:
                                       "assets/images/petshop-footprint-logo-whiteBg.png",
-                                      height: 90.0,
-                                      width: 90.0,
-                                    ),
-                                  )
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(9.0),
-                                    child: FadeInImage.assetNetwork(
-                                      image: user.profilePhoto,
-                                      fit: BoxFit.fill,
-                                      height: 90.0,
-                                      width: 90.0,
-                                      placeholder:
-                                          "assets/images/petshop-footprint-logo-whiteBg.png",
-                                    ),
-                                  ),
+                                ),
+                              ),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: MColors.dashPurple,
@@ -139,7 +138,7 @@ class _EditProfileState extends State<EditProfile> {
                           SizedBox(height: 5.0),
                           primaryTextField(
                             null,
-                            user.name,
+                            user.firstName,
                             "",
                             (val) => _name = val,
                             true,
@@ -196,7 +195,7 @@ class _EditProfileState extends State<EditProfile> {
                           SizedBox(height: 5.0),
                           primaryTextField(
                             null,
-                            user.phone,
+                            user.phone.toString(),
                             "",
                             (val) => _phone = val,
                             true,

@@ -1,9 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/screens/tab_screens/home.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/bag.dart';
-import 'package:mrpet/utils/colors.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/cart.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/screens/tab_screens/home.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/bag.dart';
+import 'package:wildberries/utils/colors.dart';
 import 'package:provider/provider.dart';
 
 class CustomFloatingButton extends StatefulWidget {
@@ -16,7 +19,7 @@ class CustomFloatingButton extends StatefulWidget {
 class _CustomFloatingButtonState extends State<CustomFloatingButton>
     with SingleTickerProviderStateMixin {
 //  final dbRef = FirebaseDatabase.instance.reference();
-  FirebaseAuth mAuth = FirebaseAuth.instance;
+//   FirebaseAuth mAuth = FirebaseAuth.instance;
 
   final PageStorageBucket bucket = PageStorageBucket();
   Widget currentScreen;
@@ -35,7 +38,7 @@ class _CustomFloatingButtonState extends State<CustomFloatingButton>
   initState() {
     super.initState();
 
-    print("init runs");
+    // print("init runs");
     currentScreen = widget.currentScreen?.currentScreen ?? HomeScreen();
     currentTab = widget.currentScreen?.tab_no ?? 0;
     _controller = AnimationController(
@@ -76,8 +79,14 @@ class _CustomFloatingButtonState extends State<CustomFloatingButton>
   @override
   Widget build(BuildContext context) {
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
-    var cartList = cartNotifier.cartList;
-    var totalList = cartList.map((e) => e.totalPrice);
+    Preference<String> cartListString =
+        preferences.getString('cart', defaultValue: '');
+    List<Cart> cartList = [];
+    cartListString.listen((value) {
+      if (value != '') cartList = Cart.decode(value);
+    });
+    // var cartList = cartNotifier.cartList;
+    var totalList = cartList.map((e) => e.selling_price);
     var total = totalList.isEmpty
         ? 0.0
         : totalList.reduce((sum, element) => sum + element).toStringAsFixed(2);

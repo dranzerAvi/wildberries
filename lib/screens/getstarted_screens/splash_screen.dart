@@ -1,5 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:mrpet/utils/colors.dart';
+// import 'package:wildberries/utils/colors.dart';
 //
 // class SplashScreen extends StatelessWidget {
 //   @override

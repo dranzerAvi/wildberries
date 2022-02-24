@@ -35,13 +35,15 @@ android {
 
     lintOptions {
         disable 'InvalidPackage'
+        checkReleaseBuilds false //<- add this line
+
     }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.axactstudios.mrpet"
-        minSdkVersion 16
-        targetSdkVersion 29
+        applicationId "com.axactstudios.wildberries"
+        minSdkVersion 21
+        targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -52,6 +54,9 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            //TODO: Done to build project
+//            shrinkResources false
+//            minifyEnabled false
         }
     }
 }
@@ -61,9 +66,17 @@ flutter {
 }
 
 dependencies {
+    constraints {
+        implementation('com.google.android.gms:play-services-location') {
+            version {
+                strictly "16.0.0"
+            }
+            because 'location: 3.2.4 does not specify version & google.bintray.com answers 502 Bad Gateway'
+        }
+    }
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation platform('com.google.firebase:firebase-bom:26.0.0')
     implementation 'com.android.support:multidex:1.0.3'
-
+    implementation 'com.google.firebase:firebase-messaging:20.3.0'
     implementation 'com.google.firebase:firebase-analytics'
 }

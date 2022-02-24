@@ -1,20 +1,25 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/notifiers/orders_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/internetConnectivity.dart';
+import 'package:wildberries/model/data/orders.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/orders_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/internetConnectivity.dart';
+import 'package:http/http.dart' as http;
 
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HistoryScreen extends StatefulWidget {
-  HistoryScreen({Key key}) : super(key: key);
+  UserDataProfile currentUser;
+  HistoryScreen(this.currentUser, {Key key}) : super(key: key);
 
   @override
   _HistoryScreenState createState() => _HistoryScreenState();
@@ -26,24 +31,17 @@ class _HistoryScreenState extends State<HistoryScreen>
   TabController _tabController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _tabItems = [
-    Text(
-      "Current orders",
-      style: TextStyle(
-          color: MColors.secondaryColor,
-          fontSize: 15,
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.bold),
+    Padding(
+      padding: const EdgeInsets.all(8.0),
+      child:
+          Text("Current orders", style: boldFont(MColors.secondaryColor, 15)),
     ),
-    Text(
-      "Past orders",
-      style: TextStyle(
-          color: MColors.secondaryColor,
-          fontSize: 15,
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.bold),
+    Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text("Past orders", style: boldFont(MColors.secondaryColor, 15)),
     ),
   ];
-
+  List<Order> orderList = [];
   @override
   void initState() {
     checkInternetConnectivity().then((value) => {
@@ -51,7 +49,8 @@ class _HistoryScreenState extends State<HistoryScreen>
               ? () {
                   OrderListNotifier orderListNotifier =
                       Provider.of<OrderListNotifier>(context, listen: false);
-                  ordersFuture = getOrders(orderListNotifier);
+                  ordersFuture =
+                      getOrders(orderListNotifier, widget.currentUser);
                 }()
               : showNoInternetSnack(_scaffoldKey)
         });
@@ -82,7 +81,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     }
   }
 
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  // final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -96,13 +95,8 @@ class _HistoryScreenState extends State<HistoryScreen>
         builder: (c, s) {
           switch (s.connectionState) {
             case ConnectionState.active:
-              return _firebaseAuth.currentUser != null
-                  ? progressIndicator(MColors.primaryPurple)
-                  : emptyScreen(
-                      "assets/images/noHistory.svg",
-                      "No Orders",
-                      "Your past orders, transactions and hires will show up here.",
-                    );
+              return progressIndicator(MColors.primaryPurple);
+
               break;
             case ConnectionState.done:
               return orderList.isEmpty
@@ -114,32 +108,23 @@ class _HistoryScreenState extends State<HistoryScreen>
                   : ordersScreen(orderList);
               break;
             case ConnectionState.waiting:
-              return _firebaseAuth.currentUser != null
-                  ? progressIndicator(MColors.primaryPurple)
-                  : emptyScreen(
-                      "assets/images/noHistory.svg",
-                      "No Orders",
-                      "Your past orders, transactions and hires will show up here.",
-                    );
+              return progressIndicator(MColors.primaryPurple);
+
               break;
             default:
-              return _firebaseAuth.currentUser != null
-                  ? progressIndicator(MColors.primaryPurple)
-                  : emptyScreen(
-                      "assets/images/noHistory.svg",
-                      "No Orders",
-                      "Your past orders, transactions and hires will show up here.",
-                    );
+              return progressIndicator(MColors.primaryPurple);
           }
         },
       ),
     );
   }
 
-  Widget ordersScreen(orderList) {
+  Widget ordersScreen(List<Order> orderList) {
     final _tabBody = [
-      currentOrder(orderList),
-      pastOrder(),
+      currentOrder(
+          orderList.where((element) => element.status != 'Delivered').toList()),
+      pastOrder(
+          orderList.where((element) => element.status == 'Delivered').toList()),
     ];
     return DefaultTabController(
       length: 2,
@@ -195,7 +180,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           elevation: 0.0,
           centerTitle: true,
           title: Text(
-            'Misterpet.ae',
+            'Wildberries',
             style: TextStyle(
                 color: MColors.secondaryColor,
                 fontSize: 22,
@@ -204,43 +189,53 @@ class _HistoryScreenState extends State<HistoryScreen>
           ),
         ),
         body: TabBarView(
+          controller: _tabController,
           children: _tabBody,
         ),
       ),
     );
   }
 
-  Widget currentOrder(orderList) {
+  Widget currentOrder(List<Order> orderList) {
+    DateTime currentDate = new DateTime.now();
     OrderListNotifier orderListNotifier =
         Provider.of<OrderListNotifier>(context, listen: false);
     return Container(
       height: MediaQuery.of(context).size.height,
       child: RefreshIndicator(
-        onRefresh: () => getOrders(orderListNotifier),
+        onRefresh: () => getOrders(orderListNotifier, widget.currentUser),
         child: ListView.builder(
           physics: BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: orderList.length,
+          itemCount: orderListNotifier.orderListList
+              .where((element) => element.status != 'Delivered')
+              .toList()
+              .length,
           itemBuilder: (context, i) {
             OrderListNotifier orderListNotifier =
                 Provider.of<OrderListNotifier>(context);
-            var _orderList = orderListNotifier.orderListList;
+            List<Order> _orderList = orderListNotifier.orderListList
+                .where((element) => element.status != 'Delivered')
+                .toList();
 
-            var orderListItem = _orderList[i];
-            var orderID = orderListItem.orderID.substring(
-              orderListItem.orderID.length - 11,
-            );
+            Order orderListItem = _orderList[i];
+            var orderID = orderListItem.id;
 
-            var order = _orderList[i].order.toList();
-            var orderTotalPriceList = order.map((e) => e['totalPrice']);
-            var orderTotalPrice = orderTotalPriceList
-                .reduce((sum, element) => sum + element)
-                .toStringAsFixed(2);
-            var orderDayTime = orderListItem.orderDate.toDate().day.toString() +
-                "-" +
-                orderListItem.orderDate.toDate().month.toString() +
-                "-" +
-                orderListItem.orderDate.toDate().year.toString();
+            var order = _orderList[i].products.toList();
+            var orderTotalPriceList = order.map((e) => e['price']).toList();
+            var orderTotalPrice = orderListItem.amount;
+            print(orderTotalPriceList);
+            print(order);
+
+            // orderTotalPriceList
+            //     .reduce((sum, element) => sum + element)
+            //     .toStringAsFixed(2);
+            //TODO:Check
+            // var orderDayTime = orderListItem.orderDate.toDate().day.toString() +
+            //     "-" +
+            //     orderListItem.orderDate.toDate().month.toString() +
+            //     "-" +
+            //     orderListItem.orderDate.toDate().year.toString();
 
             return Container(
               width: MediaQuery.of(context).size.width,
@@ -274,12 +269,46 @@ class _HistoryScreenState extends State<HistoryScreen>
                           ),
                         ),
                       ),
-                      Container(
-                        child: Text(
-                          orderDayTime,
-                          style: normalFont(MColors.textGrey, 14.0),
-                        ),
-                      ),
+                      orderListItem.deliveryType == 'Normal'
+                          ? currentDate
+                                      .difference(DateTime.parse(
+                                          orderListItem.createdAt))
+                                      .inDays ==
+                                  0
+                              ? Container(
+                                  child: InkWell(
+                                    onTap: () {
+                                      _showCancelOrderModalSheet(orderListItem);
+                                    },
+                                    child: Text(
+                                      'Cancel',
+                                      style: boldFont(Colors.red, 14),
+                                    ),
+                                  ),
+                                  //TODO:Check
+                                  // child: Text(
+                                  //   orderDayTime,
+                                  //   style: normalFont(MColors.textGrey, 14.0),
+                                  // ),
+                                )
+                              : Container()
+                          : currentDate
+                                      .difference(DateTime.parse(
+                                          orderListItem.createdAt))
+                                      .inMinutes <=
+                                  5
+                              ? Container(
+                                  child: Text(
+                                    'Cancel',
+                                    style: boldFont(Colors.red, 14),
+                                  ),
+                                  //TODO:Check
+                                  // child: Text(
+                                  //   orderDayTime,
+                                  //   style: normalFont(MColors.textGrey, 14.0),
+                                  // ),
+                                )
+                              : Container(),
                     ],
                   ),
                   Container(
@@ -296,7 +325,8 @@ class _HistoryScreenState extends State<HistoryScreen>
                           height: 50.0,
                           width: 40.0,
                           child: FadeInImage.assetNetwork(
-                            image: order[i]['productImage'],
+                            image:
+                                'https://wild-grocery.herokuapp.com/${order[i]['imgURL']}',
                             fit: BoxFit.fill,
                             placeholder: "assets/images/placeholder.jpg",
                             placeholderScale:
@@ -315,7 +345,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                         ),
                         Spacer(),
                         Text(
-                          "\$" + orderTotalPrice.toString(),
+                          "Rs." + orderTotalPrice.toString(),
                           style: boldFont(MColors.textGrey, 14.0),
                         ),
                       ],
@@ -330,17 +360,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                           height: 25.0,
                           child: RawMaterialButton(
                             onPressed: () {
+                              print(orderListItem);
                               _showModalSheet(orderListItem);
                             },
                             child: Text(
                               "Details",
-                              style: boldFont(MColors.primaryPurple, 14.0),
+                              style: boldFont(MColors.mainColor, 14.0),
                             ),
                           ),
                         ),
                         Spacer(),
                         Text(
-                          orderListItem.orderStatus,
+                          orderListItem.status.toString(),
                           style: boldFont(Colors.green, 14.0),
                         ),
                       ],
@@ -355,30 +386,186 @@ class _HistoryScreenState extends State<HistoryScreen>
     );
   }
 
-  Widget pastOrder() {
-    return emptyScreen(
-      "assets/images/noHistory.svg",
-      "No past orders",
-      "Orders that have been delivered to you or cancelled will show up here.",
+  Widget pastOrder(List<Order> orderList) {
+    OrderListNotifier orderListNotifier =
+        Provider.of<OrderListNotifier>(context, listen: false);
+    print('Past orders');
+
+    print(orderListNotifier.orderListList
+        .where((element) => element.status != 'Delivered')
+        .toList());
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      child: RefreshIndicator(
+        onRefresh: () => getOrders(orderListNotifier, widget.currentUser),
+        child: orderListNotifier.orderListList
+                    .where((element) => element.status == 'Delivered')
+                    .toList()
+                    .length ==
+                0
+            ? emptyScreen(
+                "assets/images/noHistory.svg",
+                "No Orders",
+                "Your past orders will show up here.",
+              )
+            : ListView.builder(
+                physics: BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: orderListNotifier.orderListList
+                    .where((element) => element.status == 'Delivered')
+                    .toList()
+                    .length,
+                itemBuilder: (context, i) {
+                  OrderListNotifier orderListNotifier =
+                      Provider.of<OrderListNotifier>(context);
+                  List<Order> _orderList = orderListNotifier.orderListList
+                      .where((element) => element.status == 'Delivered')
+                      .toList();
+
+                  Order orderListItem = _orderList[i];
+                  var orderID = orderListItem.id;
+
+                  var order = _orderList[i].products.toList();
+                  var orderTotalPriceList =
+                      order.map((e) => e['selling_price']);
+                  var orderTotalPrice = orderListItem.amount;
+                  // orderTotalPriceList
+                  //     .reduce((sum, element) => sum + element)
+                  //     .toStringAsFixed(2);
+                  //TODO:Check
+                  // var orderDayTime = orderListItem.orderDate.toDate().day.toString() +
+                  //     "-" +
+                  //     orderListItem.orderDate.toDate().month.toString() +
+                  //     "-" +
+                  //     orderListItem.orderDate.toDate().year.toString();
+
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    padding: EdgeInsets.all(20.0),
+                    margin: EdgeInsets.only(bottom: 10.0),
+                    decoration: BoxDecoration(
+                      color: MColors.primaryWhite,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Container(
+                                child: Row(
+                                  children: <Widget>[
+                                    Text(
+                                      "Order No. ",
+                                      style: normalFont(MColors.textGrey, 14.0),
+                                    ),
+                                    Text(
+                                      orderID,
+                                      style: boldFont(MColors.textGrey, 14.0),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Container(
+                                //TODO:Check
+                                // child: Text(
+                                //   orderDayTime,
+                                //   style: normalFont(MColors.textGrey, 14.0),
+                                // ),
+                                ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          height: 70.0,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: BouncingScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: order.length,
+                            itemBuilder: (context, i) {
+                              return Container(
+                                margin: EdgeInsets.symmetric(horizontal: 2),
+                                height: 50.0,
+                                width: 40.0,
+                                child: FadeInImage.assetNetwork(
+                                  image:
+                                      'https://wild-grocery.herokuapp.com/${order[i]['imgURL']}',
+                                  fit: BoxFit.fill,
+                                  placeholder: "assets/images/placeholder.jpg",
+                                  placeholderScale:
+                                      MediaQuery.of(context).size.height / 2,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Container(
+                          child: Row(
+                            children: <Widget>[
+                              Text(
+                                order.length.toString() + " Items",
+                                style: normalFont(MColors.textGrey, 14.0),
+                              ),
+                              Spacer(),
+                              Text(
+                                "Rs." + orderTotalPrice.toString(),
+                                style: boldFont(MColors.textGrey, 14.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10.0),
+                        Container(
+                          child: Row(
+                            children: <Widget>[
+                              Container(
+                                width: 60.0,
+                                height: 25.0,
+                                child: RawMaterialButton(
+                                  onPressed: () {
+                                    print(orderListItem);
+                                    _showModalSheet(orderListItem);
+                                  },
+                                  child: Text(
+                                    "Details",
+                                    style: boldFont(MColors.mainColor, 14.0),
+                                  ),
+                                ),
+                              ),
+                              Spacer(),
+                              Text(
+                                orderListItem.status,
+                                style: boldFont(Colors.green, 14.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 
-  //Order details
-  void _showModalSheet(orderListItem) {
-    var orderID = orderListItem.orderID.substring(
-      orderListItem.orderID.length - 11,
-    );
-    var order = orderListItem.order.toList();
-    var orderTotalPriceList = order.map((e) => e['totalPrice']);
-    var orderTotalPrice = orderTotalPriceList
-        .reduce((sum, element) => sum + element)
-        .toStringAsFixed(2);
+  TextEditingController reasonController = TextEditingController();
+  void _showCancelOrderModalSheet(Order orderListItem) {
+    var orderID = orderListItem.id;
+    var userId = orderListItem.user;
+    var order = orderListItem.products.toList();
 
-    var orderDayTime = orderListItem.orderDate.toDate().day.toString() +
+    var orderDayTime = DateTime.parse(orderListItem.createdAt).day.toString() +
         "-" +
-        orderListItem.orderDate.toDate().month.toString() +
+        DateTime.parse(orderListItem.createdAt).month.toString() +
         "-" +
-        orderListItem.orderDate.toDate().year.toString();
+        DateTime.parse(orderListItem.createdAt).year.toString();
 
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
@@ -414,23 +601,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                   children: <Widget>[
                     Container(
                       child: Text(
-                        "Order details",
+                        "Request Order Cancellation",
                         style: boldFont(MColors.textGrey, 16.0),
                       ),
                     ),
                     SizedBox(
                       width: 5.0,
                     ),
-                    Container(
-                      child: SvgPicture.asset(
-                        "assets/images/icons/Bag.svg",
-                        color: MColors.primaryPurple,
-                      ),
-                    ),
                     Spacer(),
                     Text(
-                      "\$" + orderTotalPrice,
-                      style: boldFont(MColors.primaryPurple, 16.0),
+                      "Rs.${orderListItem.amount}",
+                      // + orderTotalPrice,
+                      style: boldFont(MColors.textGrey, 16.0),
                     ),
                   ],
                 ),
@@ -462,19 +644,76 @@ class _HistoryScreenState extends State<HistoryScreen>
                   ],
                 ),
                 SizedBox(height: 15.0),
-                orderTrackerWidget(orderListItem.orderStatus),
-                SizedBox(height: 15.0),
-                Text(
-                  "Delivering to",
-                  style: boldFont(MColors.textGrey, 14.0),
+                Row(
+                  children: [
+                    Text(
+                      "Delivering to",
+                      style: boldFont(MColors.textGrey, 14.0),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 5.0),
-                Text(
-                  orderListItem.shippingAddress,
-                  style: normalFont(MColors.textGrey, 14.0),
-                  textAlign: TextAlign.center,
+                Row(
+                  children: [
+                    Text(
+                      orderListItem.address['address'],
+                      style: normalFont(MColors.textGrey, 14.0),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
                 SizedBox(height: 15.0),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value == '') return 'Required field';
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: MColors.mainColor)),
+                    hintText: 'Reason For Cancellation*',
+                  ),
+                  controller: reasonController,
+                  style: normalFont(MColors.mainColor, 14),
+                ),
+                SizedBox(height: 15.0),
+                primaryButtonPurple(
+                    Text(
+                      'Request Cancellation',
+                      style: boldFont(Colors.white, 14),
+                    ), () async {
+                  var url = Uri.parse(
+                      'https://wild-grocery.herokuapp.com/api/create/cancellation');
+                  String encodedOrderData = json.encode({
+                    "name":
+                        '${widget.currentUser.firstName} ${widget.currentUser.lastName}',
+                    "email": '${widget.currentUser.email}',
+                    "phone": widget.currentUser.phone.toString().substring(2),
+                    "issues": reasonController.text,
+                    "user": widget.currentUser.id.toString(),
+                    "orderId": orderID
+                  });
+                  var response = await http.post(url, body: {
+                    "name":
+                        '${widget.currentUser.firstName} ${widget.currentUser.lastName}',
+                    "email": '${widget.currentUser.email}',
+                    "phone": widget.currentUser.phone.toString().substring(2),
+                    "issues": reasonController.text,
+                    "user": widget.currentUser.id.toString(),
+                    "orderId": orderID
+                  });
+                  var data = json.decode(response.body);
+                  print(data);
+                  Navigator.pop(context);
+                }),
                 Container(
                   child: ListView.builder(
                     itemCount: order.length,
@@ -496,7 +735,8 @@ class _HistoryScreenState extends State<HistoryScreen>
                               width: 30.0,
                               height: 40.0,
                               child: FadeInImage.assetNetwork(
-                                image: order[i]['productImage'],
+                                image:
+                                    'https://wild-grocery.herokuapp.com/${order[i]['imgURL']}',
                                 fit: BoxFit.fill,
                                 height: MediaQuery.of(context).size.height,
                                 placeholder: "assets/images/placeholder.jpg",
@@ -535,8 +775,204 @@ class _HistoryScreenState extends State<HistoryScreen>
                             Spacer(),
                             Container(
                               child: Text(
-                                "\$" +
-                                    order[i]['totalPrice'].toStringAsFixed(2),
+                                "Rs.0",
+                                // order[i]['selling_price']
+                                //     .toStringAsFixed(2),
+                                style: boldFont(MColors.textDark, 14.0),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  //Order details
+  void _showModalSheet(Order orderListItem) {
+    var orderID = orderListItem.id;
+    var order = orderListItem.products.toList();
+    var orderTotalPriceList = order.map((e) => e['price']);
+    var orderTotalPrice = orderListItem.amount;
+    // orderTotalPriceList
+    //     .reduce((sum, element) => sum + element)
+    //     .toStringAsFixed(2);
+    print(order);
+    var orderDayTime = DateTime.parse(orderListItem.createdAt).day.toString() +
+        "-" +
+        DateTime.parse(orderListItem.createdAt).month.toString() +
+        "-" +
+        DateTime.parse(orderListItem.createdAt).year.toString();
+
+    showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      context: context,
+      builder: (builder) {
+        return Container(
+          height: MediaQuery.of(context).size.height / 1.9,
+          margin: EdgeInsets.only(
+            bottom: 10.0,
+            left: 10.0,
+            right: 10.0,
+            top: 5.0,
+          ),
+          padding: EdgeInsets.only(
+            bottom: 15.0,
+            left: 15.0,
+            right: 15.0,
+            top: 10.0,
+          ),
+          decoration: BoxDecoration(
+            color: MColors.primaryWhiteSmoke,
+            borderRadius: BorderRadius.all(
+              Radius.circular(15.0),
+            ),
+          ),
+          child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
+            child: Column(
+              children: <Widget>[
+                modalBarWidget(),
+                Row(
+                  children: <Widget>[
+                    Container(
+                      child: Text(
+                        "Order details",
+                        style: boldFont(MColors.mainColor, 16.0),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 5.0,
+                    ),
+                    Container(
+                      child: SvgPicture.asset(
+                        "assets/images/icons/Bag.svg",
+                        color: MColors.textGrey,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      "Rs." + orderTotalPrice.toString(),
+                      style: boldFont(MColors.mainColor, 16.0),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              "Order ID: ",
+                              style: normalFont(MColors.textGrey, 14.0),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              child: Text(
+                                orderID,
+                                overflow: TextOverflow.ellipsis,
+                                style: boldFont(MColors.textGrey, 14.0),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      child: Text(
+                        orderDayTime,
+                        style: normalFont(MColors.textGrey, 14.0),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 15.0),
+                orderTrackerWidget(orderListItem.status),
+                SizedBox(height: 15.0),
+                Text(
+                  "Delivering to",
+                  style: boldFont(MColors.textGrey, 14.0),
+                ),
+                SizedBox(height: 5.0),
+                Text(
+                  orderListItem.address['address'],
+                  style: normalFont(MColors.textGrey, 14.0),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 15.0),
+                Container(
+                  child: ListView.builder(
+                    itemCount: order.length,
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, i) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: MColors.primaryWhite,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10.0),
+                          ),
+                        ),
+                        margin: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: EdgeInsets.all(7.0),
+                        child: Row(
+                          children: <Widget>[
+                            Container(
+                              width: 30.0,
+                              height: 40.0,
+                              child: FadeInImage.assetNetwork(
+                                image:
+                                    'https://wild-grocery.herokuapp.com/${order[i]['imgURL']}',
+                                fit: BoxFit.fill,
+                                height: MediaQuery.of(context).size.height,
+                                placeholder: "assets/images/placeholder.jpg",
+                                placeholderScale:
+                                    MediaQuery.of(context).size.height / 2,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5.0,
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width / 2,
+                              child: Text(
+                                order[i]['name'],
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                style: normalFont(MColors.textGrey, 14.0),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5.0,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(3.0),
+                              decoration: BoxDecoration(
+                                color: MColors.dashPurple,
+                                borderRadius: new BorderRadius.circular(10.0),
+                              ),
+                              child: Text(
+                                "X" + order[i]['quantity'].toString(),
+                                style: normalFont(MColors.textGrey, 14.0),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              child: Text(
+                                // "Rs.0",
+                                order[i]['price'].toStringAsFixed(2),
                                 style: boldFont(MColors.textDark, 14.0),
                               ),
                             ),

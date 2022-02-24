@@ -4,14 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/search_screens/search_tabs.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/custom_floating_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'bag.dart';
@@ -22,19 +22,21 @@ class SeeMoreScreen extends StatefulWidget {
   final CartNotifier cartNotifier;
   final ProductsNotifier productsNotifier;
   final Iterable<String> cartProdID;
+  final String categoryId;
 
-  SeeMoreScreen({
-    Key key,
-    this.title,
-    this.products,
-    this.cartNotifier,
-    this.productsNotifier,
-    this.cartProdID,
-  }) : super(key: key);
+  SeeMoreScreen(
+      {Key key,
+      this.title,
+      this.products,
+      this.cartNotifier,
+      this.productsNotifier,
+      this.cartProdID,
+      this.categoryId})
+      : super(key: key);
 
   @override
   _SeeMoreScreenState createState() => _SeeMoreScreenState(
-      title, products, cartNotifier, productsNotifier, cartProdID);
+      title, products, cartNotifier, productsNotifier, cartProdID, categoryId);
 }
 
 class _SeeMoreScreenState extends State<SeeMoreScreen> {
@@ -43,14 +45,10 @@ class _SeeMoreScreenState extends State<SeeMoreScreen> {
   final CartNotifier cartNotifier;
   final ProductsNotifier productsNotifier;
   final Iterable<String> cartProdID;
+  final String categoryId;
 
-  _SeeMoreScreenState(
-    this.title,
-    this.products,
-    this.cartNotifier,
-    this.productsNotifier,
-    this.cartProdID,
-  );
+  _SeeMoreScreenState(this.title, this.products, this.cartNotifier,
+      this.productsNotifier, this.cartProdID, this.categoryId);
   void launchWhatsApp({
     @required String phone,
     @required String message,
@@ -125,7 +123,7 @@ class _SeeMoreScreenState extends State<SeeMoreScreen> {
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Misterpet.ae',
+          'Wildberries',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,
@@ -140,6 +138,7 @@ class _SeeMoreScreenState extends State<SeeMoreScreen> {
         cartNotifier: cartNotifier,
         productsNotifier: productsNotifier,
         cartProdID: cartProdID,
+        categoryId: categoryId,
       ),
     );
   }

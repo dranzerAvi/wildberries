@@ -1,28 +1,32 @@
+import 'dart:convert';
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/main.dart';
-import 'package:mrpet/model/notifiers/userData_notifier.dart';
-import 'package:mrpet/model/services/auth_service.dart';
-import 'package:mrpet/model/services/pushNotification_service.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/screens/getstarted_screens/intro_screen.dart';
-import 'package:mrpet/screens/settings_screens/cards.dart';
-import 'package:mrpet/screens/settings_screens/editProfile.dart';
-import 'package:mrpet/screens/settings_screens/passwordSecurity.dart';
-import 'package:mrpet/screens/tab_screens/history.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/internetConnectivity.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/custom_floating_button.dart';
-import 'package:mrpet/widgets/navDrawer.dart';
-import 'package:mrpet/widgets/provider.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/userData_notifier.dart';
+import 'package:wildberries/model/services/auth_service.dart';
+import 'package:wildberries/model/services/pushNotification_service.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/screens/getstarted_screens/intro_screen.dart';
+import 'package:wildberries/screens/settings_screens/cards.dart';
+import 'package:wildberries/screens/settings_screens/editProfile.dart';
+import 'package:wildberries/screens/settings_screens/passwordSecurity.dart';
+import 'package:wildberries/screens/settings_screens/subscriptions.dart';
+import 'package:wildberries/screens/tab_screens/history.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/internetConnectivity.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/custom_floating_button.dart';
+import 'package:wildberries/widgets/navDrawer.dart';
+import 'package:wildberries/widgets/provider.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:mrpet/screens/address/myaddresses.dart';
+import 'package:wildberries/screens/address/myaddresses.dart';
 
 import 'checkout_screens/enterAddress.dart';
 
@@ -37,25 +41,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Future profileFuture;
   Future addressFuture;
-  User user;
+  UserDataProfile user = UserDataProfile();
+  List<UserDataAddress> addresses = [];
+  getUserAdresses() async {
+    Preference<String> addressesString =
+        preferences.getString('addresses', defaultValue: '');
+    addressesString.listen((value) {
+      if (value != '') {
+        addresses = UserDataAddress.decode(value);
+      }
+    });
+  }
+
+  // User user;
   @override
   void initState() {
-    user = FirebaseAuth.instance.currentUser;
-    checkInternetConnectivity().then((value) => {
-          value == true
-              ? () {
-                  UserDataProfileNotifier profileNotifier =
-                      Provider.of<UserDataProfileNotifier>(context,
-                          listen: false);
-                  profileFuture = getProfile(profileNotifier);
-
-                  UserDataAddressNotifier addressNotifier =
-                      Provider.of<UserDataAddressNotifier>(context,
-                          listen: false);
-                  addressFuture = getAddress(addressNotifier);
-                }()
-              : showNoInternetSnack(_scaffoldKey)
-        });
+    getUserAdresses();
+    // user = FirebaseAuth.instance.currentUser;
+    // checkInternetConnectivity().then((value) => {
+    //       value == true
+    //           ? () {
+    //               UserDataProfileNotifier profileNotifier =
+    //                   Provider.of<UserDataProfileNotifier>(context,
+    //                       listen: false);
+    //               profileFuture = getProfile(profileNotifier);
+    //               user = profileNotifier.userDataProfile;
+    //
+    //               UserDataAddressNotifier addressNotifier =
+    //                   Provider.of<UserDataAddressNotifier>(context,
+    //                       listen: false);
+    //               addressFuture = getAddress(addressNotifier);
+    //             }()
+    //           : showNoInternetSnack(_scaffoldKey)
+    //     });
 
     super.initState();
   }
@@ -81,189 +99,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    UserDataProfileNotifier profileNotifier =
-        Provider.of<UserDataProfileNotifier>(context);
-    var checkUser = profileNotifier.userDataProfileList;
-    var user;
-    checkUser.isEmpty || checkUser == null
-        ? user = null
-        : user = checkUser.first;
-
-    UserDataAddressNotifier addressNotifier =
-        Provider.of<UserDataAddressNotifier>(context);
-    var checkaddressList = addressNotifier.userDataAddressList;
     var addressList;
-    checkaddressList.isEmpty || checkaddressList == null
-        ? addressList = null
-        : addressList = checkaddressList;
 
-    return FutureBuilder(
-      future: Future.wait([
-        profileFuture,
-        addressFuture,
-      ]),
-      builder: (c, s) {
-        switch (s.connectionState) {
-          case ConnectionState.active:
-            return progressIndicator(MColors.primaryPurple);
-            break;
-          case ConnectionState.done:
-            return checkUser.isEmpty || checkUser == null
-                ? showSettings(user, addressList)
-                : showSettings(user, addressList);
+    return PreferenceBuilder<String>(
+        preference: preferences.getString(
+          'user',
+          defaultValue: '',
+        ),
+        builder: (BuildContext context, String userString) {
+          // print(userString);
+          var cartTotal = 0;
+          if (userString != '')
+            user = UserDataProfile.fromMap(json.decode(userString));
 
-            break;
-          case ConnectionState.waiting:
-            return progressIndicator(MColors.primaryPurple);
-            break;
-          default:
-            return progressIndicator(MColors.primaryPurple);
-        }
-      },
-    );
+          return userString == ''
+              ? showLoggedOutSettings()
+              : showSettings(user, addresses);
+        });
   }
 
-  Widget showSettings(user, addressList) {
-    var _checkAddress;
-    addressList == null || addressList.isEmpty
-        ? _checkAddress = null
-        : _checkAddress = addressList.first;
-    var _address = _checkAddress;
+  Widget showLoggedOutSettings() {
     List listTileIcons, listTileNames, listTileActions;
-    if (user != null) {
-      listTileIcons = [
-        "assets/images/online-order.svg",
-        "assets/images/password.svg",
-        "assets/images/icons/Wallet.svg",
-        "assets/images/icons/Location.svg",
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
-        "assets/images/logout.svg",
-      ];
 
-      listTileNames = [
-        "Your Orders",
-        "Security",
-        "Cards",
-        "Address",
-        "Terms and Conditions",
-        "Return Policy",
-        "Cancellation Policy",
-        "Privacy Policy",
-        "Refund Policy",
-        "Sign Out",
-      ];
+    listTileIcons = [
+      " ",
+      " ",
+      " ",
+      " ",
+      " ",
+      "assets/images/logout.svg",
+    ];
 
-      listTileActions = [
-        () {
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => HistoryScreen(),
-            ),
-          );
-        },
-        () {
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => SecurityScreen(),
-            ),
-          );
-        },
-        () {
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => Cards1(),
-            ),
-          );
-        },
-        () async {
-          var navigationResult = await Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => MyAddresses(user.email),
-            ),
-          );
-          if (navigationResult == true) {
-            UserDataAddressNotifier addressNotifier =
-                Provider.of<UserDataAddressNotifier>(context, listen: false);
+    listTileNames = [
+      "Terms and Conditions",
+      "Return Policy",
+      "Cancellation Policy",
+      "Privacy Policy",
+      "Refund Policy",
+      "Sign in",
+    ];
 
-            setState(() {
-              getAddress(addressNotifier);
-            });
-            showSimpleSnack(
-              "Address has been updated",
-              Icons.check_circle_outline,
-              Colors.green,
-              _scaffoldKey,
-            );
-          }
-        },
-        () {
-          launch('https://www.misterpet.ae/terms-and-conditions/');
-        },
-        () {
-          launch('https://www.misterpet.ae/return-policy/');
-        },
-        () {
-          launch('https://www.misterpet.ae/cancellation-policy/');
-        },
-        () {
-          launch('https://www.misterpet.ae/privacy-policy/');
-        },
-        () {
-          launch('https://www.misterpet.ae/refund-policy/');
-        },
-        () {
-          _showLogOutDialog();
-        },
-      ];
-    } else {
-      listTileIcons = [
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
-        "assets/images/logout.svg",
-      ];
-
-      listTileNames = [
-        "Terms and Conditions",
-        "Return Policy",
-        "Cancellation Policy",
-        "Privacy Policy",
-        "Refund Policy",
-        "Sign in",
-      ];
-
-      listTileActions = [
-        () {
-          launch('https://www.misterpet.ae/terms-and-conditions/');
-        },
-        () {
-          launch('https://www.misterpet.ae/return-policy/');
-        },
-        () {
-          launch('https://www.misterpet.ae/cancellation-policy/');
-        },
-        () {
-          launch('https://www.misterpet.ae/privacy-policy/');
-        },
-        () {
-          launch('https://www.misterpet.ae/refund-policy/');
-        },
-        () {
-          pushNewScreen(
-            context,
-            screen: IntroScreen(),
-            withNavBar: false, // OPTIONAL VALUE. True by default.
-            pageTransitionAnimation: PageTransitionAnimation.cupertino,
-          );
-        },
-      ];
-    }
+    listTileActions = [
+      () {
+        launch('https://www.misterpet.ae/terms-and-conditions/');
+      },
+      () {
+        launch('https://www.misterpet.ae/return-policy/');
+      },
+      () {
+        launch('https://www.misterpet.ae/cancellation-policy/');
+      },
+      () {
+        launch('https://www.misterpet.ae/privacy-policy/');
+      },
+      () {
+        launch('https://www.misterpet.ae/refund-policy/');
+      },
+      () {
+        pushNewScreen(
+          context,
+          screen: IntroScreen(),
+          withNavBar: false, // OPTIONAL VALUE. True by default.
+          pageTransitionAnimation: PageTransitionAnimation.cupertino,
+        );
+      },
+    ];
 
     return Scaffold(
       backgroundColor: MColors.primaryWhiteSmoke,
@@ -314,7 +214,401 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Budget Mart    ',
+          'Wildberries    ',
+          style: TextStyle(
+              color: MColors.secondaryColor,
+              fontSize: 22,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: primaryContainer(
+        SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Container(),
+                SizedBox(height: 20.0),
+                Divider(
+                  height: 1.0,
+                ),
+                Container(
+                  child: ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: listTileNames.length,
+                      shrinkWrap: true,
+                      itemBuilder: (context, i) {
+                        return FutureBuilder(
+                          future: addressFuture,
+                          builder: (c, s) {
+                            return Container(
+                              child: Column(
+                                children: <Widget>[
+                                  listTileButton(
+                                    listTileActions[i],
+                                    listTileIcons[i],
+                                    listTileNames[i],
+                                    i == 9 ? Colors.red : MColors.textDark,
+                                  ),
+                                  Divider(
+                                    height: 1.0,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        height: 20,
+        padding: EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
+        child: Column(
+          children: <Widget>[
+            Container(
+              child: Center(
+                child: Text(
+                  "Version 0.1.4",
+                  style: normalFont(MColors.textGrey, 14.0),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget showSettings(UserDataProfile user, addressList) {
+    var _checkAddress;
+    addressList == null || addressList.isEmpty
+        ? _checkAddress = null
+        : _checkAddress = addressList.first;
+    var _address = _checkAddress;
+    List listTileIcons, listTileNames, listTileActions;
+    if (user != null) {
+      listTileIcons = user.subscription == 'member'
+          ? [
+              "assets/images/online-order.svg",
+              // "assets/images/password.svg",
+              // "assets/images/icons/Wallet.svg",
+              "assets/images/icons/Location.svg",
+              " ",
+              " ",
+              " ",
+              " ",
+              " ",
+              " ",
+              "assets/images/logout.svg",
+            ]
+          : [
+              "assets/images/online-order.svg",
+              // "assets/images/password.svg",
+              // "assets/images/icons/Wallet.svg",
+              "assets/images/icons/Location.svg",
+              " ",
+              " ",
+              " ",
+              " ",
+              " ",
+              " ",
+              "assets/images/logout.svg",
+            ];
+
+      listTileNames = user.subscription == 'member'
+          ? [
+              "Your Orders",
+              "Address",
+              "Subscription Options",
+              "Terms and Conditions",
+              "Return Policy",
+              "Cancellation Policy",
+              "Privacy Policy",
+              "Refund Policy",
+              "Sign Out",
+            ]
+          : [
+              "Your Orders",
+
+              // "Security",
+              // "Cards",
+              "Address",
+              "Subscription Details",
+              // "Your Orders",
+              "Terms and Conditions",
+              "Return Policy",
+              "Cancellation Policy",
+              "Privacy Policy",
+              "Refund Policy",
+              "Sign Out",
+            ];
+
+      listTileActions = user.subscription == 'member'
+          ? [
+              () {
+                Preference<String> orderString =
+                    preferences.getString('user', defaultValue: '');
+                orderString.listen((value) {
+                  if (value != '') {
+                    UserDataProfile currentUser =
+                        UserDataProfile.fromMap(json.decode(value));
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (_) => HistoryScreen(currentUser),
+                      ),
+                    );
+                  }
+                });
+              },
+              // () {
+              //   Navigator.of(context).push(
+              //     CupertinoPageRoute(
+              //       builder: (_) => SecurityScreen(),
+              //     ),
+              //   );
+              // },
+              // () {
+              //   Navigator.of(context).push(
+              //     CupertinoPageRoute(
+              //       builder: (_) => Cards1(),
+              //     ),
+              //   );
+              // },
+
+              () async {
+                var navigationResult = await Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (_) => MyAddresses(addresses),
+                  ),
+                );
+                if (navigationResult == true) {
+                  UserDataAddressNotifier addressNotifier =
+                      Provider.of<UserDataAddressNotifier>(context,
+                          listen: false);
+
+                  setState(() {
+                    getAddress(addressNotifier);
+                  });
+                  showSimpleSnack(
+                    "Address has been updated",
+                    Icons.check_circle_outline,
+                    Colors.green,
+                    _scaffoldKey,
+                  );
+                }
+              },
+              () {
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (_) => SubscriptionsScreen(),
+                  ),
+                );
+              },
+              () {
+                launch('https://www.misterpet.ae/terms-and-conditions/');
+              },
+              () {
+                launch('https://www.misterpet.ae/return-policy/');
+              },
+              () {
+                launch('https://www.misterpet.ae/cancellation-policy/');
+              },
+              () {
+                launch('https://www.misterpet.ae/privacy-policy/');
+              },
+              () {
+                launch('https://www.misterpet.ae/refund-policy/');
+              },
+              () {
+                _showLogOutDialog();
+              },
+            ]
+          : [
+              () {
+                Preference<String> orderString =
+                    preferences.getString('user', defaultValue: '');
+                orderString.listen((value) {
+                  if (value != '') {
+                    UserDataProfile currentUser =
+                        UserDataProfile.fromMap(json.decode(value));
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (_) => HistoryScreen(currentUser),
+                      ),
+                    );
+                  }
+                });
+              },
+              // () {
+              //   Navigator.of(context).push(
+              //     CupertinoPageRoute(
+              //       builder: (_) => SecurityScreen(),
+              //     ),
+              //   );
+              // },
+              // () {
+              //   Navigator.of(context).push(
+              //     CupertinoPageRoute(
+              //       builder: (_) => Cards1(),
+              //     ),
+              //   );
+              // },
+              () async {
+                var navigationResult = await Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (_) => MyAddresses(addresses),
+                  ),
+                );
+                if (navigationResult == true) {
+                  UserDataAddressNotifier addressNotifier =
+                      Provider.of<UserDataAddressNotifier>(context,
+                          listen: false);
+
+                  setState(() {
+                    getAddress(addressNotifier);
+                  });
+                  showSimpleSnack(
+                    "Address has been updated",
+                    Icons.check_circle_outline,
+                    Colors.green,
+                    _scaffoldKey,
+                  );
+                }
+              },
+              () {
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (_) => SubscriptionsScreen(),
+                  ),
+                );
+              },
+              () {
+                launch('https://www.misterpet.ae/terms-and-conditions/');
+              },
+              () {
+                launch('https://www.misterpet.ae/return-policy/');
+              },
+              () {
+                launch('https://www.misterpet.ae/cancellation-policy/');
+              },
+              () {
+                launch('https://www.misterpet.ae/privacy-policy/');
+              },
+              () {
+                launch('https://www.misterpet.ae/refund-policy/');
+              },
+              () {
+                _showLogOutDialog();
+              },
+            ];
+    } else {
+      listTileIcons = [
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
+        "assets/images/logout.svg",
+      ];
+
+      listTileNames = [
+        "Terms and Conditions",
+        "Return Policy",
+        "Cancellation Policy",
+        "Privacy Policy",
+        "Refund Policy",
+        "Sign in",
+      ];
+
+      listTileActions = [
+        () {
+          launch('https://www.misterpet.ae/terms-and-conditions/');
+        },
+        () {
+          launch('https://www.misterpet.ae/return-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/cancellation-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/privacy-policy/');
+        },
+        () {
+          launch('https://www.misterpet.ae/refund-policy/');
+        },
+        () {
+          pushNewScreen(
+            context,
+            screen: IntroScreen(),
+            withNavBar: false, // OPTIONAL VALUE. True by default.
+            pageTransitionAnimation: PageTransitionAnimation.cupertino,
+          );
+        },
+      ];
+    }
+    // print('User Profile');
+    // print('https://wild-grocery.herokuapp.com/${user.imgURL}'
+    //     .replaceAll('\\', '/'));
+
+    return Scaffold(
+      backgroundColor: MColors.primaryWhiteSmoke,
+      key: _scaffoldKey,
+      floatingActionButton: CustomFloatingButton(
+          CurrentScreen(currentScreen: SettingsScreen(), tab_no: 0)),
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          size: 20,
+          color: MColors.secondaryColor,
+        ),
+        backgroundColor: MColors.mainColor,
+        actions: [
+          InkWell(
+              onTap: () {
+                launch('tel:+919027553376');
+              },
+              child: Icon(
+                Icons.phone,
+              )),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+                launchWhatsApp(
+                    phone: '7060222315', message: 'Check out this awesome app');
+              },
+              child: Container(
+                  alignment: Alignment.center,
+                  child: FaIcon(FontAwesomeIcons.whatsapp))),
+          SizedBox(
+            width: 8,
+          ),
+          InkWell(
+              onTap: () {
+//                print(1);
+                launch(
+                    'mailto:work.axactstudios@gmail.com?subject=Complaint/Feedback&body=Type your views here.');
+              },
+              child: Icon(
+                Icons.mail,
+              )),
+          SizedBox(
+            width: 14,
+          )
+        ],
+        elevation: 0.0,
+        centerTitle: true,
+        title: Text(
+          'Wildberries    ',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,
@@ -366,8 +660,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   padding: const EdgeInsets.all(5.0),
                                   child: Hero(
                                     tag: "profileAvatar",
-                                    child: user.profilePhoto == null ||
-                                            user.profilePhoto == ""
+                                    child: user.imgURL == null ||
+                                            user.imgURL == ""
                                         ? ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(9.0),
@@ -381,12 +675,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             borderRadius:
                                                 BorderRadius.circular(9.0),
                                             child: FadeInImage.assetNetwork(
-                                              image: user.profilePhoto,
+                                              image:
+                                                  'https://wild-grocery.herokuapp.com/${user.imgURL}'
+                                                      .replaceAll('\\', '/'),
                                               fit: BoxFit.fill,
                                               height: 90.0,
                                               width: 90.0,
                                               placeholder:
-                                                  "assets/images/Logo-FINAL.png",
+                                                  "assets/images/WilddberriesIcon.jpeg",
                                             ),
                                           ),
                                   ),
@@ -432,11 +728,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       child: Column(
                                         children: <Widget>[
                                           Text(
-                                            user.name,
+                                            user.firstName + user.lastName,
                                             style: boldFont(
                                                 MColors.textDark, 16.0),
                                             textAlign: TextAlign.center,
                                           ),
+                                          SizedBox(height: 5.0),
+                                          user.subscription == 'member'
+                                              ? Container()
+                                              : Container(
+                                                  width: 108,
+                                                  height: 18.0,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                            Radius.circular(
+                                                                2.0)),
+                                                    color: MColors.mainColor,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                        "  PRIME MEMBER  ",
+                                                        style: normalFont(
+                                                            MColors
+                                                                .primaryPurple,
+                                                            12.0)),
+                                                  ),
+                                                ),
+                                          SizedBox(height: 5.0),
                                           Text(
                                             user.email,
                                             style: normalFont(
@@ -548,15 +867,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               FlatButton(
                 onPressed: () async {
                   try {
-                    AuthService auth = MyProvider.of(context).auth;
-                    auth.signOut();
+                    // AuthService auth = MyProvider.of(context).auth;
+                    AuthService().signOut();
                     Navigator.of(context).pop();
                     Navigator.of(context).pushReplacement(
                       CupertinoPageRoute(
                         builder: (_) => MyApp(),
                       ),
                     );
-                    print("Signed out.");
+                    // print("Signed out.");
                   } catch (e) {
                     print(e);
                   }

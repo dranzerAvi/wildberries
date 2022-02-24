@@ -1,34 +1,33 @@
 {
   "project_info": {
-    "project_number": "1007083498352",
-    "firebase_url": "https://mrpet-3387f.firebaseio.com",
-    "project_id": "mrpet-3387f",
-    "storage_bucket": "mrpet-3387f.appspot.com"
+    "project_number": "537554416883",
+    "project_id": "wildberries-82cbe",
+    "storage_bucket": "wildberries-82cbe.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1007083498352:android:789203a6786a6517497db5",
+        "mobilesdk_app_id": "1:537554416883:android:8e3d71aa6f803f85bd3386",
         "android_client_info": {
-          "package_name": "com.axactstudios.mrpet"
+          "package_name": "com.axactstudios.wildberries"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1007083498352-86oij1bquq9tiacf8ulj4sa99npf7n0r.apps.googleusercontent.com",
+          "client_id": "537554416883-0t2n4ag69lvchtcs0sar19o1e3b50i4g.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAFcasMyayG6eb7EHO3wNoZUxtx9WWd0SA"
+          "current_key": "AIzaSyDi9nTGQt2vmXBQuxGjaS3gBI6VMD-jyeU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1007083498352-86oij1bquq9tiacf8ulj4sa99npf7n0r.apps.googleusercontent.com",
+              "client_id": "537554416883-0t2n4ag69lvchtcs0sar19o1e3b50i4g.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

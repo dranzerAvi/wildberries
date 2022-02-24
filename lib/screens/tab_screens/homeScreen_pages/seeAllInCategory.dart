@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/screens/tab_screens/search_screens/search_tabs.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/custom_floating_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'bag.dart';
@@ -122,7 +122,7 @@ class _SeeAllInCategoryState extends State<SeeAllInCategory> {
         elevation: 0.0,
         centerTitle: true,
         title: Text(
-          'Misterpet.ae',
+          'Wildberries',
           style: TextStyle(
               color: MColors.secondaryColor,
               fontSize: 22,

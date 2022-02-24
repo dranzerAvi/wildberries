@@ -1,22 +1,26 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
-import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/custom_floating_button.dart';
-import 'package:mrpet/widgets/navDrawer.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
+import 'package:wildberries/screens/tab_screens/search_screens/search_tabs.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/custom_floating_button.dart';
+import 'package:wildberries/widgets/navDrawer.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../main.dart';
 import 'homeScreen_pages/seeAllInCategory.dart';
 import 'homeScreen_pages/sizeSelectorScreen.dart';
 
@@ -50,6 +54,27 @@ class _AllCategoriesState extends State<AllCategories> {
     }
   }
 
+  UserDataProfile user;
+
+  getUser() async {
+    final Preference<String> userData =
+        await preferences.getString('user', defaultValue: '');
+    // userData.listen((value) {
+    //   print('User $value');
+    // });
+    userData.listen((value) async {
+      if (value == null) {
+        user = UserDataProfile.fromMap(json.decode(value));
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    getUser();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     ProductsNotifier productsNotifier = Provider.of<ProductsNotifier>(context);
@@ -58,12 +83,12 @@ class _AllCategoriesState extends State<AllCategories> {
 
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     var cartList = cartNotifier.cartList;
-    var cartProdID = cartList.map((e) => e.productID);
+    var cartProdID = cartList.map((e) => e.id);
     return Scaffold(
         key: _primaryscaffoldKey,
         floatingActionButton: CustomFloatingButton(
             CurrentScreen(currentScreen: AllCategories(), tab_no: 0)),
-        drawer: CustomDrawer(),
+        drawer: CustomDrawer(user, productsNotifier.productsList, {}),
         appBar: AppBar(
           iconTheme: IconThemeData(
             size: 20,
@@ -123,7 +148,7 @@ class _AllCategoriesState extends State<AllCategories> {
           elevation: 0.0,
           centerTitle: true,
           title: Text(
-            'Misterpet.ae',
+            'Wildberries',
             style: TextStyle(
                 color: MColors.secondaryColor,
                 fontSize: 22,
@@ -147,9 +172,9 @@ class _AllCategoriesState extends State<AllCategories> {
                             Iterable<ProdProducts> categorySpecificProducts;
                             getCat(categoriesNotifier);
                             Iterable<Cat> categories =
-                            await categoriesNotifier.catList;
-                            categorySpecificProducts =
-                            await allProducts.where((e) => e.pet == 'dog');
+                                await categoriesNotifier.catList;
+                            categorySpecificProducts = await allProducts
+                                .where((e) => e.category['name'] == 'Fish');
                             print('-------${categorySpecificProducts}');
                             for (var v in allProducts) {
                               print(v.category);
@@ -164,7 +189,7 @@ class _AllCategoriesState extends State<AllCategories> {
                               }
                             }
                             var navigationResult =
-                            await Navigator.of(context).push(
+                                await Navigator.of(context).push(
                               CupertinoPageRoute(
                                 builder: (context) => SeeSubCategories(
                                   category: currentCategory,
@@ -185,7 +210,7 @@ class _AllCategoriesState extends State<AllCategories> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Container(
                                     child: Image.network(
-                                        'https://firebasestorage.googleapis.com/v0/b/mrpet-3387f.appspot.com/o/Categories%2FDog%20-%20Category.jpg?alt=media&token=36f005d0-4b3c-4ccc-9794-0cecfa514fe9'),
+                                        'https://firebasestorage.googleapis.com/v0/b/wildberries-3387f.appspot.com/o/Categories%2FDog%20-%20Category.jpg?alt=media&token=36f005d0-4b3c-4ccc-9794-0cecfa514fe9'),
                                   ),
                                 ),
                               ),
@@ -209,8 +234,8 @@ class _AllCategoriesState extends State<AllCategories> {
                             getCat(categoriesNotifier);
                             Iterable<Cat> categories =
                                 await categoriesNotifier.catList;
-                            categorySpecificProducts =
-                                await allProducts.where((e) => e.pet == 'cat');
+                            categorySpecificProducts = await allProducts
+                                .where((e) => e.category['name'] == 'Fish');
                             print('-------${categorySpecificProducts}');
                             for (var v in allProducts) {
                               print(v.category);
@@ -246,7 +271,7 @@ class _AllCategoriesState extends State<AllCategories> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Container(
                                     child: Image.network(
-                                        'https://firebasestorage.googleapis.com/v0/b/mrpet-3387f.appspot.com/o/Categories%2FCat%20-%20Category.jpg?alt=media&token=9d01fcb2-2152-47a1-899c-3edd377fde99'),
+                                        'https://firebasestorage.googleapis.com/v0/b/wildberries-3387f.appspot.com/o/Categories%2FCat%20-%20Category.jpg?alt=media&token=9d01fcb2-2152-47a1-899c-3edd377fde99'),
                                   ),
                                 ),
                               ),
@@ -274,8 +299,8 @@ class _AllCategoriesState extends State<AllCategories> {
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          categorySpecificProducts =
-                              await allProducts.where((e) => e.pet == 'rabbit');
+                          categorySpecificProducts = await allProducts
+                              .where((e) => e.category['name'] == 'Fish');
                           print('-------${categorySpecificProducts}');
                           for (var v in allProducts) {
                             print(v.category);
@@ -332,8 +357,8 @@ class _AllCategoriesState extends State<AllCategories> {
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          categorySpecificProducts =
-                              await allProducts.where((e) => e.pet == 'bird');
+                          categorySpecificProducts = await allProducts
+                              .where((e) => e.category['name'] == 'Fish');
                           print('-------${categorySpecificProducts}');
                           for (var v in allProducts) {
                             print(v.category);
@@ -369,7 +394,7 @@ class _AllCategoriesState extends State<AllCategories> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Container(
                                   child: Image.network(
-                                      'https://firebasestorage.googleapis.com/v0/b/mrpet-3387f.appspot.com/o/Categories%2FBird%20-%20Category.jpg?alt=media&token=16681749-72a9-4b02-b4ab-d078eed8bb61'),
+                                      'https://firebasestorage.googleapis.com/v0/b/wildberries-3387f.appspot.com/o/Categories%2FBird%20-%20Category.jpg?alt=media&token=16681749-72a9-4b02-b4ab-d078eed8bb61'),
                                 ),
                               ),
                             ),
@@ -397,7 +422,7 @@ class _AllCategoriesState extends State<AllCategories> {
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
                           categorySpecificProducts = await allProducts
-                              .where((e) => e.pet == 'hamster');
+                              .where((e) => e.category['name'] == 'Fish');
                           print('-------${categorySpecificProducts}');
                           for (var v in allProducts) {
                             print(v.category);
@@ -454,8 +479,8 @@ class _AllCategoriesState extends State<AllCategories> {
                           getCat(categoriesNotifier);
                           Iterable<Cat> categories =
                               await categoriesNotifier.catList;
-                          categorySpecificProducts =
-                              await allProducts.where((e) => e.pet == 'other');
+                          categorySpecificProducts = await allProducts
+                              .where((e) => e.category['name'] == 'Fish');
                           print('-------${categorySpecificProducts}');
                           for (var v in allProducts) {
                             print(v.category);

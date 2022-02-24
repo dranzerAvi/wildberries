@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:mrpet/utils/colors.dart';
+import 'package:wildberries/utils/colors.dart';
 
 class Ratings extends StatelessWidget {
   String rating;
@@ -91,7 +91,7 @@ class RatingsBar extends StatelessWidget {
               ),
               onRatingUpdate: (rating) {
                 rat = rating;
-                print(rating);
+                // print(rating);
               },
             ),
           ),

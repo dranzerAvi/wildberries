@@ -1,25 +1,37 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/notifiers/brands_notifier.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
-import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/utils/internetConnectivity.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/navDrawer.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/notifiers/brands_notifier.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
+import 'package:wildberries/screens/tab_screens/search_screens/search_tabs.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/utils/internetConnectivity.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/navDrawer.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:provider/provider.dart';
 import 'package:string_similarity/string_similarity.dart';
 
-class Search extends StatelessWidget {
+import '../../../main.dart';
+import '../dynamic_link_controller.dart';
+
+class Search extends StatefulWidget {
   bool showDrawer;
   Search(this.showDrawer);
+
+  @override
+  _SearchState createState() => _SearchState();
+}
+
+class _SearchState extends State<Search> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -35,7 +47,7 @@ class Search extends StatelessWidget {
         ),
       ],
       child: SearchScreen(
-        showDrawer: this.showDrawer,
+        showDrawer: this.widget.showDrawer,
       ),
     );
   }
@@ -52,9 +64,25 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
+  UserDataProfile user;
+
+  getUser() async {
+    final Preference<String> userData =
+        await preferences.getString('user', defaultValue: '');
+    // userData.listen((value) {
+    //   print('User $value');
+    // });
+    userData.listen((value) async {
+      if (value == null) {
+        user = UserDataProfile.fromMap(json.decode(value));
+      }
+    });
+  }
+
   @override
   void initState() {
     getData();
+    getUser();
 
     checkInternetConnectivity().then((value) => {
           value == true
@@ -62,7 +90,9 @@ class _SearchScreenState extends State<SearchScreen>
                   // BrandsNotifier brandsNotifier =
                   //     Provider.of<BrandsNotifier>(context, listen: false);
                   // getBrands(brandsNotifier);
-
+                  CategoryNotifier categoryNotifier =
+                      Provider.of<CategoryNotifier>(context, listen: false);
+                  getCat(categoryNotifier);
                   ProductsNotifier productsNotifier =
                       Provider.of<ProductsNotifier>(context, listen: false);
                   getProdProducts(productsNotifier);
@@ -86,24 +116,29 @@ class _SearchScreenState extends State<SearchScreen>
   List<ProdProducts> dogList1 = [];
 
   void getData1() async {
-    dogCardsList1.clear();
-    dogList1.clear();
+    //TODO:Check
+    dogCardsList1 = [];
+    dogList1 = [];
+    ProductsNotifier productsNotifier =
+        Provider.of<ProductsNotifier>(context, listen: false);
+    await getProdProducts(productsNotifier);
+    dogList1 = productsNotifier.productsList;
     print('started loading');
-    await databaseReference
-        .collection("food")
-        .getDocuments()
-        .then((QuerySnapshot snapshot) {
-      snapshot.documents.forEach((f) async {
-        ProdProducts dp = ProdProducts.fromMap(f.data());
-        await dogList1.add(dp);
-        // await dogCardsList1.add(MyDogCard(dp, width, height));
-        print('Dog added');
-        print(f['imageLinks'].toString());
-      });
-    });
+    // await databaseReference
+    //     .collection("food")
+    //     .getDocuments()
+    //     .then((QuerySnapshot snapshot) {
+    //   snapshot.documents.forEach((f) async {
+    //     ProdProducts dp = ProdProducts.fromMap(f.data());
+    //     await dogList1.add(dp);
+    //     // await dogCardsList1.add(MyDogCard(dp, width, height));
+    //     print('Dog added');
+    //     print(f['imageLinks'].toString());
+    //   });
+    // });
     setState(() {
-      print(dogList1.length.toString());
-      print(dogCardsList1.length.toString());
+      // print(dogList1.length.toString());
+      // print(dogCardsList1.length.toString());
     });
   }
 
@@ -111,7 +146,8 @@ class _SearchScreenState extends State<SearchScreen>
   final GlobalKey<ScaffoldState> _primaryscaffoldKey =
       GlobalKey<ScaffoldState>();
   List<ProdProducts> dogList = [];
-  List<DocumentSnapshot> docList = [];
+  //TODO:Check
+  List<ProdProducts> docList = [];
 
   final PageStorageBucket searchBucket = PageStorageBucket();
 
@@ -125,15 +161,19 @@ class _SearchScreenState extends State<SearchScreen>
     "Reptiles",
     "Others",
   ];
+  TextEditingController searchController = TextEditingController();
+  final DynamicLinkController _dynamicLinkController = DynamicLinkController();
 
   @override
   Widget build(BuildContext context) {
+    CategoryNotifier categoryNotifier =
+        Provider.of<CategoryNotifier>(context, listen: false);
     ProductsNotifier productsNotifier = Provider.of<ProductsNotifier>(context);
     var prods = productsNotifier.productsList;
 
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     var cartList = cartNotifier.cartList;
-    var cartProdID = cartList.map((e) => e.productID);
+    var cartProdID = cartList.map((e) => e.id);
 
     //Tab Items
     final _tabBody = [
@@ -171,7 +211,7 @@ class _SearchScreenState extends State<SearchScreen>
             height: 40.0,
             child: searchTextField(
               true,
-              null,
+              searchController,
               null,
               "Search for products...",
               null,
@@ -210,8 +250,9 @@ class _SearchScreenState extends State<SearchScreen>
           //   controller: _tabController,
           // ),
           centerTitle: false),
-      drawer: CustomDrawer(),
+      drawer: CustomDrawer(user, prods.toList(), {}),
       body: Scaffold(
+        backgroundColor: Colors.white,
         key: _scaffoldKey,
         body: SingleChildScrollView(
           child: Column(
@@ -220,84 +261,150 @@ class _SearchScreenState extends State<SearchScreen>
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
+                  color: Colors.white,
                   height: MediaQuery.of(context).size.height * 0.75,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    itemCount: dogList.length,
-                    itemBuilder: (BuildContext, index) {
-                      var item = dogList[index];
-                      return InkWell(
-                        onTap: () async {
-                          var navigationResult =
-                              await Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) =>
-                                  ProductDetailsProv(item, dogList),
-                            ),
-                          );
-                          if (navigationResult == true) {
-                            getCart(cartNotifier);
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            child: Row(
-                              children: <Widget>[
-                                // Container(
-                                //   height: 50,
-                                //   width: 50,
-                                //   decoration: BoxDecoration(
-                                //     borderRadius: BorderRadius.all(
-                                //       Radius.circular(25),
-                                //     ),
-                                //   ),
-                                //   child: ClipRRect(
-                                //     borderRadius: BorderRadius.circular(25.0),
-                                //     child: CachedNetworkImage(
-                                //       height: 50,
-                                //       width: 50,
-                                //       imageUrl: item.url,
-                                //       imageBuilder: (context, imageProvider) =>
-                                //           Container(
-                                //         decoration: BoxDecoration(
-                                //           image: DecorationImage(
-                                //               image: imageProvider,
-                                //               fit: BoxFit.fill),
-                                //         ),
-                                //       ),
-                                //       placeholder: (context, url) => GFLoader(
-                                //         type: GFLoaderType.ios,
-                                //       ),
-                                //       errorWidget: (context, url, error) =>
-                                //           Icon(Icons.error),
-                                //     ),
-                                //   ),
-                                // ),
-                                Expanded(
+                  child: searchController.text == ''
+                      ? ListView.builder(
+                          shrinkWrap: true,
+                          scrollDirection: Axis.vertical,
+                          itemCount: categoryNotifier.catList.length,
+                          itemBuilder: (BuildContext, index) {
+                            var item = categoryNotifier.catList[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 5),
+                              child: InkWell(
+                                onTap: () async {
+                                  // var navigationResult =
+                                  // await Navigator.of(context).push(
+                                  //   CupertinoPageRoute(
+                                  //     builder: (context) =>
+                                  //         ProductDetailsProv(item, dogList),
+                                  //   ),
+                                  // );
+                                  // if (navigationResult == true) {
+                                  //   getCart(cartNotifier);
+                                  // }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                      boxShadow: [
+                                        new BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.3),
+                                            blurRadius: 5.0,
+                                            offset: Offset.lerp(
+                                                Offset.fromDirection(5),
+                                                Offset.zero,
+                                                5)),
+                                      ]),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20),
+                                    padding: const EdgeInsets.all(10.0),
                                     child: Container(
-                                      child: Text(
-                                        '${item.name} in ${item.category}',
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8,
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                              child: Container(
+                                                child: Text(
+                                                  '${item.name}',
+                                                  style: normalFont(
+                                                      MColors.mainColor, 14),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.call_made_sharp,
+                                            color: MColors.mainColor,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
-                                Icon(
-                                  Icons.call_made_sharp,
-                                  color: Colors.black,
+                              ),
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          scrollDirection: Axis.vertical,
+                          itemCount: dogList.length,
+                          itemBuilder: (BuildContext, index) {
+                            var item = dogList[index];
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 5.0),
+                              child: InkWell(
+                                onTap: () async {
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => ProductDetailsProv(
+                                          item,
+                                          dogList,
+                                          _dynamicLinkController),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    getCart(cartNotifier);
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                      boxShadow: [
+                                        new BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.3),
+                                            blurRadius: 5.0,
+                                            offset: Offset.lerp(
+                                                Offset.fromDirection(5),
+                                                Offset.zero,
+                                                5)),
+                                      ]),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8,
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                              child: Container(
+                                                child: Text(
+                                                  '${item.name} in ${item.category['name']}',
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.call_made_sharp,
+                                            color: Colors.black,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ),
             ],
@@ -324,68 +431,92 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   getCaseDetails(String query) async {
-    docList.clear();
-    dogList.clear();
+    //TODO:Check
+
+    dogList = [];
     setState(() {
-      print('Updated');
+      // print('Updated');
     });
 
     if (query == '') {
-      print(query);
+      // print(query);
       getData();
       return;
     }
+    ProductsNotifier productsNotifier =
+        Provider.of<ProductsNotifier>(context, listen: false);
+    getProdProducts(productsNotifier);
 
-    await FirebaseFirestore.instance
-        .collection('food')
-        .get()
-        .then((QuerySnapshot snapshot) {
-      docList.clear();
-      dogList.clear();
-      snapshot.docs.forEach((f) {
-        var name = f['name'].toString().toLowerCase();
-        List<String> dogName = List<String>.from(f['nameSearch']);
-        List<String> dogBreed = List<String>.from(f['categorySearch']);
-        List<String> dogLowerCase = [];
-        List<String> breedLowerCase = [];
-        for (var dog in dogName) {
-          dogLowerCase.add(dog.toLowerCase());
-        }
-        for (var breed in dogBreed) {
-          breedLowerCase.add(breed.toLowerCase());
-        }
-        if (dogLowerCase.contains(query.toLowerCase()) ||
-            breedLowerCase.contains(query.toLowerCase()) ||
-            name.toLowerCase().toString().contains(query.toLowerCase()) ||
-            name.toString().toLowerCase().similarityTo(query.toLowerCase()) >
-                0.2) {
-          print('Match found ${f['name']}');
-          docList.add(f);
-          ProdProducts dog = ProdProducts.fromMap(f.data());
-          dogList.add(dog);
-          setState(() {
-            print('Updated');
-          });
-        }
+    List<ProdProducts> allProducts = productsNotifier.productsList;
+    allProducts.forEach((element) {
+      bool flag = false;
+      if (element.name.contains(new RegExp(query, caseSensitive: false)))
+        flag = true;
+      if (element.category['name']
+          .contains(new RegExp(query, caseSensitive: false))) flag = true;
+      if (element.description.contains(new RegExp(query, caseSensitive: false)))
+        flag = true;
+      element.filterValue.forEach((filter) {
+        if (filter['value'].contains(new RegExp(query, caseSensitive: false)))
+          flag = true;
       });
+      element.specs.forEach((spec) {
+        if (spec['value'].contains(new RegExp(query, caseSensitive: false)))
+          flag = true;
+      });
+      if (flag == true) {
+        dogList.add(element);
+        setState(() {
+          // print('Updated');
+        });
+      }
     });
+
+    // if (dogLowerCase.contains(query.toLowerCase()) ||
+    //     breedLowerCase.contains(query.toLowerCase()) ||
+    //     name.toLowerCase().toString().contains(query.toLowerCase()) ||
+    //     name.toString().toLowerCase().similarityTo(query.toLowerCase()) > 0.2) {
+    //   print('Match found ${f['name']}');
+    //
+    //   ProdProducts dog = ProdProducts.fromMap(f.data());
+    //
+    // }
+    // await FirebaseFirestore.instance
+    //     .collection('food')
+    //     .get()
+    //     .then((QuerySnapshot snapshot) {
+    //   dogList.clear();
+    //   snapshot.docs.forEach((f) {
+    //     var name = f['name'].toString().toLowerCase();
+    //     List<String> dogName = List<String>.from(f['nameSearch']);
+    //     List<String> dogBreed = List<String>.from(f['categorySearch']);
+    //     List<String> dogLowerCase = [];
+    //     List<String> breedLowerCase = [];
+    //     for (var dog in dogName) {
+    //       dogLowerCase.add(dog.toLowerCase());
+    //     }
+    //     for (var breed in dogBreed) {
+    //       breedLowerCase.add(breed.toLowerCase());
+    //     }
+    //   });
+    // });
   }
 
-  final databaseReference = FirebaseFirestore.instance;
+  // final databaseReference = FirebaseFirestore.instance;
 
   void getData() async {
-    await databaseReference
-        .collection("food")
-        .get()
-        .then((QuerySnapshot snapshot) {
-      snapshot.docs.forEach((f) {
-        dogList.add(ProdProducts.fromMap(f.data()));
-        print('Dog added');
-        // print(f['profileImage'].toString());
-      });
-    });
+    //TODO:Check
+    dogCardsList1 = [];
+    dogList = [];
+    // print('started loading');
+    ProductsNotifier productsNotifier =
+        Provider.of<ProductsNotifier>(context, listen: false);
+    await getProdProducts(productsNotifier);
+    dogList = productsNotifier.productsList;
+
     setState(() {
-      print(dogList.length.toString());
+      // print(dogList.length.toString());
+      // print(dogCardsList1.length.toString());
     });
   }
 

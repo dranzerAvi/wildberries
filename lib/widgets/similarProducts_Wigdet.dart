@@ -1,13 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/dynamic_link_controller.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/productDetailsScreen.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 import 'package:provider/provider.dart';
 
 class SimilarProductsWidget extends StatefulWidget {
@@ -30,6 +31,7 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
 
   Iterable<ProdProducts> prods;
   _SimilarProductsWidgetState(this.prods, this.prodDetails, this.scaffoldKey);
+  final DynamicLinkController _dynamicLinkController = DynamicLinkController();
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,7 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
     CartNotifier cartNotifier =
         Provider.of<CartNotifier>(context, listen: false);
     var cartList = cartNotifier.cartList;
-    var cartProdID = cartList.map((e) => e.productID);
+    var cartProdID = cartList.map((e) => e.id);
 
     var size = MediaQuery.of(context).size;
     /*24 is for notification bar on Android*/
@@ -124,10 +126,11 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
         childAspectRatio: (itemWidth / itemHeight),
         mainAxisSpacing: 15.0,
         crossAxisSpacing: 15.0,
-        children: List<Widget>.generate(4, (i) {
+        children: List<Widget>.generate(prods.toList().length, (i) {
           Iterable<ProdProducts> iterable = sims
-              .where((item) => item.pet == prodDetails.pet)
-              .skipWhile((item) => item.productID == prodDetails.productID)
+              .where((item) =>
+                  item.category['name'] == prodDetails.category['name'])
+              .skipWhile((item) => item.id == prodDetails.id)
               .toList();
 
           List<ProdProducts> filteredList = iterable.toList();
@@ -140,7 +143,8 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                   Provider.of<CartNotifier>(context, listen: false);
               var navigationResult = await Navigator.of(context).push(
                 CupertinoPageRoute(
-                  builder: (context) => ProductDetailsProv(fil, prods),
+                  builder: (context) =>
+                      ProductDetailsProv(fil, prods, _dynamicLinkController),
                 ),
               );
               if (navigationResult == true) {
@@ -170,7 +174,8 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10.0),
                       child: FadeInImage.assetNetwork(
-                        image: fil.productImage,
+                        image: 'https://wild-grocery.herokuapp.com/${fil.image}'
+                            .replaceAll('\\', '/'),
                         fit: BoxFit.fill,
                         height: _picHeight,
                         placeholder: "assets/images/placeholder.jpg",
@@ -198,8 +203,8 @@ class _SimilarProductsWidgetState extends State<SimilarProductsWidget> {
                       children: <Widget>[
                         Container(
                           child: Text(
-                            "AED\n${fil.price}",
-                            style: boldFont(MColors.secondaryColor, 17.0),
+                            "Rs.${fil.selling_price}",
+                            style: boldFont(MColors.mainColor, 17.0),
                           ),
                         ),
                         Spacer(),

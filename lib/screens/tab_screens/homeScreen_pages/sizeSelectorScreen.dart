@@ -5,16 +5,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/services/Product_service.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
-import 'package:mrpet/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
-import 'package:mrpet/screens/tab_screens/search_screens/search_tabs.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
-import 'package:mrpet/widgets/custom_floating_button.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/model/services/Product_service.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/seeAllInCategory.dart';
+import 'package:wildberries/screens/tab_screens/homeScreen_pages/seeSubCategories.dart';
+import 'package:wildberries/screens/tab_screens/search_screens/search_tabs.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
+import 'package:wildberries/widgets/custom_floating_button.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -145,7 +145,7 @@ class _SizeSelectionState extends State<SizeSelection> {
           elevation: 0.0,
           centerTitle: true,
           title: Text(
-            'Misterpet.ae',
+            'Wildberries',
             style: TextStyle(
                 color: MColors.secondaryColor,
                 fontSize: 22,
@@ -215,10 +215,12 @@ class _SizeSelectionState extends State<SizeSelection> {
                                 Iterable<ProdProducts> categorySpecificProducts;
 
                                 categorySpecificProducts = allProducts.where(
-                                    (e) => e.subCategory == widget.subCategory);
+                                    (e) =>
+                                        e.category['name'] ==
+                                        widget.subCategory);
 
                                 for (var v in allProducts) {
-                                  print(v.pet);
+                                  print(v.name);
                                 }
                                 var _prods = categorySpecificProducts.toList();
 
@@ -304,11 +306,11 @@ class _SizeSelectionState extends State<SizeSelection> {
 
                                 categorySpecificProducts = allProducts.where(
                                     (e) =>
-                                        e.subCategory ==
+                                        e.category['name'] ==
                                         widget.subCategory['sCatName']);
 
                                 for (var v in allProducts) {
-                                  print(v.pet);
+                                  print(v.name);
                                 }
                                 var _prods = categorySpecificProducts.toList();
 
@@ -364,11 +366,11 @@ class _SizeSelectionState extends State<SizeSelection> {
 
                                 categorySpecificProducts = allProducts.where(
                                     (e) =>
-                                        e.subCategory ==
+                                        e.category['name'] ==
                                         widget.subCategory['sCatName']);
 
                                 for (var v in allProducts) {
-                                  print(v.pet);
+                                  print(v.name);
                                 }
                                 var _prods = categorySpecificProducts.toList();
 
@@ -424,11 +426,11 @@ class _SizeSelectionState extends State<SizeSelection> {
 
                                 categorySpecificProducts = allProducts.where(
                                     (e) =>
-                                        e.subCategory ==
+                                        e.category['name'] ==
                                         widget.subCategory['sCatName']);
 
                                 for (var v in allProducts) {
-                                  print(v.pet);
+                                  print(v.name);
                                 }
                                 var _prods = categorySpecificProducts.toList();
 
@@ -484,11 +486,11 @@ class _SizeSelectionState extends State<SizeSelection> {
 
                                 categorySpecificProducts = allProducts.where(
                                     (e) =>
-                                        e.subCategory ==
+                                        e.category['name'] ==
                                         widget.subCategory['sCatName']);
 
                                 for (var v in allProducts) {
-                                  print(v.pet);
+                                  print(v.name);
                                 }
                                 var _prods = categorySpecificProducts.toList();
 

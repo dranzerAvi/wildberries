@@ -1,27 +1,51 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info/device_info.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mrpet/model/data/Products.dart';
-import 'package:mrpet/model/data/bannerAds.dart';
-import 'package:mrpet/model/data/brands.dart';
-import 'package:mrpet/model/data/cart.dart';
-import 'package:mrpet/model/data/orders.dart';
-import 'package:mrpet/model/data/wishlist.dart';
-import 'package:mrpet/model/notifiers/bannerAd_notifier.dart';
-import 'package:mrpet/model/notifiers/brands_notifier.dart';
-import 'package:mrpet/model/notifiers/cart_notifier.dart';
-import 'package:mrpet/model/notifiers/orders_notifier.dart';
-import 'package:mrpet/model/notifiers/products_notifier.dart';
-import 'package:mrpet/model/notifiers/wishlist_notifier.dart';
-import 'package:mrpet/model/services/auth_service.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
+import 'package:wildberries/main.dart';
+import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/data/bannerAds.dart';
+import 'package:wildberries/model/data/brands.dart';
+import 'package:wildberries/model/data/cart.dart';
+import 'package:wildberries/model/data/filter.dart';
+import 'package:wildberries/model/data/leafCategory.dart';
+import 'package:wildberries/model/data/orders.dart';
+import 'package:wildberries/model/data/subCategory.dart';
+import 'package:wildberries/model/data/userData.dart';
+import 'package:wildberries/model/data/wishlist.dart';
+import 'package:wildberries/model/notifiers/bannerAd_notifier.dart';
+import 'package:wildberries/model/notifiers/brands_notifier.dart';
+import 'package:wildberries/model/notifiers/cart_notifier.dart';
+import 'package:wildberries/model/notifiers/filter_notifier.dart';
+import 'package:wildberries/model/notifiers/orders_notifier.dart';
+import 'package:wildberries/model/notifiers/products_notifier.dart';
+import 'package:wildberries/model/notifiers/wishlist_notifier.dart';
+import 'package:wildberries/model/services/auth_service.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 
-final db = FirebaseFirestore.instance;
+// final db = FirebaseFirestore.instance;
 var id = '';
+final String productsApiUrl = "https://wild-grocery.herokuapp.com/api/product";
+
+final String filtersApiUrl = "https://wild-grocery.herokuapp.com/api/filters";
+
+String subCategoryAPIUrl = 'https://wild-grocery.herokuapp.com/api/subcategory';
+String leafCategoryAPIUrl =
+    'https://wild-grocery.herokuapp.com/api/leafcategory';
+
+final String ordersApiUrl =
+    "https://wild-grocery.herokuapp.com/api/order/list/";
+
+final String categoriesApiUrl =
+    "https://wild-grocery.herokuapp.com/api/category";
 
 Future<void> initPlatformState() async {
   Map<String, dynamic> deviceData;
@@ -45,13 +69,15 @@ Future<void> initPlatformState() async {
 
 //Getting products
 getProdProducts(ProductsNotifier productsNotifier) async {
-  QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection("food").get();
+  var result = await http.get(productsApiUrl);
+  var data = json.decode(result.body);
+
+  // print('API data');
+  // print(data.toList()[0]);
 
   List<ProdProducts> _prodProductsList = [];
-
-  snapshot.docs.forEach((document) {
-    ProdProducts prodProducts = ProdProducts.fromMap(document.data());
+  data.toList().forEach((prodData) {
+    ProdProducts prodProducts = ProdProducts.fromMap(prodData);
 
     _prodProductsList.add(prodProducts);
   });
@@ -60,13 +86,12 @@ getProdProducts(ProductsNotifier productsNotifier) async {
 }
 
 getCat(CategoryNotifier categoryNotifier) async {
-  QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection("Categories").get();
+  var result = await http.get(categoriesApiUrl);
+  var data = json.decode(result.body);
 
   List<Cat> _cat = [];
-
-  snapshot.docs.forEach((document) {
-    Cat c = Cat.fromMap(document.data());
+  data.toList().forEach((catData) {
+    Cat c = Cat.fromMap(catData);
 
     _cat.add(c);
   });
@@ -74,400 +99,482 @@ getCat(CategoryNotifier categoryNotifier) async {
   categoryNotifier.productsList = _cat;
 }
 
-//Adding users' product to cart
-addProductToCart(product, _scaffoldKey) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  if (uEmail == null) {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      print('Running on ${androidInfo.id}=================');
+getFilters(FiltersNotifier filtersNotifier) async {
+  var result = await http.get(filtersApiUrl);
+  var data = json.decode(result.body);
 
-      id = androidInfo.id;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      print('Running on ${iosInfo.model}');
-      id = iosInfo.model;
-    }
+  List<Filter> _filters = [];
 
-    print(id);
-    await db
-        .collection("tempUserCart")
-        .doc(id)
-        .collection("cartItems")
-        .doc(product.productID)
-        .set(product.toMap())
-        .catchError((e) {
-      print(e);
-    });
-    showSimpleSnack(
-      "Product added to bag",
-      Icons.check_circle_outline,
-      Colors.green,
-      _scaffoldKey,
-    );
+  data.toList().forEach((filterData) {
+    Filter c = Filter.fromMap(filterData);
 
-//    print('Logged Out');
-//    showSimpleSnack(
-//      "Please login First",
-//      Icons.error_outline,
-//      Colors.red,
-//      _scaffoldKey,
-//    );
-    return;
-  } else {
-    await db
-        .collection("userCart")
-        .doc(uEmail)
-        .collection("cartItems")
-        .doc(product.productID)
-        .set(product.toMap())
-        .catchError((e) {
-      print(e);
-    });
-    showSimpleSnack(
-      "Product added to bag",
-      Icons.check_circle_outline,
-      Colors.green,
-      _scaffoldKey,
-    );
-  }
+    _filters.add(c);
+  });
+
+  filtersNotifier.filtersList = _filters;
 }
 
-//Adding users' product to wishlist
-addProductToWishlist(product, _scaffoldKey) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  if (uEmail == null) {
+getSubCategories(SubCategoryNotifier subCategoryNotifier) async {
+  var result = await http.get(subCategoryAPIUrl);
+  var data = json.decode(result.body);
+
+  List<SubCategory> _subCats = [];
+
+  data.toList().forEach((subCatData) {
+    SubCategory c = SubCategory.fromMap(subCatData);
+    print(c.name);
+    _subCats.add(c);
+    // print('API Result ${_subCats.length}');
+  });
+
+  subCategoryNotifier.subCatsList = _subCats;
+}
+
+getLeafCategories(LeafCategoryNotifier leafCategoryNotifier) async {
+  var result = await http.get(leafCategoryAPIUrl);
+  var data = json.decode(result.body);
+
+  List<LeafCategory> _leafCats = [];
+
+  data.toList().forEach((leafCatData) {
+    LeafCategory c = LeafCategory.fromMap(leafCatData);
+
+    _leafCats.add(c);
+    // print('API Result ${_leafCats.length}');
+  });
+
+  leafCategoryNotifier.leafCatsList = _leafCats;
+}
+
+//Adding users' product to cart
+addProductToCart(Cart cartItem, _scaffoldKey) async {
+  analytics.logAddToCart(
+    itemId: cartItem.id,
+    itemName: cartItem.name,
+    itemCategory: cartItem.category['name'],
+    quantity: cartItem.cartQuantity,
+    price: cartItem.selling_price * 1.0,
+    value: cartItem.selling_price * 1.0,
+    currency: 'INR',
+  );
+
+  //Getting Current cart items
+  final Preference<String> musicsString = await preferences.getString(
+    'cart',
+    defaultValue: '',
+  );
+  List<Cart> cartItems = [];
+  await musicsString.listen((value) {
+    if (value != '') cartItems = Cart.decode(value);
+  });
+
+  // print('Decoded Data ${cartItems}');
+  // print(cartItems);
+  bool flag = false;
+  for (int i = 0; i < cartItems.length; i++) {
+    if (cartItems[i].id == cartItem.id) {
+      showSimpleSnack(
+        "Product already in bag",
+        Icons.warning_amber_rounded,
+        Colors.yellow,
+        _scaffoldKey,
+      );
+      flag = true;
+    }
+  }
+  if (flag == false) {
+    cartItems.add(cartItem);
+
     showSimpleSnack(
-      "Please login First",
-      Icons.error_outline,
-      Colors.red,
+      "Product added to bag",
+      Icons.check_circle_outline,
+      Colors.green,
       _scaffoldKey,
     );
-    return;
   }
-  await db
-      .collection("userWishlist")
-      .doc(uEmail)
-      .collection("wishlistItems")
-      .doc(product.productID)
-      .set(product.toMap())
-      .catchError((e) {
-    print(e);
+
+  // Encode and store data in SharedPreferences
+  final String encodedData = Cart.encode(cartItems);
+
+  await preferences.setString('cart', encodedData).then((value) {
+    // print('Cart Item Updated');
+  }).catchError((e) {
+    print('Error $e');
   });
+  // print('Encoded Data $encodedData');
+}
+
+addProductToWishlist(ProdProducts product, _scaffoldKey) async {
+  //Getting Current cart items
+  analytics.logAddToWishlist(
+    itemId: product.id,
+    itemName: product.name,
+    itemCategory: product.category['name'],
+    price: product.selling_price * 1.0,
+    value: product.selling_price * 1.0,
+    currency: 'INR',
+  );
+  final Preference<String> musicsString = await preferences.getString(
+    'wishlist',
+    defaultValue: '',
+  );
+  List<ProdProducts> wishlistItems = [];
+  await musicsString.listen((value) {
+    if (value != '') wishlistItems = ProdProducts.decode(value);
+  });
+
+  // print('Decoded Data ${cartItems}');
+  // print(cartItems);
+  bool flag = false;
+  for (int i = 0; i < wishlistItems.length; i++) {
+    if (wishlistItems[i].id == product.id) {
+      showSimpleSnack(
+        "Product already in wishlist",
+        Icons.warning_amber_rounded,
+        Colors.yellow,
+        _scaffoldKey,
+      );
+      flag = true;
+    }
+  }
+  if (flag == false) {
+    wishlistItems.add(product);
+
+    showSimpleSnack(
+      "Product added to wishlist",
+      Icons.check_circle_outline,
+      Colors.green,
+      _scaffoldKey,
+    );
+  }
+
+  // Encode and store data in SharedPreferences
+  final String encodedData = ProdProducts.encode(wishlistItems);
+
+  await preferences.setString('wishlist', encodedData).then((value) {
+    // print('Cart Item Updated');
+  }).catchError((e) {
+    print('Error $e');
+  });
+  // print('Encoded Data $encodedData');
 }
 
 //Getting brands
 getBrands(BrandsNotifier brandsNotifier) async {
-  QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection("brands").get();
-
-  List<Brands> _brandsList = [];
-
-  snapshot.docs.forEach((document) {
-    Brands brands = Brands.fromMap(document.data());
-    _brandsList.add(brands);
-  });
-
-  brandsNotifier.brandsList = _brandsList;
-  print(_brandsList);
+  // QuerySnapshot snapshot =
+  //     await FirebaseFirestore.instance.collection("brands").get();
+  //
+  // List<Brands> _brandsList = [];
+  //
+  // snapshot.docs.forEach((document) {
+  //   Brands brands = Brands.fromMap(document.data());
+  //   _brandsList.add(brands);
+  // });
+  //
+  // brandsNotifier.brandsList = _brandsList;
+  // print(_brandsList);
 }
 
 //Getting bannersAds
 getBannerAds(BannerAdNotifier bannerAdNotifier) async {
-  QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection("bannerAds").get();
-
-  List<BannerAds> _bannerAdsList = [];
-
-  snapshot.docs.forEach((document) {
-    BannerAds bannerAds = BannerAds.fromMap(document.data());
-    _bannerAdsList.add(bannerAds);
-  });
-
-  bannerAdNotifier.bannerAdsList = _bannerAdsList;
-  print(_bannerAdsList);
+  // QuerySnapshot snapshot =
+  //     await FirebaseFirestore.instance.collection("bannerAds").get();
+  //
+  // List<BannerAds> _bannerAdsList = [];
+  //
+  // snapshot.docs.forEach((document) {
+  //   BannerAds bannerAds = BannerAds.fromMap(document.data());
+  //   _bannerAdsList.add(bannerAds);
+  // });
+  //
+  // bannerAdNotifier.bannerAdsList = _bannerAdsList;
+  // print(_bannerAdsList);
 }
 
 //Getting users' cart
 getCart(CartNotifier cartNotifier) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  if (uEmail == null) {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      print('Running on ${androidInfo.id}');
+  // final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      id = androidInfo.id;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      print('Running on ${iosInfo.model}');
-      id = iosInfo.model;
+  //Getting Current cart items
+  final Preference<String> musicsString =
+      await preferences.getString('cart', defaultValue: '');
+  musicsString.listen((value) {
+    if (value != '') {
+      final List<Cart> cartItems = Cart.decode(value);
+      cartNotifier.cartList = cartItems;
     }
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("tempUserCart")
-        .doc(id)
-        .collection("cartItems")
-        .get();
-
-    List<Cart> _cartList = [];
-
-    snapshot.docs.forEach((document) {
-      Cart cart = Cart.fromMap(document.data());
-      _cartList.add(cart);
-    });
-
-    cartNotifier.cartList = _cartList;
-  } else {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("userCart")
-        .doc(uEmail)
-        .collection("cartItems")
-        .get();
-
-    List<Cart> _cartList = [];
-
-    snapshot.docs.forEach((document) {
-      Cart cart = Cart.fromMap(document.data());
-      _cartList.add(cart);
-    });
-
-    cartNotifier.cartList = _cartList;
-  }
+  });
 }
 
 //Getting users' wishlist
 getWishlist(WishlistNotifier wishlistNotifier) async {
-  final uEmail = await AuthService().getCurrentEmail();
-
-  QuerySnapshot snapshot = await FirebaseFirestore.instance
-      .collection("userWishlist")
-      .doc(uEmail)
-      .collection("wishlistItems")
-      .get();
-
-  List<Wishlist> _wishlistList = [];
-
-  snapshot.docs.forEach((document) {
-    Wishlist wishlist = Wishlist.fromMap(document.data());
-    _wishlistList.add(wishlist);
+  final Preference<String> musicsString =
+      await preferences.getString('wishlist', defaultValue: '');
+  musicsString.listen((value) {
+    if (value != '') {
+      final List<ProdProducts> wishlistItems = ProdProducts.decode(value);
+      wishlistNotifier.wishList = wishlistItems;
+    }
   });
-
-  wishlistNotifier.wishlistList = _wishlistList;
 }
 
 //Adding item quantity, Price and updating data in cart
-addAndApdateData(cartItem) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  if (uEmail == null) {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      print('Running on ${androidInfo.id}');
-
-      id = androidInfo.id;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      print('Running on ${iosInfo.model}');
-      id = iosInfo.model;
+addAndUpdateData(Cart cartItem, _scaffoldKey, List<Cart> cartList) async {
+  final Preference<String> musicString =
+      await preferences.getString('cart', defaultValue: '');
+  musicString.listen((value) {
+    if (value != '') {
+      final List<Cart> cartItems = Cart.decode(value);
+      // print(cartItems.length);
     }
-    if (cartItem.quantity >= 9) {
-      cartItem.quantity = cartItem.quantity = 9;
-    } else {
-      cartItem.quantity = cartItem.quantity + 1;
+  });
+  cartList.remove(cartItem);
+  int cartQuantity = cartItem.cartQuantity;
+  cartItem.cartQuantity = cartQuantity + 1;
+  cartList.add(cartItem);
+  final String encodedData = Cart.encode(cartList);
+
+  await preferences.setString('cart', encodedData).then((value) {
+    // print('Cart Item Updated');
+  }).catchError((e) {
+    print('Error $e');
+  });
+  final Preference<String> musicsString =
+      await preferences.getString('cart', defaultValue: '');
+  musicsString.listen((value) {
+    if (value != '') {
+      final List<Cart> cartItems = Cart.decode(value);
+      // print(cartItems.length);
     }
-    cartItem.totalPrice = cartItem.price * cartItem.quantity;
-
-    CollectionReference cartRef =
-        db.collection("tempUserCart").doc(id).collection("cartItems");
-
-    await cartRef.doc(cartItem.productID).update(
-      {'quantity': cartItem.quantity, 'totalPrice': cartItem.totalPrice},
-    );
-  } else {
-    if (cartItem.quantity >= 9) {
-      cartItem.quantity = cartItem.quantity = 9;
-    } else {
-      cartItem.quantity = cartItem.quantity + 1;
-    }
-    cartItem.totalPrice = cartItem.price * cartItem.quantity;
-
-    CollectionReference cartRef =
-        db.collection("userCart").doc(uEmail).collection("cartItems");
-
-    await cartRef.doc(cartItem.productID).update(
-      {'quantity': cartItem.quantity, 'totalPrice': cartItem.totalPrice},
-    );
-  }
+  });
 }
 
-//Subtracting item quantity, Price and updating data in cart
-subAndApdateData(cartItem) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  if (uEmail == null) {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      print('Running on ${androidInfo.id}');
-
-      id = androidInfo.id;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      print('Running on ${iosInfo.model}');
-      id = iosInfo.model;
+//Adding item quantity, Price and updating data in cart
+subAndUpdateData(Cart cartItem, _scaffoldKey, List<Cart> cartList) async {
+  final Preference<String> musicString =
+      await preferences.getString('cart', defaultValue: '');
+  musicString.listen((value) {
+    if (value != '') {
+      final List<Cart> cartItems = Cart.decode(value);
+      // print(cartItems.length);
     }
-    if (cartItem.quantity <= 1) {
-      cartItem.quantity = cartItem.quantity = 1;
-    } else {
-      cartItem.quantity = cartItem.quantity - 1;
+  });
+  cartList.remove(cartItem);
+  int cartQuantity = cartItem.cartQuantity;
+  cartItem.cartQuantity = cartQuantity - 1;
+  cartList.add(cartItem);
+  final String encodedData = Cart.encode(cartList);
+
+  await preferences.setString('cart', encodedData).then((value) {
+    // print('Cart Item Updated');
+  }).catchError((e) {
+    print('Error $e');
+  });
+  final Preference<String> musicsString =
+      await preferences.getString('cart', defaultValue: '');
+  musicsString.listen((value) {
+    if (value != '') {
+      final List<Cart> cartItems = Cart.decode(value);
+      // print(cartItems.length);
     }
-    cartItem.totalPrice = cartItem.price * cartItem.quantity;
-
-    CollectionReference cartRef =
-        db.collection("tempUserCart").doc(id).collection("cartItems");
-
-    await cartRef.doc(cartItem.productID).update(
-      {'quantity': cartItem.quantity, 'totalPrice': cartItem.totalPrice},
-    );
-  } else {
-    if (cartItem.quantity <= 1) {
-      cartItem.quantity = cartItem.quantity = 1;
-    } else {
-      cartItem.quantity = cartItem.quantity - 1;
-    }
-    cartItem.totalPrice = cartItem.price * cartItem.quantity;
-
-    CollectionReference cartRef =
-        db.collection("userCart").doc(uEmail).collection("cartItems");
-
-    await cartRef.doc(cartItem.productID).update(
-      {'quantity': cartItem.quantity, 'totalPrice': cartItem.totalPrice},
-    );
-  }
+  });
 }
 
 //Removing item from cart
-removeItemFromCart(cartItem) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  if (uEmail == null) {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      print('Running on ${androidInfo.id}');
+removeItemFromCart(Cart cartItem, _scaffoldKey) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      id = androidInfo.id;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      print('Running on ${iosInfo.model}');
-      id = iosInfo.model;
+  //Getting Current cart items
+  final Preference<String> musicsString =
+      await preferences.getString('cart', defaultValue: '');
+  analytics.logRemoveFromCart(
+    itemId: cartItem.id,
+    itemName: cartItem.name,
+    itemCategory: cartItem.category['name'],
+    price: cartItem.selling_price * 1.0,
+    value: cartItem.selling_price * 1.0,
+    currency: 'INR',
+  );
+  musicsString.listen((value) async {
+    List<Cart> cartItems = [];
+    if (value != '') cartItems = Cart.decode(value);
+    bool flag = false;
+    for (int i = 0; i < cartItems.length; i++) {
+      if (cartItems[i].id == cartItem.id) {
+        await cartItems.removeWhere((crItem) => crItem.id == cartItem.id);
+        // print('cart ${cartItems}');
+        showSimpleSnack(
+          "Product removed from cart",
+          Icons.check_circle_outline,
+          Colors.green,
+          _scaffoldKey,
+        );
+        flag = true;
+      }
     }
-    await db
-        .collection("userCart")
-        .doc(id)
-        .collection("cartItems")
-        .doc(cartItem.productID)
-        .delete();
-  } else {
-    await db
-        .collection("userCart")
-        .doc(uEmail)
-        .collection("cartItems")
-        .doc(cartItem.productID)
-        .delete();
-  }
+    if (flag == false) {
+      // cartItems.add(cartItem);
+
+      showSimpleSnack(
+        "Product not found in cart",
+        Icons.warning_amber_outlined,
+        Colors.yellow,
+        _scaffoldKey,
+      );
+    }
+    final String encodedData = Cart.encode(cartItems);
+    await preferences.setString('cart', encodedData).then((value) {
+      // print('Cart Item Updated');
+    }).catchError((e) {
+      print('Error $e');
+    });
+  });
+
+  // print('Decoded Data ${cartItems}');
+  // print(cartItems);
+
+  // print('Encoded Data $encodedData');
 }
 
 //Removing item from cart
-removeItemFromWishlist(wishlistItem) async {
-  final uEmail = await AuthService().getCurrentEmail();
+removeItemFromWishlist(ProdProducts product, _scaffoldKey) async {
+  //Getting Current cart items
+  final Preference<String> musicsString =
+      await preferences.getString('wishlist', defaultValue: '');
 
-  await db
-      .collection("userWishlist")
-      .doc(uEmail)
-      .collection("wishlistItems")
-      .doc(wishlistItem.productID)
-      .delete();
+  musicsString.listen((value) async {
+    List<ProdProducts> wishlistItems = [];
+    if (value != '') wishlistItems = ProdProducts.decode(value);
+    bool flag = false;
+    for (int i = 0; i < wishlistItems.length; i++) {
+      if (wishlistItems[i].id == product.id) {
+        await wishlistItems.removeWhere((crItem) => crItem.id == product.id);
+        // print('cart ${cartItems}');
+        showSimpleSnack(
+          "Product removed from wishlist",
+          Icons.check_circle_outline,
+          Colors.green,
+          _scaffoldKey,
+        );
+        flag = true;
+      }
+    }
+    if (flag == false) {
+      // cartItems.add(cartItem);
+
+      showSimpleSnack(
+        "Product not found in wishlist",
+        Icons.warning_amber_outlined,
+        Colors.yellow,
+        _scaffoldKey,
+      );
+    }
+    final String encodedData = ProdProducts.encode(wishlistItems);
+    await preferences.setString('wishlist', encodedData).then((value) {
+      // print('Wishlist Item Updated');
+    }).catchError((e) {
+      print('Error $e');
+    });
+  });
+
+  // print('Decoded Data ${cartItems}');
+  // print(cartItems);
+
+  // print('Encoded Data $encodedData');
 }
 
 //Clearing users' cart
 clearCartAfterPurchase() async {
-  final uEmail = await AuthService().getCurrentEmail();
-
-  await db
-      .collection('userCart')
-      .doc(uEmail)
-      .collection("cartItems")
-      .get()
-      .then((snapshot) {
-    for (DocumentSnapshot doc in snapshot.docs) {
-      doc.reference.delete();
-    }
-  });
+  // final uEmail = await AuthService().getCurrentEmail();
+  //
+  // await db
+  //     .collection('userCart')
+  //     .doc(uEmail)
+  //     .collection("cartItems")
+  //     .get()
+  //     .then((snapshot) {
+  //   for (DocumentSnapshot doc in snapshot.docs) {
+  //     doc.reference.delete();
+  //   }
+  // });
 }
 
 //Adding users' product to cart
-addCartToOrders(cartList, orderID, address, date,orderType,time) async {
-  final uEmail = await AuthService().getCurrentEmail();
-  var orderDate = FieldValue.serverTimestamp();
-
-  var orderStatus = "processing";
-  var shippingAddress = address;
-
-  await db
-      .collection("userOrder")
-      .doc(uEmail)
-      .collection("orders")
-      .doc(orderID)
-      .set(
-    {
-      'orderID': orderID,
-      'orderDate': orderDate,
-      'orderStatus': orderStatus,
-      'shippingAddress': shippingAddress,
-      'order': cartList.map((i) => i.toMap()).toList(),
-      'deliveryDate': date,
-      'deliveryTime':time,
-      'orderType':orderType
-    },
-  ).catchError((e) {
-    print(e);
-  });
-
-  //Sending orders to merchant
-  await db
-      .collection("merchantOrder")
-      .doc(uEmail)
-      .collection("orders")
-      .doc(orderID)
-      .set(
-    {
-      'orderID': orderID,
-      'orderDate': orderDate,
-      'shippingAddress': shippingAddress,
-      'order': cartList.map((i) => i.toMap()).toList(),
-      'deliveryDate': date,
-      'deliveryTime':time,
-      'orderType':orderType
-    },
-  ).catchError((e) {
-    print(e);
-  });
+addCartToOrders(cartList, orderID, address, date, orderType, time) async {
+  // final uEmail = await AuthService().getCurrentEmail();
+  // var orderDate = FieldValue.serverTimestamp();
+  //
+  // var orderStatus = "processing";
+  // var shippingAddress = address;
+  //
+  // await db
+  //     .collection("userOrder")
+  //     .doc(uEmail)
+  //     .collection("orders")
+  //     .doc(orderID)
+  //     .set(
+  //   {
+  //     'orderID': orderID,
+  //     'orderDate': orderDate,
+  //     'orderStatus': orderStatus,
+  //     'shippingAddress': shippingAddress,
+  //     'order': cartList.map((i) => i.toMap()).toList(),
+  //     'deliveryDate': date,
+  //     'deliveryTime': time,
+  //     'orderType': orderType
+  //   },
+  // ).catchError((e) {
+  //   print(e);
+  // });
+  //
+  // //Sending orders to merchant
+  // await db
+  //     .collection("merchantOrder")
+  //     .doc(uEmail)
+  //     .collection("orders")
+  //     .doc(orderID)
+  //     .set(
+  //   {
+  //     'orderID': orderID,
+  //     'orderDate': orderDate,
+  //     'shippingAddress': shippingAddress,
+  //     'order': cartList.map((i) => i.toMap()).toList(),
+  //     'deliveryDate': date,
+  //     'deliveryTime': time,
+  //     'orderType': orderType
+  //   },
+  // ).catchError((e) {
+  //   print(e);
+  // });
 }
 
 //Getting users' orders
-getOrders(
-  OrderListNotifier orderListNotifier,
-) async {
-  final uEmail = await AuthService().getCurrentEmail();
+getOrders(OrderListNotifier orderListNotifier, UserDataProfile user) async {
+  var result = await http.get('$ordersApiUrl${user.id}',
+      headers: {'Authorization': 'Bearer ${user.token}'});
+  var data = json.decode(result.body);
 
-  QuerySnapshot ordersSnapshot =
-      await db.collection("userOrder").doc(uEmail).collection("orders").get();
+  // print('API data');
+  // print(data.toList()[0]);
 
-  List<OrdersList> _ordersListList = [];
+  List<Order> _ordersList = [];
+  data.toList().forEach((orderData) {
+    Order order = Order.fromMap(orderData);
 
-  ordersSnapshot.docs.forEach((document) {
-    OrdersList ordersList = OrdersList.fromMap(document.data());
-    _ordersListList.add(ordersList);
+    _ordersList.add(order);
   });
-  orderListNotifier.orderListList = _ordersListList;
+
+  orderListNotifier.orderListList = _ordersList;
+  // final uEmail = await AuthService().getCurrentEmail();
+  //
+  // QuerySnapshot ordersSnapshot =
+  //     await db.collection("userOrder").doc(uEmail).collection("orders").get();
+  //
+  // List<OrdersList> _ordersListList = [];
+  //
+  // ordersSnapshot.docs.forEach((document) {
+  //   OrdersList ordersList = OrdersList.fromMap(document.data());
+  //   _ordersListList.add(ordersList);
+  // });
+  // orderListNotifier.orderListList = _ordersListList;
 }

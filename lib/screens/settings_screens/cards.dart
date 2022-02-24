@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:mrpet/model/notifiers/userData_notifier.dart';
-import 'package:mrpet/model/services/user_management.dart';
-import 'package:mrpet/screens/tab_screens/checkout_screens/addPaymentMethod.dart';
-import 'package:mrpet/utils/colors.dart';
-import 'package:mrpet/widgets/allWidgets.dart';
+import 'package:wildberries/model/notifiers/userData_notifier.dart';
+import 'package:wildberries/model/services/user_management.dart';
+import 'package:wildberries/screens/tab_screens/checkout_screens/addPaymentMethod.dart';
+import 'package:wildberries/utils/colors.dart';
+import 'package:wildberries/widgets/allWidgets.dart';
 import 'package:provider/provider.dart';
 
 class Cards1 extends StatelessWidget {

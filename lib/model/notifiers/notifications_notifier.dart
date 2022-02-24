@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:mrpet/model/data/notificationMessage.dart';
+import 'package:wildberries/model/data/notificationMessage.dart';
 
 class NotificationsNotifier with ChangeNotifier {
   List<NotificationMessage> _notificationMessageList = [];

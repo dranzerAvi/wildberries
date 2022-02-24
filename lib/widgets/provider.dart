@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mrpet/model/services/auth_service.dart';
+import 'package:wildberries/model/services/auth_service.dart';
 
 class MyProvider extends InheritedWidget {
   final AuthService auth;
