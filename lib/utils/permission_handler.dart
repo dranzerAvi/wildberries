@@ -1,6 +1,7 @@
-import 'package:geolocation/geolocation.dart';
+// import 'package:geolocation/geolocation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+//TODO: Geolocation
 class PermissionUtil {
   // Allows request any permission in the Permission Group with this method
   static Future<bool> requestPermission(PermissionGroup permission) async {
@@ -24,28 +25,28 @@ class PermissionUtil {
   //below is about gps and location services checks
 
   static Future<bool> isGpsServiceActive() async {
-    final GeolocationResult gps = await Geolocation.isLocationOperational();
-    if (!gps.isSuccessful) {
-      await Geolocation.enableLocationServices()
-          .then((GeolocationResult onValue) async {
-        if (onValue.isSuccessful)
-          return true;
-        else
-          return false;
-      });
-    }
-    return true;
+    // final GeolocationResult gps = await Geolocation.isLocationOperational();
+    // if (!gps.isSuccessful) {
+    //   await Geolocation.enableLocationServices()
+    //       .then((GeolocationResult onValue) async {
+    //     if (onValue.isSuccessful)
+    //       return true;
+    //     else
+    //       return false;
+    //   });
+    // }
+    // return true;
   }
 
   static Future<bool> isLocationServiceAndPermissionsActive() async {
-    final GeolocationResult gpsServiceActive =
-        await Geolocation.isLocationOperational();
-    final gpsPermissionGranted =
-        await PermissionUtil.hasPermission(PermissionGroup.locationWhenInUse);
-
-    if (gpsServiceActive.isSuccessful == false || gpsPermissionGranted == false)
-      return false;
-
-    return true;
+    // final GeolocationResult gpsServiceActive =
+    //     await Geolocation.isLocationOperational();
+    // final gpsPermissionGranted =
+    //     await PermissionUtil.hasPermission(PermissionGroup.locationWhenInUse);
+    //
+    // if (gpsServiceActive.isSuccessful == false || gpsPermissionGranted == false)
+    //   return false;
+    //
+    // return true;
   }
 }

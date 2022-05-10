@@ -546,7 +546,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 options: Options(
                   headers: {
                     HttpHeaders.authorizationHeader: 'Bearer $newToken',
-                    // HttpHeaders.contentTypeHeader: 'application/json',
+                    HttpHeaders.contentTypeHeader: 'multipart/form-data',
                   },
                   method: 'PUT',
                   followRedirects: false,

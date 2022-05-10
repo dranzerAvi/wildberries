@@ -728,7 +728,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       child: Column(
                                         children: <Widget>[
                                           Text(
-                                            user.firstName + user.lastName,
+                                            user.firstName != null &&
+                                                    user.lastName != null
+                                                ? user.firstName + user.lastName
+                                                : '',
                                             style: boldFont(
                                                 MColors.textDark, 16.0),
                                             textAlign: TextAlign.center,
@@ -757,7 +760,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                 ),
                                           SizedBox(height: 5.0),
                                           Text(
-                                            user.email,
+                                            user.email != null
+                                                ? user.email
+                                                : '',
                                             style: normalFont(
                                                 MColors.textGrey, 14.0),
                                             textAlign: TextAlign.center,

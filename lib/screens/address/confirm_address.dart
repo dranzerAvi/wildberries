@@ -4,7 +4,7 @@ import 'dart:io';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoder/geocoder.dart';
+// import 'package:geocoder/geocoder.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -70,11 +70,12 @@ class _ConfirmAddressState extends State<ConfirmAddress> {
   }
 
   getCity() async {
-    List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(
-        Coordinates(
-            widget.location.latLng.latitude, widget.location.latLng.longitude));
-    cityController.text = addresses.first.locality;
-    zipController.text = addresses.first.postalCode;
+    // List<Address> addresses = await Geocoder.local.findAddressesFromCoordinates(
+    //     Coordinates(
+    //         widget.location.latLng.latitude, widget.location.latLng.longitude));
+
+    // cityController.text = addresses.first.locality;
+    // zipController.text = addresses.first.postalCode;
   }
 
   final hnocontroller = TextEditingController();

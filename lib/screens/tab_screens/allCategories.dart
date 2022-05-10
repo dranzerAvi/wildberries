@@ -88,7 +88,7 @@ class _AllCategoriesState extends State<AllCategories> {
         key: _primaryscaffoldKey,
         floatingActionButton: CustomFloatingButton(
             CurrentScreen(currentScreen: AllCategories(), tab_no: 0)),
-        drawer: CustomDrawer(user, productsNotifier.productsList, {}),
+        drawer: CustomDrawer(user, productsNotifier.productsList, {}, {}),
         appBar: AppBar(
           iconTheme: IconThemeData(
             size: 20,

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:geocoder/geocoder.dart';
+// import 'package:geocoder/geocoder.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -17,7 +17,7 @@ import 'package:google_map_location_picker/google_map_location_picker.dart'
 import 'package:wildberries/screens/address/confirm_address.dart';
 import 'package:wildberries/utils/colors.dart';
 // import 'package:place_picker/entities/location_result.dart' ;
-import 'package:place_picker/place_picker.dart';
+// import 'package:place_picker/place_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wildberries/model/data/address.dart';
 import 'package:wildberries/screens/tab_screens/checkout_screens/completeOrder.dart';
@@ -309,32 +309,32 @@ class _MyAddresses2State extends State<MyAddresses2> {
                       //TODO: Place Picker
                       var result;
                       String error;
-
-                      gmlp.showLocationPicker(
-                        context,
-                        'AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw',
-                        initialCenter: LatLng(31.1975844, 29.9598339),
-                        automaticallyAnimateToCurrentLocation: true,
-//                      mapStylePath: 'assets/mapStyle.json',
-                        myLocationButtonEnabled: true,
-                        // requiredGPS: true,
-                        layersButtonEnabled: true,
-                        countries: ['AE'],
-
-//                      resultCardAlignment: Alignment.bottomCenter,
-//                       desiredAccuracy: LocationAccuracy.best,
-                      );
-                      print("result = $result");
-                      setState(() {
-                        currentLocationAddress = result;
-                        if (currentLocationAddress != null) {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => ConfirmAddress(
-                                  currentLocationAddress, "", "", "")));
-
 //
-                        }
-                      });
+//                       gmlp.showLocationPicker(
+//                         context,
+//                         'AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw',
+//                         initialCenter: LatLng(31.1975844, 29.9598339),
+//                         automaticallyAnimateToCurrentLocation: true,
+// //                      mapStylePath: 'assets/mapStyle.json',
+//                         myLocationButtonEnabled: true,
+//                         // requiredGPS: true,
+//                         layersButtonEnabled: true,
+//                         countries: ['AE'],
+//
+// //                      resultCardAlignment: Alignment.bottomCenter,
+// //                       desiredAccuracy: LocationAccuracy.best,
+//                       );
+//                       print("result = $result");
+//                       setState(() {
+//                         currentLocationAddress = result;
+//                         if (currentLocationAddress != null) {
+//                           Navigator.of(context).push(MaterialPageRoute(
+//                               builder: (context) => ConfirmAddress(
+//                                   currentLocationAddress, "", "", "")));
+//
+// //
+//                         }
+//                       });
                       //TODO: Place Picker
 //                                  _locationDialog(context);
 //                                   showPlacePicker();

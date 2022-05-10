@@ -250,7 +250,7 @@ class _SearchScreenState extends State<SearchScreen>
           //   controller: _tabController,
           // ),
           centerTitle: false),
-      drawer: CustomDrawer(user, prods.toList(), {}),
+      drawer: CustomDrawer(user, prods.toList(), {}, {}),
       body: Scaffold(
         backgroundColor: Colors.white,
         key: _scaffoldKey,

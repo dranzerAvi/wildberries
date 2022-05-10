@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:getflutter/getflutter.dart';
-import 'package:location/location.dart';
+// import 'package:location/location.dart';
 import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
 import 'package:wildberries/model/data/Products.dart';
+import 'package:wildberries/model/data/leafCategory.dart';
+import 'package:wildberries/model/data/subCategory.dart';
 import 'package:wildberries/model/data/userData.dart';
 import 'package:wildberries/model/notifiers/cart_notifier.dart';
 import 'package:wildberries/model/notifiers/products_notifier.dart';
@@ -36,8 +38,9 @@ import '../main.dart';
 class CustomDrawer extends StatefulWidget {
   UserDataProfile user;
   List<ProdProducts> products;
-  Map subCats;
-  CustomDrawer(this.user, this.products, this.subCats);
+  Map<String, List<SubCategory>> subCats;
+  Map<String, List<LeafCategory>> leafCats;
+  CustomDrawer(this.user, this.products, this.subCats, this.leafCats);
   @override
   _CustomDrawerState createState() => _CustomDrawerState();
 }
@@ -61,14 +64,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
     // });
   }
 
-  Location loc = new Location();
-  LocationData _currentPosition;
+  // Location loc = new Location();
+  // LocationData _currentPosition;
 
   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
   String currentAddress = 'Enter Address';
   Future<Position> _getCurrentLocation() async {
-    _currentPosition = await loc.getLocation();
+    // _currentPosition = await loc.getLocation();
 //    Position position = await geolocator.getCurrentPosition(
 //        desiredAccuracy: LocationAccuracy.high);
 //    print(position);
@@ -85,17 +88,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   _getAddressFromLatLng() async {
     try {
-      List<Placemark> p = await geolocator.placemarkFromCoordinates(
-          _currentPosition.latitude, _currentPosition.longitude);
-
-      Placemark place = p[0];
-
-      setState(() {
-        currentAddress = "${place.subLocality}, ${place.locality}";
-        // print(currentAddress);
-        location = currentAddress;
-        pass.text = currentAddress;
-      });
+      // List<Placemark> p = await geolocator.placemarkFromCoordinates(
+      //     _currentPosition.latitude, _currentPosition.longitude);
+      //
+      // Placemark place = p[0];
+      //
+      // setState(() {
+      //   currentAddress = "${place.subLocality}, ${place.locality}";
+      //   // print(currentAddress);
+      //   location = currentAddress;
+      //   pass.text = currentAddress;
+      // });
     } catch (e) {
       print(e);
     }
@@ -569,48 +572,127 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             children: List.generate(
                 widget.subCats['Eggs'].length,
-                (index) => InkWell(
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Container(
-                            width: 18,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text(
-                              widget.subCats['Eggs'][index],
-                              style: boldFont(MColors.mainColor, 18),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    onTap: () async {
-                      ProductsNotifier productsNotifier =
-                          Provider.of<ProductsNotifier>(context, listen: false);
+                (index) => Container(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 55,
+                                    ),
+                                    Text(
+                                      widget.subCats['Eggs'][index].name,
+                                      style: boldFont(MColors.mainColor, 18),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () async {
+                                  ProductsNotifier productsNotifier =
+                                      Provider.of<ProductsNotifier>(context,
+                                          listen: false);
 
-                      var navigationResult = await Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => SeeMoreScreen(
-                            title: 'Eggs',
-                            products: productsNotifier.productsList
-                                .where((ele) =>
-                                    ele.subCategory['name'] ==
-                                    widget.subCats['Eggs'][index])
-                                .toList(),
-                            productsNotifier: productsNotifier,
-                            cartNotifier: cartNotifier,
-                            cartProdID: cartProdID,
-                            categoryId: '6112949447d0ee26fc8bc927',
-                          ),
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => SeeMoreScreen(
+                                        title: 'Eggs',
+                                        products: productsNotifier.productsList
+                                            .where((ele) =>
+                                                ele.subCategory != null &&
+                                                ele.subCategory['name'] ==
+                                                    widget
+                                                        .subCats['Eggs'][index]
+                                                        .name)
+                                            .toList(),
+                                        productsNotifier: productsNotifier,
+                                        cartNotifier: cartNotifier,
+                                        cartProdID: cartProdID,
+                                        categoryId: '6112949447d0ee26fc8bc927',
+                                      ),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    getCart(cartNotifier);
+                                  }
+                                }),
+                            ...List.generate(
+                                widget.leafCats[
+                                            widget.subCats['Eggs'][index].id] !=
+                                        null
+                                    ? widget
+                                        .leafCats[
+                                            widget.subCats['Eggs'][index].id]
+                                        .length
+                                    : 0,
+                                (ind) => InkWell(
+                                    child: Container(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0, vertical: 5),
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 55,
+                                            ),
+                                            Container(
+                                              width: 200,
+                                              child: Text(
+                                                '-  ${widget.leafCats[widget.subCats['Eggs'][index].id][ind].name}',
+                                                style: normalFont(
+                                                    MColors.mainColor, 18),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () async {
+                                      ProductsNotifier productsNotifier =
+                                          Provider.of<ProductsNotifier>(context,
+                                              listen: false);
+
+                                      var navigationResult =
+                                          await Navigator.of(context).push(
+                                        CupertinoPageRoute(
+                                          builder: (context) => SeeMoreScreen(
+                                            title: 'Eggs',
+                                            products: productsNotifier
+                                                .productsList
+                                                .where((ele) =>
+                                                    ele.leafCategory != null &&
+                                                    ele.leafCategory['name'] ==
+                                                        widget
+                                                            .leafCats[widget
+                                                                .subCats['Eggs']
+                                                                    [index]
+                                                                .id][ind]
+                                                            .name)
+                                                .toList(),
+                                            productsNotifier: productsNotifier,
+                                            cartNotifier: cartNotifier,
+                                            cartProdID: cartProdID,
+                                            categoryId: widget
+                                                .leafCats[widget
+                                                    .subCats['Eggs'][index]
+                                                    .id][ind]
+                                                .id,
+                                          ),
+                                        ),
+                                      );
+                                      if (navigationResult == true) {
+                                        getCart(cartNotifier);
+                                      }
+                                    }))
+                          ],
                         ),
-                      );
-                      if (navigationResult == true) {
-                        getCart(cartNotifier);
-                      }
-                    })),
+                      ),
+                    )),
           ),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 20),
@@ -637,48 +719,127 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             children: List.generate(
                 widget.subCats['Fish'].length,
-                (index) => InkWell(
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Container(
-                            width: 18,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text(
-                              widget.subCats['Fish'][index],
-                              style: boldFont(MColors.mainColor, 18),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    onTap: () async {
-                      ProductsNotifier productsNotifier =
-                          Provider.of<ProductsNotifier>(context, listen: false);
+                (index) => Container(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 55,
+                                    ),
+                                    Text(
+                                      widget.subCats['Fish'][index].name,
+                                      style: boldFont(MColors.mainColor, 18),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () async {
+                                  ProductsNotifier productsNotifier =
+                                      Provider.of<ProductsNotifier>(context,
+                                          listen: false);
 
-                      var navigationResult = await Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => SeeMoreScreen(
-                            title: 'Fish',
-                            products: productsNotifier.productsList
-                                .where((ele) =>
-                                    ele.subCategory['name'] ==
-                                    widget.subCats['Fish'][index])
-                                .toList(),
-                            productsNotifier: productsNotifier,
-                            cartNotifier: cartNotifier,
-                            cartProdID: cartProdID,
-                            categoryId: '6128d183f56dad3024e8952f',
-                          ),
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => SeeMoreScreen(
+                                        title: 'Fish',
+                                        products: productsNotifier.productsList
+                                            .where((ele) =>
+                                                ele.subCategory != null &&
+                                                ele.subCategory['name'] ==
+                                                    widget
+                                                        .subCats['Fish'][index]
+                                                        .name)
+                                            .toList(),
+                                        productsNotifier: productsNotifier,
+                                        cartNotifier: cartNotifier,
+                                        cartProdID: cartProdID,
+                                        categoryId: '6128d183f56dad3024e8952f',
+                                      ),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    getCart(cartNotifier);
+                                  }
+                                }),
+                            ...List.generate(
+                                widget.leafCats[
+                                            widget.subCats['Fish'][index].id] !=
+                                        null
+                                    ? widget
+                                        .leafCats[
+                                            widget.subCats['Fish'][index].id]
+                                        .length
+                                    : 0,
+                                (ind) => InkWell(
+                                    child: Container(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0, vertical: 5),
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 55,
+                                            ),
+                                            Container(
+                                              width: 200,
+                                              child: Text(
+                                                '-  ${widget.leafCats[widget.subCats['Fish'][index].id][ind].name}',
+                                                style: normalFont(
+                                                    MColors.mainColor, 18),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () async {
+                                      ProductsNotifier productsNotifier =
+                                          Provider.of<ProductsNotifier>(context,
+                                              listen: false);
+
+                                      var navigationResult =
+                                          await Navigator.of(context).push(
+                                        CupertinoPageRoute(
+                                          builder: (context) => SeeMoreScreen(
+                                            title: 'Fish',
+                                            products: productsNotifier
+                                                .productsList
+                                                .where((ele) =>
+                                                    ele.leafCategory != null &&
+                                                    ele.leafCategory['name'] ==
+                                                        widget
+                                                            .leafCats[widget
+                                                                .subCats['Fish']
+                                                                    [index]
+                                                                .id][ind]
+                                                            .name)
+                                                .toList(),
+                                            productsNotifier: productsNotifier,
+                                            cartNotifier: cartNotifier,
+                                            cartProdID: cartProdID,
+                                            categoryId: widget
+                                                .leafCats[widget
+                                                    .subCats['Fish'][index]
+                                                    .id][ind]
+                                                .id,
+                                          ),
+                                        ),
+                                      );
+                                      if (navigationResult == true) {
+                                        getCart(cartNotifier);
+                                      }
+                                    }))
+                          ],
                         ),
-                      );
-                      if (navigationResult == true) {
-                        getCart(cartNotifier);
-                      }
-                    })),
+                      ),
+                    )),
           ),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 20),
@@ -708,48 +869,129 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             children: List.generate(
                 widget.subCats['Chicken'].length,
-                (index) => InkWell(
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Container(
-                            width: 18,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text(
-                              widget.subCats['Chicken'][index],
-                              style: boldFont(MColors.mainColor, 18),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    onTap: () async {
-                      ProductsNotifier productsNotifier =
-                          Provider.of<ProductsNotifier>(context, listen: false);
+                (index) => Container(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 55,
+                                    ),
+                                    Text(
+                                      widget.subCats['Chicken'][index].name,
+                                      style: boldFont(MColors.mainColor, 18),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () async {
+                                  ProductsNotifier productsNotifier =
+                                      Provider.of<ProductsNotifier>(context,
+                                          listen: false);
 
-                      var navigationResult = await Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => SeeMoreScreen(
-                            title: 'Chicken',
-                            products: productsNotifier.productsList
-                                .where((ele) =>
-                                    ele.subCategory['name'] ==
-                                    widget.subCats['Chicken'][index])
-                                .toList(),
-                            productsNotifier: productsNotifier,
-                            cartNotifier: cartNotifier,
-                            cartProdID: cartProdID,
-                            categoryId: '6128d091f56dad3024e89528',
-                          ),
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => SeeMoreScreen(
+                                        title: 'Chicken',
+                                        products: productsNotifier.productsList
+                                            .where((ele) =>
+                                                ele.subCategory != null &&
+                                                ele.subCategory['name'] ==
+                                                    widget
+                                                        .subCats['Chicken']
+                                                            [index]
+                                                        .name)
+                                            .toList(),
+                                        productsNotifier: productsNotifier,
+                                        cartNotifier: cartNotifier,
+                                        cartProdID: cartProdID,
+                                        categoryId: '6128d091f56dad3024e89528',
+                                      ),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    getCart(cartNotifier);
+                                  }
+                                }),
+                            ...List.generate(
+                                widget.leafCats[widget
+                                            .subCats['Chicken'][index].id] !=
+                                        null
+                                    ? widget
+                                        .leafCats[
+                                            widget.subCats['Chicken'][index].id]
+                                        .length
+                                    : 0,
+                                (ind) => InkWell(
+                                    child: Container(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0, vertical: 5),
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 55,
+                                            ),
+                                            Container(
+                                              width: 200,
+                                              child: Text(
+                                                '-  ${widget.leafCats[widget.subCats['Chicken'][index].id][ind].name}',
+                                                style: normalFont(
+                                                    MColors.mainColor, 18),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () async {
+                                      ProductsNotifier productsNotifier =
+                                          Provider.of<ProductsNotifier>(context,
+                                              listen: false);
+
+                                      var navigationResult =
+                                          await Navigator.of(context).push(
+                                        CupertinoPageRoute(
+                                          builder: (context) => SeeMoreScreen(
+                                            title: 'Chicken',
+                                            products: productsNotifier
+                                                .productsList
+                                                .where((ele) =>
+                                                    ele.leafCategory != null &&
+                                                    ele.leafCategory['name'] ==
+                                                        widget
+                                                            .leafCats[widget
+                                                                .subCats[
+                                                                    'Chicken']
+                                                                    [index]
+                                                                .id][ind]
+                                                            .name)
+                                                .toList(),
+                                            productsNotifier: productsNotifier,
+                                            cartNotifier: cartNotifier,
+                                            cartProdID: cartProdID,
+                                            categoryId: widget
+                                                .leafCats[widget
+                                                    .subCats['Chicken'][index]
+                                                    .id][ind]
+                                                .id,
+                                          ),
+                                        ),
+                                      );
+                                      if (navigationResult == true) {
+                                        getCart(cartNotifier);
+                                      }
+                                    }))
+                          ],
                         ),
-                      );
-                      if (navigationResult == true) {
-                        getCart(cartNotifier);
-                      }
-                    })),
+                      ),
+                    )),
           ),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 20),
@@ -779,48 +1021,129 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             children: List.generate(
                 widget.subCats['Mutton'].length,
-                (index) => InkWell(
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Container(
-                            width: 18,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text(
-                              widget.subCats['Mutton'][index],
-                              style: boldFont(MColors.mainColor, 18),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    onTap: () async {
-                      ProductsNotifier productsNotifier =
-                          Provider.of<ProductsNotifier>(context, listen: false);
+                (index) => Container(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 55,
+                                    ),
+                                    Text(
+                                      widget.subCats['Mutton'][index].name,
+                                      style: boldFont(MColors.mainColor, 18),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () async {
+                                  ProductsNotifier productsNotifier =
+                                      Provider.of<ProductsNotifier>(context,
+                                          listen: false);
 
-                      var navigationResult = await Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => SeeMoreScreen(
-                            title: 'Mutton',
-                            products: productsNotifier.productsList
-                                .where((ele) =>
-                                    ele.subCategory['name'] ==
-                                    widget.subCats['Mutton'][index])
-                                .toList(),
-                            productsNotifier: productsNotifier,
-                            cartNotifier: cartNotifier,
-                            cartProdID: cartProdID,
-                            categoryId: '612f45928c1629001622a97b',
-                          ),
+                                  var navigationResult =
+                                      await Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) => SeeMoreScreen(
+                                        title: 'Mutton',
+                                        products: productsNotifier.productsList
+                                            .where((ele) =>
+                                                ele.subCategory != null &&
+                                                ele.subCategory['name'] ==
+                                                    widget
+                                                        .subCats['Mutton']
+                                                            [index]
+                                                        .name)
+                                            .toList(),
+                                        productsNotifier: productsNotifier,
+                                        cartNotifier: cartNotifier,
+                                        cartProdID: cartProdID,
+                                        categoryId: '6128d091f56dad3024e89528',
+                                      ),
+                                    ),
+                                  );
+                                  if (navigationResult == true) {
+                                    getCart(cartNotifier);
+                                  }
+                                }),
+                            ...List.generate(
+                                widget.leafCats[widget
+                                            .subCats['Mutton'][index].id] !=
+                                        null
+                                    ? widget
+                                        .leafCats[
+                                            widget.subCats['Mutton'][index].id]
+                                        .length
+                                    : 0,
+                                (ind) => InkWell(
+                                    child: Container(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0, vertical: 5),
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 55,
+                                            ),
+                                            Container(
+                                              width: 200,
+                                              child: Text(
+                                                '-  ${widget.leafCats[widget.subCats['Mutton'][index].id][ind].name}',
+                                                style: normalFont(
+                                                    MColors.mainColor, 18),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () async {
+                                      ProductsNotifier productsNotifier =
+                                          Provider.of<ProductsNotifier>(context,
+                                              listen: false);
+
+                                      var navigationResult =
+                                          await Navigator.of(context).push(
+                                        CupertinoPageRoute(
+                                          builder: (context) => SeeMoreScreen(
+                                            title: 'Mutton',
+                                            products: productsNotifier
+                                                .productsList
+                                                .where((ele) =>
+                                                    ele.leafCategory != null &&
+                                                    ele.leafCategory['name'] ==
+                                                        widget
+                                                            .leafCats[widget
+                                                                .subCats[
+                                                                    'Mutton']
+                                                                    [index]
+                                                                .id][ind]
+                                                            .name)
+                                                .toList(),
+                                            productsNotifier: productsNotifier,
+                                            cartNotifier: cartNotifier,
+                                            cartProdID: cartProdID,
+                                            categoryId: widget
+                                                .leafCats[widget
+                                                    .subCats['Mutton'][index]
+                                                    .id][ind]
+                                                .id,
+                                          ),
+                                        ),
+                                      );
+                                      if (navigationResult == true) {
+                                        getCart(cartNotifier);
+                                      }
+                                    }))
+                          ],
                         ),
-                      );
-                      if (navigationResult == true) {
-                        getCart(cartNotifier);
-                      }
-                    })),
+                      ),
+                    )),
           ),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 20),
@@ -1182,14 +1505,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Container(
                         height: 50,
                         width: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(25)),
-                            border:
-                                Border.all(color: MColors.mainColor, width: 2)),
+                        // decoration: BoxDecoration(
+                        //     borderRadius: BorderRadius.all(Radius.circular(25)),
+                        //     border:
+                        //         Border.all(color: MColors.mainColor, width: 2)),
                         alignment: Alignment.center,
                         child: FaIcon(
-                          FontAwesomeIcons.whatsapp,
+                          FontAwesomeIcons.whatsappSquare,
                           color: Colors.green,
+                          size: 50,
                         )),
                     SizedBox(
                       width: 5,
@@ -1197,14 +1521,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Container(
                         height: 50,
                         width: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(25)),
-                            border:
-                                Border.all(color: MColors.mainColor, width: 2)),
+                        // decoration: BoxDecoration(
+                        //     borderRadius: BorderRadius.all(Radius.circular(25)),
+                        //     border:
+                        //         Border.all(color: MColors.mainColor, width: 2)),
                         alignment: Alignment.center,
                         child: FaIcon(
-                          FontAwesomeIcons.instagram,
+                          FontAwesomeIcons.instagramSquare,
                           color: Color(0xFFE1306C),
+                          size: 50,
                         )),
                     SizedBox(
                       width: 5,
@@ -1212,14 +1537,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Container(
                         height: 50,
                         width: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(25)),
-                            border:
-                                Border.all(color: MColors.mainColor, width: 2)),
+                        // decoration: BoxDecoration(
+                        //     borderRadius: BorderRadius.all(Radius.circular(25)),
+                        //     border:
+                        //         Border.all(color: MColors.mainColor, width: 2)),
                         alignment: Alignment.center,
                         child: FaIcon(
-                          FontAwesomeIcons.facebook,
+                          FontAwesomeIcons.facebookSquare,
                           color: Colors.blue,
+                          size: 50,
                         ))
                   ],
                 )),

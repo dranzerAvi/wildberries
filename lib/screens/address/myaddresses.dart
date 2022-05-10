@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:geocoder/geocoder.dart';
+// import 'package:geocoder/geocoder.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -19,7 +19,7 @@ import 'package:wildberries/model/data/userData.dart';
 import 'package:wildberries/screens/address/confirm_address.dart';
 import 'package:wildberries/utils/colors.dart';
 // import 'package:place_picker/entities/location_result.dart';
-import 'package:place_picker/place_picker.dart';
+// import 'package:place_picker/place_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wildberries/model/data/address.dart';
 import 'package:wildberries/widgets/allWidgets.dart';
@@ -284,39 +284,39 @@ class _MyAddressesState extends State<MyAddresses> {
                                     var result;
                                     String error;
 
-                                    result = await gmlp.showLocationPicker(
-                                      context,
-                                      'AIzaSyBRiKMx-SrPII728TuJ0cAPgVHC5l-e9s8',
-                                      initialCenter: LatLng(
-                                          currentPosition.latitude,
-                                          currentPosition.longitude),
-                                      automaticallyAnimateToCurrentLocation:
-                                          true,
-//                      mapStylePath: 'assets/mapStyle.json',
-                                      myLocationButtonEnabled: true,
-                                      requiredGPS: true,
-                                      layersButtonEnabled: true,
-                                      // countries: ['AE'],
-
-//                      resultCardAlignment: Alignment.bottomCenter,
-//                       desiredAccuracy: LocationAccuracy.best,
-                                    );
-                                    print("result = ${result.runtimeType}");
-                                    setState(() {
-                                      currentLocationAddress = result;
-                                      if (currentLocationAddress != null) {
-                                        Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ConfirmAddress(
-                                                        currentLocationAddress,
-                                                        "",
-                                                        "",
-                                                        "")));
-
+//                                     result = await gmlp.showLocationPicker(
+//                                       context,
+//                                       'AIzaSyBRiKMx-SrPII728TuJ0cAPgVHC5l-e9s8',
+//                                       initialCenter: LatLng(
+//                                           currentPosition.latitude,
+//                                           currentPosition.longitude),
+//                                       automaticallyAnimateToCurrentLocation:
+//                                           true,
+// //                      mapStylePath: 'assets/mapStyle.json',
+//                                       myLocationButtonEnabled: true,
+//                                       requiredGPS: true,
+//                                       layersButtonEnabled: true,
+//                                       // countries: ['AE'],
 //
-                                      }
-                                    });
+// //                      resultCardAlignment: Alignment.bottomCenter,
+// //                       desiredAccuracy: LocationAccuracy.best,
+//                                     );
+//                                     print("result = ${result.runtimeType}");
+//                                     setState(() {
+//                                       currentLocationAddress = result;
+//                                       if (currentLocationAddress != null) {
+//                                         Navigator.of(context).push(
+//                                             MaterialPageRoute(
+//                                                 builder: (context) =>
+//                                                     ConfirmAddress(
+//                                                         currentLocationAddress,
+//                                                         "",
+//                                                         "",
+//                                                         "")));
+//
+// //
+//                                       }
+//                                     });
 
                                     //TODO: Place Picker
                                     //-------------

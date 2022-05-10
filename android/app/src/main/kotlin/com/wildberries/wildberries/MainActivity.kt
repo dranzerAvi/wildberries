@@ -1,4 +1,4 @@
-package com.axactstudios.wildberries
+package com.wildberries.wildberries
 
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity

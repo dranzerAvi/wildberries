@@ -146,7 +146,7 @@ class _InboxScreenState extends State<InboxScreen> {
               fontWeight: FontWeight.bold),
         ),
       ),
-      drawer: CustomDrawer(user, null, {}),
+      drawer: CustomDrawer(user, null, {}, {}),
       body: RefreshIndicator(
         // onRefresh: () => getNotifications(notificationsNotifier),
         child: primaryContainer(

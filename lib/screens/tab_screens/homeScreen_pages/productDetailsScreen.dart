@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:fancy_shimmer_image/fancy_shimmer_image.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -76,10 +78,34 @@ class _ProductDetailsState extends State<ProductDetails> {
   double price;
   List<Widget> details = [];
   List<Widget> specs = [];
+  List<String> variants = [];
+  String variantSelected = '';
+  getVariants() async {
+    var url = Uri.parse(
+        'https://wild-grocery.herokuapp.com/api/productbyvarient?limit=8');
+    String encodedOrderData = json.encode({'varientID': prodDetails.varientID});
+    var apiResponse = await http.post(url,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: encodedOrderData);
+    List data = json.decode(apiResponse.body);
+    print(prodDetails.varientID);
+
+    data.forEach((element) {
+      variants.add(element['productQuantity']);
+    });
+    setState(() {});
+    print('Varients');
+    print(data);
+  }
+
   @override
   void initState() {
     // check();
     // getvariants();
+    getVariants();
     prodDetails.tablespecs.forEach((element) {
       details.add(Container(
         padding: const EdgeInsets.only(
@@ -1380,29 +1406,70 @@ class _ProductDetailsState extends State<ProductDetails> {
 //                                 ),
 //                               )
 //                             : Container(),
+
                         Builder(builder: (context) {
                           return Container(
                             child: Row(
                               children: <Widget>[
                                 Expanded(
                                   child: Container(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.7,
-                                    child: Text(
-                                      prodDetails.productQuantity == null
-                                          ? "1 Kg"
-                                          : "${prodDetails.productQuantity}",
-                                      style: GoogleFonts.montserrat(
-                                        color: MColors.mainColor,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
+                                      height: 30,
+                                      child: variants.length == 0
+                                          ? progressIndicator(Colors.grey)
+                                          : ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              physics: BouncingScrollPhysics(),
+                                              itemCount: variants.length,
+                                              shrinkWrap: true,
+                                              itemBuilder: (context, i) {
+                                                return Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 2),
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      variantSelected =
+                                                          variants[i];
+                                                      setState(() {});
+                                                    },
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                          color: variantSelected ==
+                                                                  variants[i]
+                                                              ? MColors
+                                                                  .dashPurple
+                                                              : Colors
+                                                                  .transparent,
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                                  Radius
+                                                                      .circular(
+                                                                          5)),
+                                                          border:
+                                                              Border.all(
+                                                                  color: MColors
+                                                                      .mainColor,
+                                                                  width: 2)),
+                                                      padding:
+                                                          EdgeInsets.all(4.0),
+                                                      child: Text(
+                                                        variants[i],
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                          color:
+                                                              MColors.mainColor,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            )),
                                 ),
                                 Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.5,
+                                  width: 100,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
@@ -1454,6 +1521,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                             ),
                           );
                         }),
+                        SizedBox(
+                          height: 10,
+                        ),
+
                         SizedBox(
                           height: 10,
                         ),
@@ -2107,6 +2178,15 @@ class _ProductDetailsState extends State<ProductDetails> {
                         onTap: _isbuttonDisabled
                             ? null
                             : () {
+                                if (variantSelected == '') {
+                                  showSimpleSnack(
+                                    "Please select a variant first",
+                                    Icons.warning_amber_outlined,
+                                    Colors.amber,
+                                    _scaffoldKey,
+                                  );
+                                  return;
+                                }
                                 getCart(cartNotifier);
                                 addProductToCart(
                                     Cart(
@@ -2116,8 +2196,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                             widget.prodDetails.selling_price,
                                         category: widget.prodDetails.category,
                                         specs: widget.prodDetails.specs,
-                                        productQuantity:
-                                            widget.prodDetails.productQuantity,
+                                        productQuantity: variantSelected,
                                         original_price:
                                             widget.prodDetails.original_price,
                                         quantity: widget.prodDetails.quantity,

@@ -33,6 +33,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:537554416883:android:c78620d1c6f2f002bd3386",
+        "android_client_info": {
+          "package_name": "com.wildberries.wildberries"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "537554416883-0t2n4ag69lvchtcs0sar19o1e3b50i4g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDi9nTGQt2vmXBQuxGjaS3gBI6VMD-jyeU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537554416883-0t2n4ag69lvchtcs0sar19o1e3b50i4g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

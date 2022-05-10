@@ -8,13 +8,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geocoder/geocoder.dart';
+// import 'package:geocoder/geocoder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:geolocator/geolocator.dart';
 import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
 import 'package:wildberries/model/data/Products.dart';
 import 'package:wildberries/model/data/cart.dart';
+import 'package:wildberries/model/data/leafCategory.dart';
+import 'package:wildberries/model/data/subCategory.dart';
 import 'package:wildberries/model/data/userData.dart';
 import 'package:wildberries/model/notifiers/cart_notifier.dart';
 import 'package:wildberries/model/notifiers/offers_notifier.dart';
@@ -23,6 +25,7 @@ import 'package:wildberries/model/notifiers/userData_notifier.dart';
 import 'package:wildberries/model/notifiers/wishlist_notifier.dart';
 import 'package:wildberries/model/services/Product_service.dart';
 import 'package:wildberries/model/services/offers_service.dart';
+import 'package:wildberries/model/services/user_management.dart';
 import 'package:wildberries/screens/tab_screens/homeScreen_pages/seeMoreScreen.dart';
 import 'package:wildberries/screens/tab_screens/search_screens/search_screen.dart';
 import 'package:wildberries/utils/colors.dart';
@@ -30,7 +33,7 @@ import 'package:wildberries/utils/internetConnectivity.dart';
 import 'package:wildberries/widgets/allWidgets.dart';
 import 'package:wildberries/widgets/custom_floating_button.dart';
 import 'package:wildberries/widgets/navDrawer.dart';
-import 'package:place_picker/place_picker.dart';
+// import 'package:place_picker/place_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -144,14 +147,35 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  Map<String, List<String>> subCats = {
+  Map<String, List<SubCategory>> subCats = {
     'Eggs': [],
     'Fish': [],
     'Chicken': [],
     'Mutton': []
   };
+  Map<String, List<LeafCategory>> leafCats = {};
 
-  getSubCats(subCategoryNotifier, cartList, cartProdID, cartNotifier) async {
+  getLeafCats(LeafCategoryNotifier leafCategoryNotifier, cartList, cartProdID,
+      cartNotifier) async {
+    await getLeafCategories(leafCategoryNotifier);
+    // ProductsNotifier productsNotifier =
+    // Provider.of<ProductsNotifier>(context, listen: false);
+
+    await leafCategoryNotifier.leafCatsList.forEach((element) {
+      if (leafCats[element.parentId] == null)
+        leafCats[element.parentId] = [element];
+      else
+        leafCats.update(element.parentId, (value) {
+          value.add(element);
+          return value;
+        });
+    });
+
+    setState(() {});
+  }
+
+  getSubCats(SubCategoryNotifier subCategoryNotifier, cartList, cartProdID,
+      cartNotifier) async {
     await getSubCategories(subCategoryNotifier);
     ProductsNotifier productsNotifier =
         Provider.of<ProductsNotifier>(context, listen: false);
@@ -160,34 +184,34 @@ class _HomeScreenState extends State<HomeScreen>
     await subCategoryNotifier.subCatsList.forEach((element) {
       if (element.parentId == '6112949447d0ee26fc8bc927') {
         if (subCats['Eggs'] == null)
-          subCats['Eggs'] = [element.name];
+          subCats['Eggs'] = [element];
         else
           subCats.update('Eggs', (value) {
-            value.add(element.name);
+            value.add(element);
             return value;
           });
       } else if (element.parentId == '6128d183f56dad3024e8952f') {
         if (subCats['Fish'] == null)
-          subCats['Fish'] = [element.name];
+          subCats['Fish'] = [element];
         else
           subCats.update('Fish', (value) {
-            value.add(element.name);
+            value.add(element);
             return value;
           });
       } else if (element.parentId == '6128d091f56dad3024e89528') {
         if (subCats['Chicken'] == null)
-          subCats['Chicken'] = [element.name];
+          subCats['Chicken'] = [element];
         else
           subCats.update('Chicken', (value) {
-            value.add(element.name);
+            value.add(element);
             return value;
           });
       } else if (element.parentId == '612f45928c1629001622a97b') {
         if (subCats['Mutton'] == null)
-          subCats['Mutton'] = [element.name];
+          subCats['Mutton'] = [element];
         else
           subCats.update('Mutton', (value) {
-            value.add(element.name);
+            value.add(element);
             return value;
           });
       }
@@ -288,7 +312,8 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     calculateNextDelivery();
     checkCart();
-
+    saveDeviceToken();
+    print('Token Saved');
     _getCurrentLocation();
     // initDynamicLinks(context);
     OffersNotifier offersNotifier =
@@ -331,11 +356,13 @@ class _HomeScreenState extends State<HomeScreen>
     // CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     // var cartList = cartNotifier.cartList;
     SubCategoryNotifier subCategoryNotifier = new SubCategoryNotifier();
+    LeafCategoryNotifier leafCategoryNotifier = new LeafCategoryNotifier();
     CartNotifier cartNotifier = new CartNotifier();
     var cartList = cartNotifier.cartList;
     var cartProdID = cartList.map((e) => e.id);
 
     getSubCats(subCategoryNotifier, cartList, cartProdID, cartNotifier);
+    getLeafCats(leafCategoryNotifier, cartList, cartProdID, cartNotifier);
   }
 
   DateTime date;
@@ -367,31 +394,31 @@ class _HomeScreenState extends State<HomeScreen>
 
   void showPlacePicker() async {
     //TODO: Place Picker
-    result = await Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) =>
-            PlacePicker("AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw")));
-    setState(() {
-      currentLocationAddress = result.formattedAddress;
-    });
-    // Handle the result in your way
-    print(currentLocationAddress);
+    // result = await Navigator.of(context).push(MaterialPageRoute(
+    //     builder: (context) =>
+    //         PlacePicker("AIzaSyAXFXYI7PBgP9KRqFHp19_eSg-vVQU-CRw")));
+    // setState(() {
+    //   currentLocationAddress = result.formattedAddress;
+    // });
+    // // Handle the result in your way
+    // print(currentLocationAddress);
   }
 
   getUserCurrentLocation() async {
     String error;
 
     try {
-      Position position = await Geolocator()
-          .getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
-      final coordinates = Coordinates(position.latitude, position.longitude);
-      var addresses =
-          await Geocoder.local.findAddressesFromCoordinates(coordinates);
-      var first = addresses.first;
-      // print("${first.featureName} : ${first.addressLine}");
-
-      setState(() {
-        currentLocationAddress = '${first.subLocality}, ${first.locality}';
-      });
+      // Position position = await Geolocator()
+      //     .getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
+      // final coordinates = Coordinates(position.latitude, position.longitude);
+      // var addresses =
+      //     await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      // var first = addresses.first;
+      // // print("${first.featureName} : ${first.addressLine}");
+      //
+      // setState(() {
+      //   currentLocationAddress = '${first.subLocality}, ${first.locality}';
+      // });
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {
         Navigator.pop(context);
@@ -689,8 +716,8 @@ class _HomeScreenState extends State<HomeScreen>
                   fontWeight: FontWeight.bold),
             ),
           ),
-          drawer: CustomDrawer(
-              user != null ? user : getProfile(), prods.toList(), subCats),
+          drawer: CustomDrawer(user != null ? user : getProfile(),
+              prods.toList(), subCats, leafCats),
           floatingActionButton: CustomFloatingButton(
               CurrentScreen(currentScreen: HomeScreen(), tab_no: 0)),
           key: _scaffoldKey,
@@ -1230,7 +1257,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Container(
                           child: CarouselSlider(
                             options: CarouselOptions(
-                              height: 90.0,
+                              height: 80.0,
                               autoPlay: true,
                               enableInfiniteScroll: false,
                               initialPage: 0,
@@ -1272,9 +1299,11 @@ class _HomeScreenState extends State<HomeScreen>
                         Builder(
                           builder: (BuildContext context) {
                             // Iterable<ProdProducts> newP = prods;
+
                             var _prods = prods
                                 .where((element) =>
-                                    element.category['name'] == 'Chicken')
+                                    element.category['name'] ==
+                                    'Poultry & Chicken')
                                 .toList();
 
                             return prods.length == 0
@@ -1368,7 +1397,8 @@ class _HomeScreenState extends State<HomeScreen>
                                           cartProdID: cartProdID,
                                           categoryId: cats
                                               .where((element) =>
-                                                  element.name == 'Chicken')
+                                                  element.name ==
+                                                  'Poultry & Chicken')
                                               .first
                                               .id,
                                         ),
@@ -1501,7 +1531,9 @@ class _HomeScreenState extends State<HomeScreen>
                             // Iterable<ProdProducts> newP = prods;
                             var _prods = prods
                                 .where((element) =>
-                                    element.category['name'] == 'Eggs')
+                                    element.subCategory != null &&
+                                    element.subCategory['name'] ==
+                                        'Country Eggs')
                                 .toList();
 
                             return prods.length == 0

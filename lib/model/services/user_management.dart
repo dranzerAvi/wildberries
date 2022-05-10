@@ -5,6 +5,7 @@ import 'dart:io';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
 import 'package:wildberries/credentials.dart';
@@ -284,21 +285,34 @@ updateCard(
 }
 
 saveDeviceToken() async {
-  // final db = FirebaseFirestore.instance;
-  // final _fcm = FirebaseMessaging();
-  //
-  // final uEmail = await AuthService().getCurrentEmail();
-  //
-  // //Getting device token
-  // String fcmToken = await _fcm.getToken();
-  //
-  // //Storing token
-  // if (fcmToken != null) {
-  //   await db.collection("userToken").doc(uEmail).set({
-  //     'userEmail': uEmail,
-  //     'token': fcmToken,
-  //     'createdAt': FieldValue.serverTimestamp(),
-  //     'platform': Platform.operatingSystem,
-  //   });
-  // }
+  final _fcm = FirebaseMessaging();
+  String uid;
+  Preference<String> addressesString =
+      preferences.getString('user', defaultValue: '');
+  addressesString.listen((value) {
+    if (value != '') {
+      UserDataProfile user = UserDataProfile.fromMap(json.decode(value));
+      uid = user.id;
+    }
+  });
+
+  //Getting device token
+  String fcmToken = await _fcm.getToken();
+  print("FCM Token $fcmToken");
+  //Storing token
+  if (fcmToken != null) {
+    var url =
+        Uri.parse('https://wild-grocery.herokuapp.com/api/user/details/$uid');
+    String encodedOrderData = json.encode({"fcmtoken": fcmToken});
+
+    var response = await http.put(url,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: encodedOrderData);
+
+    var data = json.decode(response.body);
+    print(data);
+  }
 }
